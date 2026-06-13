@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "PacMonk",
+    "slug": "pacmonk",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F8F9FA",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F8A3C"
+    },
+    "platforms": ["ios", "android", "web"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.pacmonk.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow PacMonk to access your photos for artwork upload.",
+        "NSCameraUsageDescription": "Allow PacMonk to use the camera for logo capture."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F8A3C"
+      },
+      "package": "com.pacmonk.app",
+      "statusBarColor": "#FFFFFF",
+      "statusBarStyle": "dark-content"
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png",
+      "name": "PacMonk — B2B Packaging Platform",
+      "shortName": "PacMonk",
+      "output": "single"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow PacMonk to access your photos for logo and artwork upload.",
+          "cameraPermission": "Allow PacMonk to use the camera for logo capture."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "pacmonk-b2b-packaging"
+      }
+    }
+  }
+}

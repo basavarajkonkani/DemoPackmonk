@@ -1,0 +1,277 @@
+import React, { useState } from 'react';
+import { ScrollView, View, Alert, Platform, Modal, TextInput } from 'react-native';
+import styled from 'styled-components/native';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useAppDispatch, useAppSelector } from '../store';
+import { clearCart, selectCartTotal } from '../store/cartSlice';
+import { placeOrder } from '../store/ordersSlice';
+import { GST_RATE, DEFAULT_SHIPPING_FEE } from '../constants';
+
+const PAYMENT_METHODS = [
+  { id: 'upi', label: 'UPI / QR', icon: 'qrcode' },
+  { id: 'bank', label: 'Bank Transfer', icon: 'university' },
+  { id: 'credit', label: 'Credit Terms (For Existing Customers)', icon: 'handshake' },
+];
+
+const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
+  const cartItems = useAppSelector((s) => s.cart.items);
+  const subtotal = useAppSelector(selectCartTotal);
+  const setupFees = cartItems.reduce((s, i) => s + i.setupFee, 0);
+  const shipping = DEFAULT_SHIPPING_FEE;
+  const gst = Number(((subtotal + setupFees + shipping) * GST_RATE).toFixed(2));
+  const total = Number((subtotal + setupFees + shipping + gst).toFixed(2));
+
+  const [payment, setPayment] = useState('upi');
+  const [company, setCompany] = useState('Work');
+  const [street, setStreet] = useState('No.12, 2nd Cross, Peenaya Industrial Area,\nBangalore – 560058, Karnataka');
+  const [gstNumber, setGstNumber] = useState('29ABCDE1234F1Z5');
+  const [gstChange, setGstChange] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [editCompany, setEditCompany] = useState(company);
+  const [editStreet, setEditStreet] = useState(street);
+  const [editGst, setEditGst] = useState(gstNumber);
+
+  const handlePlaceOrder = () => {
+    if (!company.trim()) { Alert.alert('Missing', 'Enter company / address name.'); return; }
+    if (cartItems.length === 0) { Alert.alert('Empty Cart', 'Add items to cart first.'); return; }
+    if (!gstNumber.trim()) { Alert.alert('Missing', 'Please enter a valid GST number.'); return; }
+
+    const orderId = `PCH${Math.floor(1000 + Math.random() * 9000)}`;
+    const order = {
+      id: orderId,
+      date: new Date().toISOString(),
+      status: 'pending_review' as const,
+      subtotal, setupFees, shipping, tax: gst, total,
+      estimatedDelivery: new Date(Date.now() + 15 * 86400000)
+        .toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
+      shippingAddress: { company, street, city: 'Bangalore', state: 'Karnataka', zip: '560058', country: 'India' },
+      trackingNumber: null,
+      milestones: [
+        { status: 'pending_review' as const, label: 'Order Confirmed', description: 'Order received.', timestamp: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }), isCompleted: true },
+        { status: 'artwork_approved' as const, label: 'Artwork Approved', description: 'Artwork being reviewed.', timestamp: null, isCompleted: false },
+        { status: 'in_production' as const, label: 'Production Started', description: 'Printing in progress.', timestamp: null, isCompleted: false },
+        { status: 'quality_check' as const, label: 'Printing', description: 'QC inspection.', timestamp: null, isCompleted: false },
+        { status: 'shipped' as const, label: 'Dispatched', description: 'Handed to courier.', timestamp: null, isCompleted: false },
+        { status: 'delivered' as const, label: 'Delivered', description: 'Delivered.', timestamp: null, isCompleted: false },
+      ],
+      items: [...cartItems],
+    };
+    dispatch(placeOrder(order));
+    dispatch(clearCart());
+    navigation.replace('OrderPlaced', { orderId });
+  };
+
+  return (
+    <Container>
+      <NavBar>
+        <NavBtn onPress={() => navigation.goBack()}>
+          <FontAwesome5 name="arrow-left" size={16} color="#111827" />
+        </NavBtn>
+        <NavTitle>Checkout</NavTitle>
+        <View style={{ width: 36 }} />
+      </NavBar>
+
+      {/* Address Edit Modal */}
+      <Modal visible={showAddressModal} animationType="slide" transparent>
+        <ModalOverlay>
+          <ModalSheet>
+            <ModalHeader>
+              <ModalTitle>Edit Delivery Address</ModalTitle>
+              <ModalCloseBtn onPress={() => setShowAddressModal(false)}>
+                <FontAwesome5 name="times" size={16} color="#6B7280" />
+              </ModalCloseBtn>
+            </ModalHeader>
+            <ModalLabel>Company / Name</ModalLabel>
+            <ModalInput
+              value={editCompany}
+              onChangeText={setEditCompany}
+              placeholder="Company name"
+              placeholderTextColor="#D1D5DB"
+            />
+            <ModalLabel>Street Address</ModalLabel>
+            <ModalInput
+              value={editStreet}
+              onChangeText={setEditStreet}
+              placeholder="Street, city, state, ZIP"
+              placeholderTextColor="#D1D5DB"
+              multiline
+              numberOfLines={3}
+              style={{ height: 80, textAlignVertical: 'top', paddingTop: 10 }}
+            />
+            <ModalLabel>GST Number</ModalLabel>
+            <ModalInput
+              value={editGst}
+              onChangeText={setEditGst}
+              placeholder="e.g. 29ABCDE1234F1Z5"
+              placeholderTextColor="#D1D5DB"
+              autoCapitalize="characters"
+              maxLength={15}
+            />
+            <ModalSaveBtn onPress={() => {
+              if (!editCompany.trim()) { Alert.alert('Missing', 'Enter company name.'); return; }
+              setCompany(editCompany);
+              setStreet(editStreet);
+              setGstNumber(editGst);
+              setShowAddressModal(false);
+            }} activeOpacity={0.9}>
+              <ModalSaveBtnText>Save Address</ModalSaveBtnText>
+            </ModalSaveBtn>
+          </ModalSheet>
+        </ModalOverlay>
+      </Modal>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 140 }}>
+
+        {/* Delivery Address */}
+        <SectionCard>
+          <SectionHeader>
+            <SectionTitle>Delivery Address</SectionTitle>
+            <ChangeBtn onPress={() => {
+              setEditCompany(company);
+              setEditStreet(street);
+              setEditGst(gstNumber);
+              setShowAddressModal(true);
+            }} activeOpacity={0.8}>
+              <ChangeBtnText>Change</ChangeBtnText>
+            </ChangeBtn>
+          </SectionHeader>
+          <AddressName>{company}</AddressName>
+          <AddressLine>{street}</AddressLine>
+        </SectionCard>
+
+        {/* GST Details */}
+        <SectionCard>
+          <SectionHeader>
+            <SectionTitle>GST Details</SectionTitle>
+            <ChangeBtn onPress={() => {
+              setEditCompany(company);
+              setEditStreet(street);
+              setEditGst(gstNumber);
+              setShowAddressModal(true);
+            }} activeOpacity={0.8}>
+              <ChangeBtnText>Change</ChangeBtnText>
+            </ChangeBtn>
+          </SectionHeader>
+          <GSTRow>
+            <GSTKey>GST Number</GSTKey>
+            <GSTVal>{gstNumber || 'Not set'}</GSTVal>
+          </GSTRow>
+        </SectionCard>
+
+        {/* Payment Method */}
+        <SectionCard>
+          <SectionTitle style={{ marginBottom: 14 }}>Payment Method</SectionTitle>
+          {PAYMENT_METHODS.map((pm) => (
+            <PayOption
+              key={pm.id}
+              active={payment === pm.id}
+              onPress={() => setPayment(pm.id)}
+              activeOpacity={0.85}
+            >
+              <RadioOuter active={payment === pm.id}>
+                {payment === pm.id && <RadioInner />}
+              </RadioOuter>
+              <PayLabel>{pm.label}</PayLabel>
+            </PayOption>
+          ))}
+        </SectionCard>
+
+      </ScrollView>
+
+      {/* Place Order */}
+      <BottomBar>
+        <PlaceOrderBtn onPress={handlePlaceOrder} activeOpacity={0.9}>
+          <PlaceOrderText>Place Order</PlaceOrderText>
+        </PlaceOrderBtn>
+      </BottomBar>
+    </Container>
+  );
+};
+
+export default CheckoutScreen;
+
+const Container = styled.View`flex: 1; background-color: #F8F9FA;`;
+
+const NavBar = styled.View`
+  height: ${Platform.OS === 'ios' ? '94px' : '56px'};
+  padding-top: ${Platform.OS === 'ios' ? '48px' : '0px'};
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding-horizontal: 16px; background-color: #FFFFFF;
+  border-bottom-width: 1px; border-bottom-color: #E5E7EB;
+`;
+const NavBtn = styled.TouchableOpacity`
+  width: 36px; height: 36px; border-radius: 10px;
+  background-color: #F9FAFB; align-items: center; justify-content: center;
+  border-width: 1px; border-color: #E5E7EB;
+`;
+const NavTitle = styled.Text`font-size: 17px; font-weight: 700; color: #111827;`;
+
+const SectionCard = styled.View`
+  background-color: #FFFFFF; border-radius: 14px; padding: 16px;
+  border-width: 1px; border-color: #E5E7EB; margin-bottom: 12px;
+`;
+const SectionHeader = styled.View`flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 10px;`;
+const SectionTitle = styled.Text`font-size: 15px; font-weight: 700; color: #111827;`;
+const ChangeBtn = styled.TouchableOpacity``;
+const ChangeBtnText = styled.Text`font-size: 13px; font-weight: 600; color: #0F8A3C;`;
+
+const AddressName = styled.Text`font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 4px;`;
+const AddressLine = styled.Text`font-size: 13px; color: #6B7280; line-height: 20px;`;
+
+const GSTRow = styled.View``;
+const GSTKey = styled.Text`font-size: 12px; color: #9CA3AF; margin-bottom: 3px;`;
+const GSTVal = styled.Text`font-size: 14px; font-weight: 600; color: #374151;`;
+
+const PayOption = styled.TouchableOpacity<{ active: boolean }>`
+  flex-direction: row; align-items: center; padding: 12px 0;
+  border-bottom-width: 1px; border-bottom-color: #F3F4F6;
+`;
+const RadioOuter = styled.View<{ active: boolean }>`
+  width: 20px; height: 20px; border-radius: 10px; border-width: 2px;
+  border-color: ${({ active }) => active ? '#0F8A3C' : '#D1D5DB'};
+  align-items: center; justify-content: center; margin-right: 12px;
+`;
+const RadioInner = styled.View`
+  width: 8px; height: 8px; border-radius: 4px; background-color: #0F8A3C;
+`;
+const PayLabel = styled.Text`font-size: 14px; color: #374151; font-weight: 500;`;
+
+const BottomBar = styled.View`
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 12px 16px ${Platform.OS === 'ios' ? '36px' : '20px'};
+  background-color: #FFFFFF; border-top-width: 1px; border-top-color: #E5E7EB;
+`;
+const PlaceOrderBtn = styled.TouchableOpacity`
+  height: 52px; background-color: #0F8A3C; border-radius: 14px;
+  align-items: center; justify-content: center;
+`;
+const PlaceOrderText = styled.Text`font-size: 16px; font-weight: 700; color: #FFFFFF;`;
+
+/* Address Edit Modal */
+const ModalOverlay = styled.View`
+  flex: 1; background-color: rgba(0,0,0,0.5); justify-content: flex-end;
+`;
+const ModalSheet = styled.View`
+  background-color: #FFFFFF; border-top-left-radius: 24px; border-top-right-radius: 24px;
+  padding: 20px 20px ${Platform.OS === 'ios' ? '40px' : '24px'};
+`;
+const ModalHeader = styled.View`
+  flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 18px;
+`;
+const ModalTitle = styled.Text`font-size: 17px; font-weight: 700; color: #111827;`;
+const ModalCloseBtn = styled.TouchableOpacity`
+  width: 32px; height: 32px; border-radius: 10px;
+  background-color: #F3F4F6; align-items: center; justify-content: center;
+`;
+const ModalLabel = styled.Text`font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px;`;
+const ModalInput = styled.TextInput`
+  border-width: 1.5px; border-color: #E5E7EB; border-radius: 12px;
+  padding-horizontal: 14px; height: 46px; font-size: 14px; color: #111827;
+  background-color: #F9FAFB; margin-bottom: 14px;
+`;
+const ModalSaveBtn = styled.TouchableOpacity`
+  height: 52px; background-color: #0F8A3C; border-radius: 14px;
+  align-items: center; justify-content: center; margin-top: 4px;
+`;
+const ModalSaveBtnText = styled.Text`font-size: 15px; font-weight: 700; color: #FFFFFF;`;
