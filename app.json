@@ -10,7 +10,11 @@
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF"
     },
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.pacmonk.app",
@@ -37,7 +41,8 @@
           "photosPermission": "Allow PacMonk to access your photos for logo and artwork upload.",
           "cameraPermission": "Allow PacMonk to use the camera for logo capture."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {
