@@ -5,8 +5,8 @@ import { useAppSelector, useAppDispatch } from '../store';
 import { selectProductsList, selectProduct } from '../store/productsSlice';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
-import CartModal from '../components/CartModal';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { IMAGES, POUCH_TYPE_IMAGES } from '../constants/images';
 
 type CategoryFilter = 'all' | 'pouch' | 'box' | 'mailer' | 'bag' | 'tape';
 
@@ -25,26 +25,20 @@ const POUCH_TYPES = [
     key: 'plain',
     label: 'Plain Pouches',
     subtitle: 'No Printing',
-    icon: 'shopping-bag',
-    iconBg: '#F3F4F6',
-    iconColor: '#6B7280',
+    image: POUCH_TYPE_IMAGES.plain,
   },
   {
     key: 'printed',
     label: 'Printed Pouches',
     subtitle: 'Custom Printing',
-    icon: 'print',
-    iconBg: '#DCFCE7',
-    iconColor: '#0F8A3C',
+    image: POUCH_TYPE_IMAGES.printed,
     recommended: true,
   },
   {
     key: 'kraft',
     label: 'Kraft Pouches',
     subtitle: 'Natural & Premium Look',
-    icon: 'leaf',
-    iconBg: '#FEF3C7',
-    iconColor: '#D97706',
+    image: POUCH_TYPE_IMAGES.kraft,
   },
 ];
 
@@ -56,7 +50,6 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [selectedCat, setSelectedCat] = useState<CategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('Popular');
-  const [cartVisible, setCartVisible] = useState(false);
 
   const handleSelectProduct = (productId: string) => {
     navigation.navigate('ProductDetail', { productId });
@@ -89,7 +82,7 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <Container>
-      <Header onCartPress={() => setCartVisible(true)} navigation={navigation} />
+      <Header navigation={navigation} />
 
       {/* Search + Filter */}
       <SearchBar>
@@ -125,18 +118,17 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
       {/* Pouch configurator shortcut — shown when Pouches tab is active */}
       {selectedCat === 'pouch' && (
-        <PouchBanner>
-          <PouchBannerLeft>
-            <FontAwesome5 name="magic" size={18} color="#0F8A3C" style={{ marginRight: 12 }} />
-            <PouchBannerBody>
-              <PouchBannerTitle>Configure Your Pouch</PouchBannerTitle>
-              <PouchBannerDesc>Step-by-step: type → window → material → capacity → order</PouchBannerDesc>
-            </PouchBannerBody>
-          </PouchBannerLeft>
-          <PouchBannerBtn onPress={handlePouchTypeSelect} activeOpacity={0.9}>
-            <PouchBannerBtnText>Start</PouchBannerBtnText>
-            <FontAwesome5 name="arrow-right" size={11} color="#FFF" style={{ marginLeft: 5 }} />
-          </PouchBannerBtn>
+        <PouchBanner onPress={handlePouchTypeSelect} activeOpacity={0.92}>
+          <PouchBannerImage source={IMAGES.batterPouch} resizeMode="cover" />
+          <PouchBannerOverlay />
+          <PouchBannerContent>
+            <PouchBannerTitle>Configure Your Pouch</PouchBannerTitle>
+            <PouchBannerDesc>Type → window → material → capacity → order</PouchBannerDesc>
+            <PouchBannerBtn>
+              <PouchBannerBtnText>Start</PouchBannerBtnText>
+              <FontAwesome5 name="arrow-right" size={11} color="#FFF" style={{ marginLeft: 5 }} />
+            </PouchBannerBtn>
+          </PouchBannerContent>
         </PouchBanner>
       )}
 
@@ -150,8 +142,8 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               onPress={handlePouchTypeSelect}
               activeOpacity={0.85}
             >
-              <PouchTypeIconWrap bgColor={pt.iconBg}>
-                <FontAwesome5 name={pt.icon as any} size={24} color={pt.iconColor} />
+              <PouchTypeIconWrap>
+                <PouchTypeImg source={pt.image} resizeMode="contain" />
               </PouchTypeIconWrap>
               <PouchTypeBody>
                 <PouchTypeLabel>{pt.label}</PouchTypeLabel>
@@ -205,13 +197,6 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           )}
         </ProductList>
       )}
-
-      <CartModal
-        visible={cartVisible}
-        onClose={() => setCartVisible(false)}
-        onCheckoutSuccess={() => navigation.navigate('Checkout')}
-        navigation={navigation}
-      />
     </Container>
   );
 };
@@ -253,20 +238,26 @@ const ChipText = styled.Text<{ active: boolean }>`
 `;
 
 // ── Pouch banner & type cards ───────────────────────────────────────────────
-const PouchBanner = styled.View`
-  flex-direction: row; align-items: center; margin: 12px 16px 8px;
-  background-color: #F0FDF4; border-radius: 16px; padding: 14px 16px;
-  border-width: 1px; border-color: #BBF7D0;
+const PouchBanner = styled.TouchableOpacity`
+  margin: 12px 16px 8px; border-radius: 16px; overflow: hidden; height: 120px;
 `;
-const PouchBannerLeft = styled.View`flex-direction: row; align-items: center; flex: 1;`;
-const PouchBannerBody = styled.View`flex: 1;`;
-const PouchBannerTitle = styled.Text`font-size: 14px; font-weight: 700; color: #0F8A3C; margin-bottom: 2px;`;
-const PouchBannerDesc = styled.Text`font-size: 11px; color: #6B7280; line-height: 16px;`;
-const PouchBannerBtn = styled.TouchableOpacity`
-  flex-direction: row; align-items: center; background-color: #0F8A3C;
-  padding: 8px 14px; border-radius: 10px; margin-left: 8px;
+const PouchBannerImage = styled.Image`
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%;
 `;
-const PouchBannerBtnText = styled.Text`font-size: 13px; font-weight: 700; color: #FFFFFF;`;
+const PouchBannerOverlay = styled.View`
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(15, 138, 60, 0.82);
+`;
+const PouchBannerContent = styled.View`
+  flex: 1; justify-content: center; padding: 18px 20px;
+`;
+const PouchBannerTitle = styled.Text`font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 4px;`;
+const PouchBannerDesc = styled.Text`font-size: 12px; color: rgba(255,255,255,0.88); margin-bottom: 12px;`;
+const PouchBannerBtn = styled.View`
+  flex-direction: row; align-items: center; align-self: flex-start;
+  background-color: #ffffff; padding: 8px 14px; border-radius: 10px;
+`;
+const PouchBannerBtnText = styled.Text`font-size: 13px; font-weight: 700; color: #0f8a3c;`;
 
 const PouchTypeSection = styled.ScrollView`flex: 1;`;
 const PouchTypeSectionTitle = styled.Text`
@@ -279,11 +270,12 @@ const PouchTypeCard = styled.TouchableOpacity`
   background-color: #FFFFFF; border-radius: 16px; margin: 0 16px 10px;
   padding: 16px; border-width: 1px; border-color: #F3F4F6;
 `;
-const PouchTypeIconWrap = styled.View<{ bgColor: string }>`
-  width: 52px; height: 52px; border-radius: 16px;
-  background-color: ${({ bgColor }) => bgColor};
-  align-items: center; justify-content: center; margin-right: 14px;
+const PouchTypeIconWrap = styled.View`
+  width: 52px; height: 52px; border-radius: 14px;
+  background-color: #f9fafb; align-items: center; justify-content: center;
+  margin-right: 14px; overflow: hidden;
 `;
+const PouchTypeImg = styled.Image`width: 44px; height: 44px;`;
 const PouchTypeBody = styled.View`flex: 1;`;
 const PouchTypeLabel = styled.Text`font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 3px;`;
 const PouchTypeSubtitle = styled.Text`font-size: 12px; color: #9CA3AF;`;

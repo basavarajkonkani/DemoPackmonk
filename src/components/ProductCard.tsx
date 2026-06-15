@@ -3,12 +3,7 @@ import { TouchableOpacity, Image } from 'react-native';
 import styled from 'styled-components/native';
 import { PackagingProduct } from '../store/productsSlice';
 import { FontAwesome5 } from '@expo/vector-icons';
-
-// Local product images
-const IMG_BATTER_POUCH  = require('../../assets/batter-pouch.jpg.jpeg');
-const IMG_CENTER_SEAL   = require('../../assets/center-seal-pouch.jpg.jpeg');
-const IMG_BANNER_DESIGN = require('../../assets/banner-design.jpg.jpeg');
-const IMG_BANNER_PRINT  = require('../../assets/banner-for-custom-print.jpg.jpeg');
+import { IMAGES } from '../constants/images';
 
 interface ProductCardProps {
   product: PackagingProduct;
@@ -17,11 +12,11 @@ interface ProductCardProps {
 
 const getCategoryConfig = (cat: string) => {
   switch (cat) {
-    case 'box': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'box-open', img: IMG_BANNER_PRINT };
-    case 'mailer': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'mail-bulk', img: IMG_BANNER_DESIGN };
-    case 'bag': return { bg: '#FEF3C7', iconColor: '#D97706', icon: 'shopping-bag', img: IMG_BATTER_POUCH };
-    case 'tape': return { bg: '#F3E8FF', iconColor: '#7C3AED', icon: 'tape', img: IMG_CENTER_SEAL };
-    default: return { bg: '#F3F4F6', iconColor: '#6B7280', icon: 'box', img: IMG_BATTER_POUCH };
+    case 'box': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'box-open', img: IMAGES.bannerPrint };
+    case 'mailer': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'mail-bulk', img: IMAGES.bannerDesign };
+    case 'bag': return { bg: '#FEF3C7', iconColor: '#D97706', icon: 'shopping-bag', img: IMAGES.batterPouch };
+    case 'tape': return { bg: '#F3E8FF', iconColor: '#7C3AED', icon: 'tape', img: IMAGES.centerSealPouch };
+    default: return { bg: '#F3F4F6', iconColor: '#6B7280', icon: 'box', img: IMAGES.standupPouch };
   }
 };
 
@@ -70,7 +65,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onPress }) => {
         <Footer>
           <PriceSection>
             <PriceFrom>Starting at</PriceFrom>
-            <PriceVal>${product.basePrice.toFixed(2)}<PriceUnit>/unit</PriceUnit></PriceVal>
+            <PriceVal>₹{product.basePrice.toFixed(2)}<PriceUnit>/unit</PriceUnit></PriceVal>
           </PriceSection>
           <ConfigBtn onPress={onPress} activeOpacity={0.85}>
             <ConfigBtnText>Configure</ConfigBtnText>

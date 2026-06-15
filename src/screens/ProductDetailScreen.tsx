@@ -5,6 +5,12 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../store';
 import { selectProduct } from '../store/productsSlice';
 import { calculateItemPrice } from '../store/cartSlice';
+import { QUANTITY_OPTIONS } from '../constants';
+import {
+  quantityValidator,
+  DEFAULT_QUANTITY_OPTIONS,
+  applyQuantityValidationResult,
+} from '../utils/quantityValidator';
 
 const SIZE_OPTIONS = [
   { key: 'S', label: 'Small', factor: 0.7 },
@@ -30,9 +36,14 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const product = products.find((p) => p.id === productId);
 
   const [selectedSize, setSelectedSize] = useState('M');
-  const [quantity, setQuantity] = useState(product?.minQuantity ?? 100);
+  const [quantity, setQuantity] = useState(100);
   const [favorited, setFavorited] = useState(false);
   const [activeTab, setActiveTab] = useState<'specs' | 'reviews'>('specs');
+
+  const handleQuantitySelect = (qty: number) => {
+    const result = quantityValidator.validateQuantityInput(qty, DEFAULT_QUANTITY_OPTIONS);
+    applyQuantityValidationResult(result, setQuantity);
+  };
 
   if (!product) {
     return (
@@ -138,7 +149,7 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           <MetricsRow>
             <MetricBlock>
               <MetricLabel>Unit Price</MetricLabel>
-              <MetricValue>${product.basePrice.toFixed(2)}<MetricUnit>/unit</MetricUnit></MetricValue>
+              <MetricValue>₹{product.basePrice.toFixed(2)}<MetricUnit>/unit</MetricUnit></MetricValue>
             </MetricBlock>
             <MetricDivider />
             <MetricBlock>
@@ -169,15 +180,18 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           {/* Quantity */}
           <SectionLabel>Quantity</SectionLabel>
           <QtyRow>
-            <QtyBtn onPress={() => setQuantity(Math.max(product.minQuantity, quantity - (product.category === 'tape' ? 10 : 50)))}>
-              <FontAwesome5 name="minus" size={12} color="#374151" />
-            </QtyBtn>
-            <QtyValue>{quantity}</QtyValue>
-            <QtyBtn onPress={() => setQuantity(quantity + (product.category === 'tape' ? 10 : 50))}>
-              <FontAwesome5 name="plus" size={12} color="#374151" />
-            </QtyBtn>
-            <QtyTotal>= ${totalPrice.toFixed(2)} total</QtyTotal>
+            {QUANTITY_OPTIONS.map((qty) => (
+              <QtyOption
+                key={qty}
+                active={quantity === qty}
+                onPress={() => handleQuantitySelect(qty)}
+                activeOpacity={0.8}
+              >
+                <QtyOptionText active={quantity === qty}>{qty}</QtyOptionText>
+              </QtyOption>
+            ))}
           </QtyRow>
+          <QtyTotal>Total: ₹{totalPrice.toFixed(2)}</QtyTotal>
 
           {/* Tabs */}
           <TabContainer>
@@ -373,19 +387,22 @@ const SizeSubLabel = styled.Text<{ active: boolean }>`
 `;
 
 const QtyRow = styled.View`
-  flex-direction: row; align-items: center;
-  background-color: #F9FAFB; border-radius: 14px; padding: 10px 14px;
-  border-width: 1px; border-color: #F3F4F6; margin-bottom: 22px;
+  flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 12px;
 `;
-const QtyBtn = styled.TouchableOpacity`
-  width: 34px; height: 34px; border-radius: 10px;
-  background-color: #FFFFFF; border-width: 1px; border-color: #E5E7EB;
-  align-items: center; justify-content: center;
+const QtyOption = styled.TouchableOpacity<{ active: boolean }>`
+  padding: 10px 16px; border-radius: 10px;
+  background-color: ${({ active }) => active ? '#0F8A3C' : '#FFFFFF'};
+  border-width: 1px;
+  border-color: ${({ active }) => active ? '#0F8A3C' : '#E5E7EB'};
 `;
-const QtyValue = styled.Text`
-  font-size: 17px; font-weight: 700; color: #111827; padding-horizontal: 20px;
+const QtyOptionText = styled.Text<{ active: boolean }>`
+  font-size: 14px; font-weight: 600;
+  color: ${({ active }) => active ? '#FFFFFF' : '#374151'};
 `;
-const QtyTotal = styled.Text`flex: 1; text-align: right; font-size: 14px; font-weight: 700; color: #0F8A3C;`;
+const QtyTotal = styled.Text`
+  font-size: 14px; font-weight: 700; color: #0F8A3C; margin-bottom: 22px;
+`;
 
 const TabContainer = styled.View`
   flex-direction: row; background-color: #F3F4F6; border-radius: 14px;

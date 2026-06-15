@@ -4,7 +4,14 @@ import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../store';
 import { removeFromCart, updateQuantity, clearCart, selectCartTotal } from '../store/cartSlice';
+import Header from '../components/Header';
+import { IMAGES, POUCH_TYPE_IMAGES } from '../constants/images';
 import { GST_RATE, DEFAULT_SHIPPING_FEE } from '../constants';
+import {
+  quantityValidator,
+  DEFAULT_QUANTITY_OPTIONS,
+  showQuantityValidationAlert,
+} from '../utils/quantityValidator';
 import {
   POUCH_TYPE_LABELS,
   WINDOW_LABELS,
@@ -24,17 +31,30 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const handleQty = (cartId: string, dir: 'inc' | 'dec', qty: number, productId: string) => {
     const item = cartItems.find((i) => i.cartId === cartId);
+
     if (item?.category === 'pouch') {
-      const step = 500;
-      const minQty = 1000;
-      if (dir === 'dec' && qty <= minQty) {
-        Alert.alert('Minimum Quantity', `Min order is ${minQty} pcs.`, [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Remove', style: 'destructive', onPress: () => dispatch(removeFromCart(cartId)) },
-        ]);
+      const result =
+        dir === 'inc'
+          ? quantityValidator.validateQuantityIncrement(qty, DEFAULT_QUANTITY_OPTIONS)
+          : quantityValidator.validateQuantityDecrement(qty, DEFAULT_QUANTITY_OPTIONS);
+
+      if (!result.isValid) {
+        if (result.alertType === 'min_order') {
+          Alert.alert('Minimum Quantity', result.message ?? 'Minimum quantity reached.', [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Remove', style: 'destructive', onPress: () => dispatch(removeFromCart(cartId)) },
+          ]);
+        } else {
+          showQuantityValidationAlert(result);
+        }
         return;
       }
-      const newQty = dir === 'inc' ? qty + step : qty - step;
+
+      const newQty = result.newQuantity!;
+      if (result.shouldShowAlert) {
+        showQuantityValidationAlert(result);
+      }
+
       if (item.pouchConfig) {
         const updatedConfig = { ...item.pouchConfig, quantity: newQty };
         const newTotal = calculatePouchPrice({
@@ -60,32 +80,81 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
       return;
     }
+
     const product = products.find((p) => p.id === productId);
     if (!product) return;
-    if (dir === 'dec' && qty <= product.minQuantity) {
-      Alert.alert('Minimum Quantity', `Min order is ${product.minQuantity} units.`, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Remove', style: 'destructive', onPress: () => dispatch(removeFromCart(cartId)) },
-      ]);
+
+    const result =
+      dir === 'inc'
+        ? quantityValidator.validateQuantityIncrement(qty, DEFAULT_QUANTITY_OPTIONS)
+        : quantityValidator.validateQuantityDecrement(qty, DEFAULT_QUANTITY_OPTIONS);
+
+    if (!result.isValid) {
+      if (result.alertType === 'min_order') {
+        Alert.alert('Minimum Quantity', result.message ?? 'Minimum quantity reached.', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Remove', style: 'destructive', onPress: () => dispatch(removeFromCart(cartId)) },
+        ]);
+      } else {
+        showQuantityValidationAlert(result);
+      }
       return;
     }
-    const step = product.category === 'tape' ? 5 : 50;
-    dispatch(updateQuantity({ cartId, quantity: dir === 'inc' ? qty + step : qty - step, product }));
+
+    if (result.shouldShowAlert) {
+      showQuantityValidationAlert(result);
+    }
+
+    dispatch(updateQuantity({ cartId, quantity: result.newQuantity!, product }));
   };
 
-  if (cartItems.length === 0) {
-    return (
-      <Container>
+  const showBack = navigation.canGoBack();
+
+  const renderTopBar = (showEdit = false) => (
+    <>
+      {showBack ? (
         <NavBar>
           <NavBtn onPress={() => navigation.goBack()}>
             <FontAwesome5 name="arrow-left" size={16} color="#111827" />
           </NavBtn>
           <NavTitle>My Cart</NavTitle>
-          <View style={{ width: 38 }} />
+          {showEdit ? (
+            <EditBtn onPress={() => Alert.alert('Clear Cart', 'Remove all items?', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Clear All', style: 'destructive', onPress: () => dispatch(clearCart()) },
+            ])}>
+              <EditBtnText>Edit</EditBtnText>
+            </EditBtn>
+          ) : (
+            <View style={{ width: 38 }} />
+          )}
         </NavBar>
+      ) : (
+        <>
+          <Header navigation={navigation} />
+          <CartTitleRow>
+            <CartPageTitle>My Cart</CartPageTitle>
+            {showEdit && (
+              <EditBtn onPress={() => Alert.alert('Clear Cart', 'Remove all items?', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Clear All', style: 'destructive', onPress: () => dispatch(clearCart()) },
+              ])}>
+                <EditBtnText>Clear</EditBtnText>
+              </EditBtn>
+            )}
+          </CartTitleRow>
+        </>
+      )}
+    </>
+  );
+
+  if (cartItems.length === 0) {
+    return (
+      <Container>
+        {renderTopBar(false)}
         <EmptyWrap>
           <EmptyIcon>
-            <FontAwesome5 name="shopping-bag" size={40} color="#9CA3AF" />
+            <EmptyImage source={IMAGES.plainPouch} resizeMode="contain" />
           </EmptyIcon>
           <EmptyTitle>Your cart is empty</EmptyTitle>
           <EmptyDesc>Configure a pouch or browse products to get started.</EmptyDesc>
@@ -99,27 +168,19 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <Container>
-      <NavBar>
-        <NavBtn onPress={() => navigation.goBack()}>
-          <FontAwesome5 name="arrow-left" size={16} color="#111827" />
-        </NavBtn>
-        <NavTitle>My Cart</NavTitle>
-        <EditBtn onPress={() => Alert.alert('Clear Cart', 'Remove all items?', [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Clear All', style: 'destructive', onPress: () => dispatch(clearCart()) },
-        ])}>
-          <EditBtnText>Edit</EditBtnText>
-        </EditBtn>
-      </NavBar>
+      {renderTopBar(true)}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 160 }}>
         {cartItems.map((item) => (
           <ItemCard key={item.cartId}>
             <ItemIconBox>
-              <FontAwesome5
-                name={item.category === 'pouch' ? 'shopping-bag' : 'box-open'}
-                size={24}
-                color="#0F8A3C"
+              <ItemThumb
+                source={
+                  item.category === 'pouch' && item.pouchConfig
+                    ? POUCH_TYPE_IMAGES[item.pouchConfig.pouchType]
+                    : IMAGES.boxes
+                }
+                resizeMode="contain"
               />
             </ItemIconBox>
             <ItemBody>
@@ -151,7 +212,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <FontAwesome5 name="trash-alt" size={14} color="#EF4444" />
               </RemoveBtn>
               <ItemTotal>
-                {item.category === 'pouch' ? `₹${item.totalPrice.toLocaleString()}` : `$${item.totalPrice.toFixed(2)}`}
+                ₹{item.totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </ItemTotal>
             </ItemRight>
           </ItemCard>
@@ -228,11 +289,19 @@ const NavTitle = styled.Text`font-size: 17px; font-weight: 700; color: #111827;`
 const EditBtn = styled.TouchableOpacity`padding: 6px 12px;`;
 const EditBtnText = styled.Text`font-size: 14px; font-weight: 600; color: #0F8A3C;`;
 
+const CartTitleRow = styled.View`
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 4px 16px 12px; background-color: #ffffff;
+`;
+const CartPageTitle = styled.Text`font-size: 20px; font-weight: 800; color: #111827;`;
+
 const EmptyWrap = styled.View`flex: 1; align-items: center; justify-content: center; padding: 40px;`;
 const EmptyIcon = styled.View`
-  width: 80px; height: 80px; border-radius: 24px;
-  background-color: #F3F4F6; align-items: center; justify-content: center; margin-bottom: 20px;
+  width: 96px; height: 96px; border-radius: 20px;
+  background-color: #f3f4f6; align-items: center; justify-content: center;
+  margin-bottom: 20px; overflow: hidden;
 `;
+const EmptyImage = styled.Image`width: 72px; height: 72px;`;
 const EmptyTitle = styled.Text`font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 8px;`;
 const EmptyDesc = styled.Text`font-size: 14px; color: #9CA3AF; text-align: center; line-height: 20px; margin-bottom: 24px;`;
 const BrowseBtn = styled.TouchableOpacity`
@@ -247,8 +316,9 @@ const ItemCard = styled.View`
 `;
 const ItemIconBox = styled.View`
   width: 52px; height: 52px; border-radius: 13px;
-  background-color: #DCFCE7; align-items: center; justify-content: center; margin-right: 12px;
+  background-color: #f9fafb; overflow: hidden; margin-right: 12px;
 `;
+const ItemThumb = styled.Image`width: 52px; height: 52px;`;
 const ItemBody = styled.View`flex: 1;`;
 const ItemName = styled.Text`font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 3px;`;
 const ItemSpec = styled.Text`font-size: 11px; color: #9CA3AF; line-height: 16px; margin-bottom: 8px;`;

@@ -6,9 +6,15 @@ import { selectCurrentProduct, clearSelectedProduct } from '../store/productsSli
 import { addToCart, calculateItemPrice } from '../store/cartSlice';
 import Header from '../components/Header';
 import DesignPreview from '../components/DesignPreview';
-import CartModal from '../components/CartModal';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { IMAGES } from '../constants/images';
 import * as ImagePicker from 'expo-image-picker';
+import { QUANTITY_OPTIONS } from '../constants';
+import {
+  quantityValidator,
+  DEFAULT_QUANTITY_OPTIONS,
+  applyQuantityValidationResult,
+} from '../utils/quantityValidator';
 
 const ACTIVE_TABS = ['Design', 'Dieline', '3D Preview'] as const;
 type StudioTab = typeof ACTIVE_TABS[number];
@@ -37,7 +43,6 @@ const TEXT_COLORS = [
 const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const selectedProduct = useAppSelector(selectCurrentProduct);
-  const [cartVisible, setCartVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<StudioTab>('Design');
 
   const [length, setLength] = useState(10);
@@ -72,6 +77,11 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
+  const handleQuantitySelect = (qty: number) => {
+    const result = quantityValidator.validateQuantityInput(qty, DEFAULT_QUANTITY_OPTIONS);
+    applyQuantityValidationResult(result, setQuantity);
+  };
+
   useEffect(() => {
     if (selectedProduct) {
       setLength(selectedProduct.dimensions.length);
@@ -90,10 +100,10 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   if (!selectedProduct) {
     return (
       <Container>
-        <Header onCartPress={() => setCartVisible(true)} navigation={navigation} />
+        <Header navigation={navigation} />
         <EmptyWrap>
           <EmptyIconWrap>
-            <FontAwesome5 name="drafting-compass" size={40} color="#7C3AED" />
+            <EmptyHeroImage source={IMAGES.bannerDesign} resizeMode="cover" />
           </EmptyIconWrap>
           <EmptyTitle>Design Studio</EmptyTitle>
           <EmptyDesc>Select a product from the catalog to start customizing your packaging design.</EmptyDesc>
@@ -121,7 +131,6 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             ))}
           </FeatureGrid>
         </EmptyWrap>
-        <CartModal visible={cartVisible} onClose={() => setCartVisible(false)} onCheckoutSuccess={() => navigation.navigate('Checkout')} navigation={navigation} />
       </Container>
     );
   }
@@ -170,7 +179,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <Container>
-      <Header onCartPress={() => setCartVisible(true)} navigation={navigation} />
+      <Header navigation={navigation} />
 
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
 
@@ -412,19 +421,16 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               </SectionCardHeader>
 
               <QtyRow>
-                <LargeStepBtn
-                  onPress={() => setQuantity(Math.max(selectedProduct.minQuantity, quantity - (selectedProduct.category === 'tape' ? 10 : 50)))}
-                  disabled={quantity <= selectedProduct.minQuantity}
-                >
-                  <FontAwesome5 name="minus" size={14} color={quantity <= selectedProduct.minQuantity ? '#D1D5DB' : '#374151'} />
-                </LargeStepBtn>
-                <QtyDisplay>
-                  <QtyNum>{quantity}</QtyNum>
-                  <QtyUnit>units</QtyUnit>
-                </QtyDisplay>
-                <LargeStepBtn onPress={() => setQuantity(quantity + (selectedProduct.category === 'tape' ? 10 : 50))}>
-                  <FontAwesome5 name="plus" size={14} color="#374151" />
-                </LargeStepBtn>
+                {QUANTITY_OPTIONS.map((qty) => (
+                  <QtyOption
+                    key={qty}
+                    active={quantity === qty}
+                    onPress={() => handleQuantitySelect(qty)}
+                    activeOpacity={0.8}
+                  >
+                    <QtyOptionText active={quantity === qty}>{qty}</QtyOptionText>
+                  </QtyOption>
+                ))}
               </QtyRow>
 
               {/* Discount tiers */}
@@ -447,7 +453,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
               <QuoteLine>
                 <QuoteKey>Base unit cost</QuoteKey>
-                <QuoteVal>${selectedProduct.basePrice.toFixed(2)}</QuoteVal>
+                <QuoteVal>₹{selectedProduct.basePrice.toFixed(2)}</QuoteVal>
               </QuoteLine>
               {currentMaterial && (
                 <QuoteLine>
@@ -457,7 +463,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               )}
               <QuoteLine>
                 <QuoteKey>Print plate setup</QuoteKey>
-                <QuoteVal>{setupFee > 0 ? `$${setupFee.toFixed(2)} + $0.18/unit` : 'Free'}</QuoteVal>
+                <QuoteVal>{setupFee > 0 ? `₹${setupFee.toFixed(2)} + ₹0.18/unit` : 'Free'}</QuoteVal>
               </QuoteLine>
               {activeDiscount && (
                 <QuoteLine>
@@ -470,12 +476,12 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
               <QuoteUnitRow>
                 <QuoteUnitLabel>Net unit cost</QuoteUnitLabel>
-                <QuoteUnitVal>${unitPrice.toFixed(2)}</QuoteUnitVal>
+                <QuoteUnitVal>₹{unitPrice.toFixed(2)}</QuoteUnitVal>
               </QuoteUnitRow>
 
               <QuoteTotalRow>
                 <QuoteTotalLabel>Total estimate</QuoteTotalLabel>
-                <QuoteTotalVal>${totalPrice.toFixed(2)}</QuoteTotalVal>
+                <QuoteTotalVal>₹{totalPrice.toFixed(2)}</QuoteTotalVal>
               </QuoteTotalRow>
 
               <QuoteSaving>
@@ -494,7 +500,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             >
               <FontAwesome5 name="cart-plus" size={16} color="#FFF" style={{ marginRight: 10 }} />
               <AddToCartBtnText>Save & Add to Cart</AddToCartBtnText>
-              <AddToCartPrice>${totalPrice.toFixed(2)}</AddToCartPrice>
+              <AddToCartPrice>₹{totalPrice.toFixed(2)}</AddToCartPrice>
             </AddToCartBtn>
 
           </ConfigPanel>
@@ -514,13 +520,6 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </ComingSoonCard>
         )}
       </ScrollView>
-
-      <CartModal
-        visible={cartVisible}
-        onClose={() => setCartVisible(false)}
-        onCheckoutSuccess={() => navigation.navigate('Checkout')}
-        navigation={navigation}
-      />
     </Container>
   );
 };
@@ -536,11 +535,11 @@ const EmptyWrap = styled.View`
   flex: 1; align-items: center; padding: 36px 24px;
 `;
 const EmptyIconWrap = styled.View`
-  width: 88px; height: 88px; border-radius: 26px;
-  background-color: #EDE9FE; align-items: center; justify-content: center;
-  margin-bottom: 20px; margin-top: 16px;
-  shadow-color: #7C3AED; shadow-offset: 0px 4px; shadow-opacity: 0.15; shadow-radius: 12px; elevation: 4;
+  width: 120px; height: 120px; border-radius: 20px;
+  overflow: hidden; margin-bottom: 20px; margin-top: 16px;
+  shadow-color: #000; shadow-offset: 0px 4px; shadow-opacity: 0.1; shadow-radius: 12px; elevation: 4;
 `;
+const EmptyHeroImage = styled.Image`width: 100%; height: 100%;`;
 const EmptyTitle = styled.Text`font-size: 22px; font-weight: 800; color: #111827; margin-bottom: 8px;`;
 const EmptyDesc = styled.Text`font-size: 14px; color: #6B7280; text-align: center; line-height: 21px; margin-bottom: 24px;`;
 const EmptyCTA = styled.TouchableOpacity`
@@ -742,17 +741,20 @@ const MinOrderBadge = styled.Text`
   font-size: 9px; font-weight: 700; color: #D97706;
   background-color: #FEF3C7; padding: 2px 7px; border-radius: 6px;
 `;
-const QtyRow = styled.View`flex-direction: row; align-items: center; justify-content: center; margin-bottom: 14px;`;
-const LargeStepBtn = styled.TouchableOpacity<{ disabled?: boolean }>`
-  width: 44px; height: 44px; border-radius: 14px;
-  background-color: ${({ disabled }) => disabled ? '#F9FAFB' : '#FFFFFF'};
-  border-width: 1.5px; border-color: #E5E7EB;
-  align-items: center; justify-content: center;
-  opacity: ${({ disabled }) => disabled ? 0.5 : 1};
+const QtyRow = styled.View`
+  flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 14px;
 `;
-const QtyDisplay = styled.View`align-items: center; padding-horizontal: 28px;`;
-const QtyNum = styled.Text`font-size: 32px; font-weight: 800; color: #111827; line-height: 38px;`;
-const QtyUnit = styled.Text`font-size: 11px; color: #9CA3AF; font-weight: 500;`;
+const QtyOption = styled.TouchableOpacity<{ active: boolean }>`
+  padding: 10px 16px; border-radius: 10px;
+  background-color: ${({ active }) => active ? '#0F8A3C' : '#FFFFFF'};
+  border-width: 1px;
+  border-color: ${({ active }) => active ? '#0F8A3C' : '#E5E7EB'};
+`;
+const QtyOptionText = styled.Text<{ active: boolean }>`
+  font-size: 14px; font-weight: 600;
+  color: ${({ active }) => active ? '#FFFFFF' : '#374151'};
+`;
 
 const DiscountTiersRow = styled.View`flex-direction: row;`;
 const DiscountTier = styled.View<{ active: boolean }>`

@@ -86,3 +86,40 @@ export const TERMS_URL = 'https://pacmonk.com/terms';
 
 /* ─── Storage Keys ─────────────────────────────────────────────────── */
 export const ONBOARDING_KEY = '@pacmonk_onboarding_done';
+export const AUTH_KEY = '@pacmonk_auth_user';
+
+/* ─── Quantity Validation ──────────────────────────────────────────── */
+
+/**
+ * Bulk order threshold - orders at or above this quantity require sales team contact
+ * Orders of 5,000+ units need special pricing and manual processing
+ */
+export const BULK_ORDER_THRESHOLD = 5000;
+
+/**
+ * Valid quantity steps for all product orders
+ * Users can only select quantities from this predefined list
+ */
+export const QUANTITY_OPTIONS = [100, 200, 300, 500, 1000, 3000, 5000];
+
+/**
+ * Minimum order quantity (MOQ) for all products
+ * Production economics require minimum batch sizes of 100 units
+ */
+export const MINIMUM_ORDER_QUANTITY = 100;
+
+/**
+ * Sales team contact phone for bulk order inquiries (5,000+ units)
+ */
+export const BULK_ORDER_CONTACT_PHONE = '+91 98765 43210';
+
+/**
+ * Sales team contact email for bulk order inquiries (5,000+ units)
+ */
+export const BULK_ORDER_CONTACT_EMAIL = 'admin@packmonk.com';
+
+/**
+ * Message displayed when users attempt to order 5,000 units or more
+ * Directs users to contact sales team for special pricing and arrangements
+ */
+export const BULK_ORDER_MESSAGE = 'For orders of 5,000 units and above, please contact our sales team for special pricing and arrangements.';

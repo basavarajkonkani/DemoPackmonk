@@ -46,12 +46,21 @@ import {
   PouchConfig,
 } from '../store/pouchSlice';
 import { addToCart } from '../store/cartSlice';
-
-// Local asset images
-const IMG_BATTER_POUCH = require('../../assets/batter-pouch.jpg.jpeg');
-const IMG_BANNER_DESIGN = require('../../assets/banner-design.jpg.jpeg');
-const IMG_CENTER_SEAL = require('../../assets/center-seal-pouch.jpg.jpeg');
-const IMG_BANNER_PRINT = require('../../assets/banner-for-custom-print.jpg.jpeg');
+import {
+  BULK_ORDER_THRESHOLD,
+  BULK_ORDER_MESSAGE,
+  BULK_ORDER_CONTACT_PHONE,
+  BULK_ORDER_CONTACT_EMAIL,
+  QUANTITY_OPTIONS,
+  MINIMUM_ORDER_QUANTITY,
+} from '../constants';
+import {
+  quantityValidator,
+  DEFAULT_QUANTITY_OPTIONS,
+  applyQuantityValidationResult,
+  showQuantityValidationAlert,
+} from '../utils/quantityValidator';
+import { IMAGES, POUCH_TYPE_IMAGES } from '../constants/images';
 
 const TOTAL_STEPS = 5;
 
@@ -122,14 +131,37 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   };
 
   const incrementQty = () => {
-    const next = config.quantity + 500;
-    dispatch(setQuantity(next));
-    setQtyInput(String(next));
+    const result = quantityValidator.validateQuantityIncrement(
+      config.quantity,
+      DEFAULT_QUANTITY_OPTIONS
+    );
+
+    applyQuantityValidationResult(result, (qty) => {
+      dispatch(setQuantity(qty));
+      setQtyInput(String(qty));
+    });
   };
+
   const decrementQty = () => {
-    const next = Math.max(moq, config.quantity - 500);
-    dispatch(setQuantity(next));
-    setQtyInput(String(next));
+    const minQty = moq
+      ? Math.max(
+          MINIMUM_ORDER_QUANTITY,
+          QUANTITY_OPTIONS.find((q) => q >= moq) ?? MINIMUM_ORDER_QUANTITY
+        )
+      : MINIMUM_ORDER_QUANTITY;
+
+    const result = quantityValidator.validateQuantityDecrement(config.quantity, {
+      ...DEFAULT_QUANTITY_OPTIONS,
+      minimumOrderQuantity: minQty,
+    });
+
+    if (!result.isValid) {
+      showQuantityValidationAlert(result);
+      return;
+    }
+
+    dispatch(setQuantity(result.newQuantity!));
+    setQtyInput(String(result.newQuantity));
   };
 
   const handleAddToCart = () => {
@@ -213,7 +245,7 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
         activeOpacity={0.85}
       >
         <OptionImgBox bgColor="#F3F4F6">
-          <Image source={IMG_BATTER_POUCH} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="cover" />
+          <Image source={POUCH_TYPE_IMAGES.plain} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
         </OptionImgBox>
         <OptionTextWrap>
           <OptionName active={config.pouchType === 'plain'}>Plain Pouches</OptionName>
@@ -230,7 +262,7 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
         activeOpacity={0.85}
       >
         <OptionImgBox bgColor="#DCFCE7">
-          <Image source={IMG_BANNER_DESIGN} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="cover" />
+          <Image source={POUCH_TYPE_IMAGES.printed} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
         </OptionImgBox>
         <OptionTextWrap>
           <OptionName active={config.pouchType === 'printed'}>Printed Pouches</OptionName>
@@ -247,7 +279,7 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
         activeOpacity={0.85}
       >
         <OptionImgBox bgColor="#FEF3C7">
-          <Image source={IMG_CENTER_SEAL} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="cover" />
+          <Image source={POUCH_TYPE_IMAGES.kraft} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
         </OptionImgBox>
         <OptionTextWrap>
           <OptionName active={config.pouchType === 'kraft'}>Kraft Pouches</OptionName>
@@ -329,8 +361,8 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
         onPress={() => dispatch(setMaterialType('metalised'))}
         activeOpacity={0.85}
       >
-        <MatImgBox bgColor="#E5E7EB">
-          <FontAwesome5 name="layer-group" size={34} color="#6B7280" />
+        <MatImgBox>
+          <MatImg source={IMAGES.metalised} resizeMode="cover" />
         </MatImgBox>
         <MatBody>
           <MatName active={config.materialType === 'metalised'}>Metalised</MatName>
@@ -348,8 +380,8 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
         onPress={() => dispatch(setMaterialType('non_metalised'))}
         activeOpacity={0.85}
       >
-        <MatImgBox bgColor="#DCFCE7">
-          <FontAwesome5 name="eye" size={34} color="#16A34A" />
+        <MatImgBox>
+          <MatImg source={IMAGES.withoutMetalised} resizeMode="cover" />
         </MatImgBox>
         <MatBody>
           <MatName active={config.materialType === 'non_metalised'}>Non-Metalised</MatName>
@@ -419,14 +451,14 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
       <MOQNote>Minimum Order Quantity: {moq.toLocaleString()} pcs</MOQNote>
 
       {/* Large order warning */}
-      {config.quantity > 5000 && (
+      {config.quantity >= BULK_ORDER_THRESHOLD && (
         <LargeOrderBanner>
           <FontAwesome5 name="phone-alt" size={14} color="#92400E" style={{ marginRight: 10, marginTop: 1 }} />
           <LargeOrderTextWrap>
-            <LargeOrderTitle>Large Order — Contact Admin</LargeOrderTitle>
+            <LargeOrderTitle>Large Order — Contact Sales</LargeOrderTitle>
             <LargeOrderDesc>
-              Orders above 5,000 pcs require manual processing. Please contact our admin team for custom pricing and fulfillment.{'\n'}
-              📞 +91 98765 43210  •  ✉️ admin@packmonk.com
+              {BULK_ORDER_MESSAGE}{'\n'}
+              📞 {BULK_ORDER_CONTACT_PHONE}  •  ✉️ {BULK_ORDER_CONTACT_EMAIL}
             </LargeOrderDesc>
           </LargeOrderTextWrap>
         </LargeOrderBanner>
@@ -492,14 +524,14 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
             </PSRow>
             <MOQNote2>Minimum Order Quantity: {moq.toLocaleString()} pcs</MOQNote2>
 
-            {config.quantity > 5000 && (
+            {config.quantity >= BULK_ORDER_THRESHOLD && (
               <LargeOrderBanner>
                 <FontAwesome5 name="phone-alt" size={14} color="#92400E" style={{ marginRight: 10, marginTop: 1 }} />
                 <LargeOrderTextWrap>
-                  <LargeOrderTitle>Large Order — Contact Admin</LargeOrderTitle>
+                  <LargeOrderTitle>Large Order — Contact Sales</LargeOrderTitle>
                   <LargeOrderDesc>
-                    Orders above 5,000 pcs require manual processing. Please contact our admin team for custom pricing and fulfillment.{'\n'}
-                    📞 +91 98765 43210  •  ✉️ admin@packmonk.com
+                    {BULK_ORDER_MESSAGE}{'\n'}
+                    📞 {BULK_ORDER_CONTACT_PHONE}  •  ✉️ {BULK_ORDER_CONTACT_EMAIL}
                   </LargeOrderDesc>
                 </LargeOrderTextWrap>
               </LargeOrderBanner>
@@ -521,12 +553,12 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
             <YSImgWrap>
               <Image
                 source={
-                  config.pouchType === 'plain' ? IMG_BATTER_POUCH :
-                  config.pouchType === 'kraft' ? IMG_CENTER_SEAL :
-                  IMG_BANNER_DESIGN
+                  config.pouchType
+                    ? POUCH_TYPE_IMAGES[config.pouchType]
+                    : POUCH_TYPE_IMAGES.plain
                 }
                 style={{ width: 100, height: 100, borderRadius: 16 }}
-                resizeMode="cover"
+                resizeMode="contain"
               />
             </YSImgWrap>
 
@@ -771,11 +803,11 @@ const MaterialCard = styled.TouchableOpacity<{ active: boolean }>`
   border-color: ${({ active }) => active ? '#0F8A3C' : '#E5E7EB'};
   position: relative;
 `;
-const MatImgBox = styled.View<{ bgColor: string }>`
+const MatImgBox = styled.View`
   width: 70px; height: 80px; border-radius: 10px;
-  background-color: ${({ bgColor }) => bgColor};
-  align-items: center; justify-content: center; margin-right: 14px;
+  background-color: #f9fafb; margin-right: 14px; overflow: hidden;
 `;
+const MatImg = styled.Image`width: 100%; height: 100%;`;
 const MatBody = styled.View`flex: 1;`;
 const MatName = styled.Text<{ active: boolean }>`
   font-size: 17px; font-weight: 700;

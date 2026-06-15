@@ -4,17 +4,17 @@
 
 /**
  * Format a number as currency.
- * e.g. formatCurrency(1234.5) → "$1,234.50"
+ * e.g. formatCurrency(1234.5) → "₹1,234.50"
  */
-export const formatCurrency = (amount: number, symbol = '$'): string => {
-  return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const formatCurrency = (amount: number, symbol = '₹'): string => {
+  return `${symbol}${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 /**
  * Format a unit price.
- * e.g. formatUnitPrice(1.45) → "$1.45/unit"
+ * e.g. formatUnitPrice(1.45) → "₹1.45/unit"
  */
-export const formatUnitPrice = (price: number, symbol = '$'): string => {
+export const formatUnitPrice = (price: number, symbol = '₹'): string => {
   return `${symbol}${price.toFixed(2)}/unit`;
 };
 

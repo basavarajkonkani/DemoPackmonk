@@ -4,7 +4,6 @@ import styled from 'styled-components/native';
 import { useAppSelector } from '../store';
 import { selectOrdersList } from '../store/ordersSlice';
 import Header from '../components/Header';
-import CartModal from '../components/CartModal';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -19,13 +18,12 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
 const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const orders = useAppSelector(selectOrdersList);
   const [expandedId, setExpandedId] = useState<string | null>(orders[0]?.id ?? null);
-  const [cartVisible, setCartVisible] = useState(false);
 
   const toggle = (id: string) => setExpandedId(expandedId === id ? null : id);
 
   return (
     <Container>
-      <Header onCartPress={() => setCartVisible(true)} navigation={navigation} />
+      <Header navigation={navigation} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
         {/* Header Row */}
@@ -147,7 +145,7 @@ const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                       const specText = isPouch && item.pouchConfig
                         ? `${item.pouchConfig.capacity} • ${item.pouchConfig.dimensions.width}×${item.pouchConfig.dimensions.height}mm`
                         : `${item.design.length}" × ${item.design.width}" · ${item.design.materialId.replace(/-/g, ' ')}`;
-                      const currency = isPouch ? '₹' : '$';
+                      const currency = '₹';
                       return (
                         <ItemRow key={item.cartId}>
                           <ItemIconWrap>
@@ -199,7 +197,6 @@ const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         )}
       </ScrollView>
 
-      <CartModal visible={cartVisible} onClose={() => setCartVisible(false)} onCheckoutSuccess={() => navigation.navigate('Checkout')} navigation={navigation} />
     </Container>
   );
 };

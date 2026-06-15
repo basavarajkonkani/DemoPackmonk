@@ -1,57 +1,125 @@
-import React, { useState } from 'react';
-import { ScrollView, View, TouchableOpacity, TextInput, Platform, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  ScrollView,
+  TextInput,
+  Platform,
+  Dimensions,
+  FlatList,
+} from 'react-native';
 import styled from 'styled-components/native';
-import { useAppSelector, useAppDispatch } from '../store';
-import Header from '../components/Header';
-import CartModal from '../components/CartModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { selectOrdersList } from '../store/ordersSlice';
-import { POUCH_TYPE_LABELS, WINDOW_LABELS, MATERIAL_LABELS } from '../store/pouchSlice';
+import { IMAGES } from '../constants/images';
+import { AUTH_KEY } from '../constants';
 
-// Local assets
-const LOGO              = require('../../assets/logo (1).png');
-const IMG_BANNER_DESIGN = require('../../assets/banner-design.jpg.jpeg');
-const IMG_BATTER_POUCH  = require('../../assets/batter-pouch.jpg.jpeg');
-const IMG_CENTER_SEAL   = require('../../assets/center-seal-pouch.jpg.jpeg');
-const IMG_OFFER_BANNER  = require('../../assets/offer-banner.jpg.jpeg');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const BANNER_WIDTH = SCREEN_WIDTH - 32;
+
+const BANNERS = [
+  {
+    id: '1',
+    image: IMAGES.offerBanner,
+    tag: 'Limited Time Offer',
+    title: 'Premium Custom Pouches — From ₹2/unit',
+    cta: 'Get Quotation',
+    route: 'RequestQuote',
+  },
+  {
+    id: '2',
+    image: IMAGES.bannerDesign,
+    tag: 'New Arrival',
+    title: 'Custom Printed Packaging — From ₹3/unit',
+    cta: 'Get Quotation',
+    route: 'RequestQuote',
+  },
+];
+
+const QUICK_ACTIONS = [
+  { id: 'quote', label: 'Get Quotation', icon: 'file-alt', color: '#0F8A3C', bg: '#DCFCE7', route: 'RequestQuote' },
+  { id: 'upload', label: 'Upload Design', icon: 'cube', color: '#2563EB', bg: '#DBEAFE', route: 'DesignStudio' },
+  { id: 'reorder', label: 'Reorder', icon: 'sync', color: '#D97706', bg: '#FEF3C7', route: 'Orders' },
+  { id: 'track', label: 'Track Shipment', icon: 'truck', color: '#7C3AED', bg: '#EDE9FE', route: 'ShipmentTracking' },
+];
+
+const CATEGORIES = [
+  { id: 'standup', label: 'Stand Up\nPouches', image: IMAGES.standupPouch, bg: '#FEF3C7' },
+  { id: 'flat', label: 'Flat\nBottom', image: IMAGES.kraftPouch, bg: '#FEF9C3' },
+  { id: 'rolls', label: 'Laminated\nRolls', image: IMAGES.centerSealPouch, bg: '#F3F4F6' },
+  { id: 'boxes', label: 'Corr.\nBoxes', image: IMAGES.boxes, bg: '#DBEAFE' },
+  { id: 'bottles', label: 'Bottles', icon: 'wine-bottle', bg: '#F3F4F6', iconColor: '#6B7280' },
+];
+
+const FEATURED = [
+  {
+    id: 'batter',
+    title: 'PRINTED IDLI / DOSA BATTER PACKAGING',
+    image: IMAGES.batterPouch,
+    bg: '#1D4ED8',
+    route: 'PouchConfigurator',
+  },
+  {
+    id: 'center-seal',
+    title: 'PRINTED CENTER SEAL POUCH ROLL',
+    image: IMAGES.centerSealPouch,
+    bg: '#EA580C',
+    route: 'PouchConfigurator',
+  },
+];
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 17) return 'Good Afternoon';
+  return 'Good Evening';
+};
 
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const dispatch = useAppDispatch();
-  const [cartVisible, setCartVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const cartItemsCount = useAppSelector((state) => state.cart.items.length);
-  const orders = useAppSelector(selectOrdersList);
-  const recentOrders = orders.slice(0, 2);
-  // Unread notification count — show active orders count as indicator
-  const activeOrdersCount = orders.filter(o => o.status !== 'delivered').length;
+  const [activeBanner, setActiveBanner] = useState(0);
+  const [userName, setUserName] = useState('Rahul Sharma');
+
+  useEffect(() => {
+    AsyncStorage.getItem(AUTH_KEY).then((raw) => {
+      if (!raw) return;
+      try {
+        const user = JSON.parse(raw);
+        if (user?.name) setUserName(user.name);
+      } catch {
+        /* ignore */
+      }
+    });
+  }, []);
+
+  const handleBannerScroll = (e: { nativeEvent: { contentOffset: { x: number } } }) => {
+    const index = Math.round(e.nativeEvent.contentOffset.x / BANNER_WIDTH);
+    setActiveBanner(index);
+  };
 
   return (
     <Container>
-      {/* Top bar */}
-      <TopBar>
-        <LogoImg source={LOGO} resizeMode="contain" />
-        <View style={{ flex: 1 }} />
-        <NotifBtn onPress={() => navigation.navigate('Notifications')}>
-          <FontAwesome5 name="bell" size={16} color="#374151" />
-          {activeOrdersCount > 0 && (
-            <NBadge><NBadgeText>{activeOrdersCount > 9 ? '9+' : activeOrdersCount}</NBadgeText></NBadge>
-          )}
-        </NotifBtn>
-      </TopBar>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
-
-        {/* Greeting */}
-        <GreetSection>
-          <Hello>Hello, Customer <HelloEmoji>👋</HelloEmoji></Hello>
-          <GoodText>Good to see you again!</GoodText>
-        </GreetSection>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+        {/* Header */}
+        <HeaderRow>
+          <HeaderLeft>
+            <GreetingText>{getGreeting()} 👋</GreetingText>
+            <UserName>{userName}</UserName>
+          </HeaderLeft>
+          <HeaderRight>
+            <IconCircle onPress={() => navigation.navigate('Notifications')} activeOpacity={0.85}>
+              <FontAwesome5 name="bell" size={16} color="#374151" />
+              <NotifDot />
+            </IconCircle>
+            <AvatarCircle onPress={() => navigation.navigate('Account')} activeOpacity={0.85}>
+              <AvatarText>RS</AvatarText>
+            </AvatarCircle>
+          </HeaderRight>
+        </HeaderRow>
 
         {/* Search */}
         <SearchWrap>
-          <FontAwesome5 name="search" size={13} color="#9CA3AF" style={{ marginRight: 8 }} />
+          <FontAwesome5 name="search" size={14} color="#9CA3AF" style={{ marginRight: 10 }} />
           <SearchInput
-            placeholder="Search for pouches, sizes..."
+            placeholder="Search packaging products..."
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -60,211 +128,267 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           />
         </SearchWrap>
 
-        {/* Hero Banner */}
-        <HeroBanner onPress={() => navigation.navigate('PouchConfigurator')} activeOpacity={0.93}>
-          <HeroBannerBg>
-            <HeroBannerLeft>
-              <HeroTitle>Premium Packaging{'\n'}For Every Product</HeroTitle>
-              <HeroSubtitle>High quality | Customisable | Reliable</HeroSubtitle>
-              <ExploreBtn activeOpacity={0.9}>
-                <ExploreBtnText>Explore Now</ExploreBtnText>
-              </ExploreBtn>
-            </HeroBannerLeft>
-            <HeroBannerRight>
-              <BannerProductImg source={IMG_OFFER_BANNER} resizeMode="cover" />
-            </HeroBannerRight>
-          </HeroBannerBg>
-        </HeroBanner>
+        {/* Promo carousel */}
+        <BannerSection>
+          <FlatList
+            data={BANNERS}
+            keyExtractor={(item) => item.id}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={BANNER_WIDTH}
+            decelerationRate="fast"
+            onScroll={handleBannerScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={{ paddingHorizontal: 0 }}
+            renderItem={({ item }) => (
+              <BannerCard
+                style={{ width: BANNER_WIDTH }}
+                onPress={() => navigation.navigate(item.route)}
+                activeOpacity={0.92}
+              >
+                <BannerImage source={item.image} resizeMode="cover" />
+                <BannerOverlay />
+                <BannerContent>
+                  <OfferTag>
+                    <OfferTagText>{item.tag}</OfferTagText>
+                  </OfferTag>
+                  <BannerTitle>{item.title}</BannerTitle>
+                  <QuotationBtn>
+                    <QuotationBtnText>{item.cta}</QuotationBtnText>
+                  </QuotationBtn>
+                </BannerContent>
+              </BannerCard>
+            )}
+          />
+          <DotsRow>
+            {BANNERS.map((b, i) => (
+              <Dot key={b.id} active={i === activeBanner} />
+            ))}
+          </DotsRow>
+        </BannerSection>
 
-        {/* Shop by Category */}
-        <SectionRow>
-          <SectionTitle>Shop by Category</SectionTitle>
-        </SectionRow>
-        <CatRow>
-          <CatItem onPress={() => { navigation.navigate('PouchConfigurator'); }} activeOpacity={0.8}>
-            <CatIconBox bgColor="#F3F4F6">
-              <CatImg source={IMG_BATTER_POUCH} resizeMode="cover" />
-            </CatIconBox>
-            <CatLabel>Plain{'\n'}Pouches</CatLabel>
-          </CatItem>
-          <CatItem onPress={() => { navigation.navigate('PouchConfigurator'); }} activeOpacity={0.8}>
-            <CatIconBox bgColor="#DCFCE7">
-              <CatImg source={IMG_BANNER_DESIGN} resizeMode="cover" />
-            </CatIconBox>
-            <CatLabel>Printed{'\n'}Pouches</CatLabel>
-          </CatItem>
-          <CatItem onPress={() => { navigation.navigate('PouchConfigurator'); }} activeOpacity={0.8}>
-            <CatIconBox bgColor="#FEF3C7">
-              <CatImg source={IMG_CENTER_SEAL} resizeMode="cover" />
-            </CatIconBox>
-            <CatLabel>Kraft{'\n'}Pouches</CatLabel>
-          </CatItem>
-        </CatRow>
+        {/* Quick Actions */}
+        <SectionHeader>
+          <SectionTitle>Quick Actions</SectionTitle>
+        </SectionHeader>
+        <QuickActionsRow>
+          {QUICK_ACTIONS.map((action) => (
+            <QuickActionCard
+              key={action.id}
+              onPress={() => {
+                if (action.route === 'DesignStudio' || action.route === 'Orders') {
+                  navigation.navigate('MainTabs', { screen: action.route });
+                } else {
+                  navigation.navigate(action.route);
+                }
+              }}
+              activeOpacity={0.85}
+            >
+              <QuickIconWrap bgColor={action.bg}>
+                <FontAwesome5 name={action.icon as any} size={18} color={action.color} />
+              </QuickIconWrap>
+              <QuickLabel>{action.label}</QuickLabel>
+            </QuickActionCard>
+          ))}
+        </QuickActionsRow>
 
-        {/* Quick Reorder */}
-        <SectionRow>
-          <SectionTitle>Quick Reorder</SectionTitle>
-          <SeeAllBtn onPress={() => navigation.navigate('Orders')}>
+        {/* Categories */}
+        <SectionHeader>
+          <SectionTitle>Categories</SectionTitle>
+          <SeeAllBtn onPress={() => navigation.navigate('Products')}>
             <SeeAllText>View All</SeeAllText>
+            <FontAwesome5 name="chevron-right" size={10} color="#0F8A3C" style={{ marginLeft: 2 }} />
           </SeeAllBtn>
-        </SectionRow>
+        </SectionHeader>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 4 }}
+        >
+          {CATEGORIES.map((cat) => (
+            <CategoryCard
+              key={cat.id}
+              onPress={() => navigation.navigate('PouchConfigurator')}
+              activeOpacity={0.85}
+            >
+              <CategoryIconWrap bgColor={cat.bg}>
+                {cat.image ? (
+                  <CategoryImg source={cat.image} resizeMode="contain" />
+                ) : (
+                  <FontAwesome5 name={cat.icon as any} size={22} color={cat.iconColor} />
+                )}
+              </CategoryIconWrap>
+              <CategoryLabel>{cat.label}</CategoryLabel>
+            </CategoryCard>
+          ))}
+        </ScrollView>
 
-        {recentOrders.length === 0 ? (
-          <NoOrdersCard>
-            <FontAwesome5 name="box-open" size={28} color="#D1D5DB" style={{ marginBottom: 8 }} />
-            <NoOrdersText>No orders yet. Configure your first pouch!</NoOrdersText>
-            <ConfigurePouchBtn onPress={() => navigation.navigate('PouchConfigurator')} activeOpacity={0.9}>
-              <ConfigurePouchBtnText>Configure Pouch</ConfigurePouchBtnText>
-            </ConfigurePouchBtn>
-          </NoOrdersCard>
-        ) : (
-          recentOrders.map((order) => {
-            const firstItem = order.items[0];
-            if (!firstItem) return null;
-            const isPouch = firstItem.category === 'pouch';
-            const specText = isPouch && firstItem.pouchConfig
-              ? `${WINDOW_LABELS[firstItem.pouchConfig.windowOption]} • ${firstItem.pouchConfig.capacity} • ${MATERIAL_LABELS[firstItem.pouchConfig.materialType]}`
-              : `${firstItem.design.length}" × ${firstItem.design.width}" · ${firstItem.design.materialId.replace(/-/g, ' ')}`;
-            const currency = isPouch ? '₹' : '$';
-            return (
-              <ReorderCard key={order.id}>
-                <ReorderImgWrap>
-                  <ReorderImg source={IMG_BANNER_DESIGN} resizeMode="cover" />
-                </ReorderImgWrap>
-                <ReorderBody>
-                  <ReorderName>{firstItem.name}</ReorderName>
-                  <ReorderSpec>{specText}</ReorderSpec>
-                  <ReorderSpec>Qty: {firstItem.quantity.toLocaleString()} pcs</ReorderSpec>
-                  <ReorderPrice>{currency}{order.total.toLocaleString()}</ReorderPrice>
-                </ReorderBody>
-                <ReorderBtn onPress={() => navigation.navigate('PouchConfigurator')} activeOpacity={0.85}>
-                  <ReorderBtnText>Reorder</ReorderBtnText>
-                </ReorderBtn>
-              </ReorderCard>
-            );
-          })
-        )}
-
-        {/* Spacer for bottom tab */}
-        <View style={{ height: 8 }} />
+        {/* Featured Products */}
+        <SectionHeader style={{ marginTop: 8 }}>
+          <SectionTitle>Featured Products</SectionTitle>
+          <SeeAllBtn onPress={() => navigation.navigate('Products')}>
+            <SeeAllText>See All</SeeAllText>
+            <FontAwesome5 name="chevron-right" size={10} color="#0F8A3C" style={{ marginLeft: 2 }} />
+          </SeeAllBtn>
+        </SectionHeader>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
+        >
+          {FEATURED.map((product) => (
+            <FeaturedCard
+              key={product.id}
+              bgColor={product.bg}
+              onPress={() => navigation.navigate(product.route)}
+              activeOpacity={0.9}
+            >
+              <FeaturedImage source={product.image} resizeMode="cover" />
+              <FeaturedOverlay bgColor={product.bg} />
+              <FeaturedTitle>{product.title}</FeaturedTitle>
+            </FeaturedCard>
+          ))}
+        </ScrollView>
       </ScrollView>
-
-      <CartModal
-        visible={cartVisible}
-        onClose={() => setCartVisible(false)}
-        onCheckoutSuccess={() => navigation.navigate('Checkout')}
-        navigation={navigation}
-      />
     </Container>
   );
 };
 
 export default HomeScreen;
 
-const Container = styled.View`flex: 1; background-color: #FFFFFF;`;
+/* ─── Styles ─────────────────────────────────────────────────────────── */
 
-const TopBar = styled.View`
-  flex-direction: row; align-items: center;
+const Container = styled.View`
+  flex: 1;
+  background-color: #f8f9fb;
+`;
+
+const HeaderRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   padding: ${Platform.OS === 'ios' ? '54px' : '16px'} 16px 12px;
-  background-color: #FFFFFF;
 `;
-const LogoImg = styled.Image`
-  width: 120px; height: 40px;
-`;
-const NotifBtn = styled.TouchableOpacity`
-  width: 38px; height: 38px; border-radius: 10px;
-  background-color: #F9FAFB; align-items: center; justify-content: center;
-  border-width: 1px; border-color: #E5E7EB; position: relative;
-`;
-const NBadge = styled.View`
-  position: absolute; top: 5px; right: 5px;
-  width: 14px; height: 14px; border-radius: 7px;
-  background-color: #EF4444; align-items: center; justify-content: center;
-  border-width: 1.5px; border-color: #FFFFFF;
-`;
-const NBadgeText = styled.Text`font-size: 8px; font-weight: 800; color: #FFFFFF;`;
 
-const GreetSection = styled.View`padding: 4px 16px 14px;`;
-const Hello = styled.Text`font-size: 22px; font-weight: 800; color: #111827;`;
-const HelloEmoji = styled.Text`font-size: 22px;`;
-const GoodText = styled.Text`font-size: 13px; color: #9CA3AF; margin-top: 2px;`;
+const HeaderLeft = styled.View`flex: 1;`;
+const GreetingText = styled.Text`font-size: 13px; color: #9ca3af; margin-bottom: 2px;`;
+const UserName = styled.Text`font-size: 22px; font-weight: 800; color: #111827;`;
+
+const HeaderRight = styled.View`flex-direction: row; align-items: center;`;
+const IconCircle = styled.TouchableOpacity`
+  width: 40px; height: 40px; border-radius: 20px;
+  background-color: #ffffff; align-items: center; justify-content: center;
+  margin-right: 10px; position: relative;
+  shadow-color: #000; shadow-offset: 0px 1px; shadow-opacity: 0.06; shadow-radius: 4px; elevation: 2;
+`;
+const NotifDot = styled.View`
+  position: absolute; top: 9px; right: 10px;
+  width: 8px; height: 8px; border-radius: 4px;
+  background-color: #ef4444; border-width: 1.5px; border-color: #ffffff;
+`;
+const AvatarCircle = styled.TouchableOpacity`
+  width: 40px; height: 40px; border-radius: 20px;
+  background-color: #0f8a3c; align-items: center; justify-content: center;
+`;
+const AvatarText = styled.Text`font-size: 14px; font-weight: 800; color: #ffffff;`;
 
 const SearchWrap = styled.View`
   flex-direction: row; align-items: center;
-  margin: 0 16px 16px; height: 44px; border-radius: 12px;
-  background-color: #F9FAFB; border-width: 1px; border-color: #E5E7EB;
-  padding-horizontal: 14px;
+  margin: 0 16px 18px; height: 48px; border-radius: 24px;
+  background-color: #ffffff; padding-horizontal: 16px;
+  shadow-color: #000; shadow-offset: 0px 2px; shadow-opacity: 0.05; shadow-radius: 8px; elevation: 2;
 `;
 const SearchInput = styled.TextInput`flex: 1; font-size: 14px; color: #111827;`;
 
-const HeroBanner = styled.TouchableOpacity`
-  margin: 0 16px 20px; border-radius: 18px; overflow: hidden;
+const BannerSection = styled.View`margin: 0 16px 20px;`;
+const BannerCard = styled.TouchableOpacity`
+  height: 168px; border-radius: 18px; overflow: hidden; position: relative;
 `;
-const HeroBannerBg = styled.View`
-  background-color: #0F8A3C; flex-direction: row;
-  padding: 20px 18px; min-height: 130px;
+const BannerImage = styled.Image`
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%;
 `;
-const HeroBannerLeft = styled.View`flex: 1;`;
-const HeroTitle = styled.Text`
-  font-size: 18px; font-weight: 800; color: #FFFFFF; line-height: 25px; margin-bottom: 4px;
+const BannerOverlay = styled.View`
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(107, 15, 15, 0.72);
 `;
-const HeroSubtitle = styled.Text`font-size: 11px; color: rgba(255,255,255,0.78); margin-bottom: 14px;`;
-const ExploreBtn = styled.View`
-  background-color: #FFFFFF; border-radius: 8px;
-  padding: 8px 16px; align-self: flex-start;
+const BannerContent = styled.View`
+  flex: 1; justify-content: center; padding: 20px 22px;
 `;
-const ExploreBtnText = styled.Text`font-size: 13px; font-weight: 700; color: #0F8A3C;`;
-const HeroBannerRight = styled.View`justify-content: center; align-items: center; width: 90px; height: 110px; border-radius: 12px; overflow: hidden;`;
-const BannerProductImg = styled.Image`width: 100%; height: 100%; border-radius: 12px;`;
+const OfferTag = styled.View`
+  align-self: flex-start; background-color: rgba(255, 255, 255, 0.22);
+  border-radius: 6px; padding: 4px 10px; margin-bottom: 10px;
+`;
+const OfferTagText = styled.Text`font-size: 11px; font-weight: 600; color: #ffffff;`;
+const BannerTitle = styled.Text`
+  font-size: 17px; font-weight: 800; color: #ffffff; line-height: 24px; margin-bottom: 14px;
+`;
+const QuotationBtn = styled.View`
+  align-self: flex-start; background-color: #0f8a3c; border-radius: 10px;
+  padding: 10px 18px;
+`;
+const QuotationBtnText = styled.Text`font-size: 13px; font-weight: 700; color: #ffffff;`;
 
-const SectionRow = styled.View`
+const DotsRow = styled.View`
+  flex-direction: row; justify-content: center; align-items: center; margin-top: 12px;
+`;
+const Dot = styled.View<{ active: boolean }>`
+  width: 7px; height: 7px; border-radius: 4px; margin-horizontal: 3px;
+  background-color: ${({ active }) => (active ? '#0f8a3c' : '#d1d5db')};
+`;
+
+const SectionHeader = styled.View`
   flex-direction: row; align-items: center; justify-content: space-between;
-  padding: 4px 16px 10px;
+  padding: 0 16px 12px;
 `;
-const SectionTitle = styled.Text`font-size: 16px; font-weight: 700; color: #111827;`;
-const SeeAllBtn = styled.TouchableOpacity``;
-const SeeAllText = styled.Text`font-size: 13px; color: #0F8A3C; font-weight: 600;`;
+const SectionTitle = styled.Text`font-size: 17px; font-weight: 800; color: #111827;`;
+const SeeAllBtn = styled.TouchableOpacity`flex-direction: row; align-items: center;`;
+const SeeAllText = styled.Text`font-size: 13px; color: #0f8a3c; font-weight: 600;`;
 
-const CatRow = styled.View`flex-direction: row; padding: 0 16px 20px;`;
-const CatItem = styled.TouchableOpacity`flex: 1; align-items: center; margin-right: 8px;`;
-const CatIconBox = styled.View<{ bgColor: string }>`
+const QuickActionsRow = styled.View`
+  flex-direction: row; padding: 0 16px 22px; justify-content: space-between;
+`;
+const QuickActionCard = styled.TouchableOpacity`
+  width: ${(SCREEN_WIDTH - 56) / 4}px; align-items: center;
+  background-color: #ffffff; border-radius: 16px; padding: 14px 6px 12px;
+  shadow-color: #000; shadow-offset: 0px 2px; shadow-opacity: 0.05; shadow-radius: 8px; elevation: 2;
+`;
+const QuickIconWrap = styled.View<{ bgColor: string }>`
+  width: 44px; height: 44px; border-radius: 22px;
+  background-color: ${({ bgColor }) => bgColor};
+  align-items: center; justify-content: center; margin-bottom: 8px;
+`;
+const QuickLabel = styled.Text`
+  font-size: 10px; font-weight: 600; color: #374151; text-align: center; line-height: 13px;
+`;
+
+const CategoryCard = styled.TouchableOpacity`
+  align-items: center; margin-right: 14px; width: 72px;
+`;
+const CategoryIconWrap = styled.View<{ bgColor: string }>`
   width: 64px; height: 64px; border-radius: 16px;
   background-color: ${({ bgColor }) => bgColor};
   align-items: center; justify-content: center; margin-bottom: 8px;
-  border-width: 1px; border-color: #E5E7EB; overflow: hidden;
+  shadow-color: #000; shadow-offset: 0px 1px; shadow-opacity: 0.04; shadow-radius: 4px; elevation: 1;
 `;
-const CatImg = styled.Image`width: 64px; height: 64px; border-radius: 16px;`;
-const CatLabel = styled.Text`font-size: 12px; font-weight: 600; color: #374151; text-align: center; line-height: 16px;`;
+const CategoryImg = styled.Image`width: 44px; height: 44px;`;
+const CategoryLabel = styled.Text`
+  font-size: 11px; font-weight: 600; color: #374151; text-align: center; line-height: 14px;
+`;
 
-const ReorderCard = styled.View`
-  flex-direction: row; align-items: center;
-  background-color: #FFFFFF; border-radius: 14px; padding: 14px 16px;
-  margin: 0 16px 10px; border-width: 1px; border-color: #E5E7EB;
-  shadow-color: #000; shadow-offset: 0px 2px; shadow-opacity: 0.05; shadow-radius: 6px; elevation: 2;
+const FeaturedCard = styled.TouchableOpacity<{ bgColor: string }>`
+  width: 220px; height: 130px; border-radius: 16px; overflow: hidden;
+  margin-right: 12px; position: relative;
 `;
-const ReorderImgWrap = styled.View`
-  width: 50px; height: 50px; border-radius: 14px; overflow: hidden; margin-right: 12px;
+const FeaturedImage = styled.Image`
+  position: absolute; top: 0; right: 0; width: 55%; height: 100%;
 `;
-const ReorderImg = styled.Image`width: 50px; height: 50px;`;
-const ReorderBody = styled.View`flex: 1;`;
-const ReorderName = styled.Text`font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 2px;`;
-const ReorderSpec = styled.Text`font-size: 11px; color: #9CA3AF;`;
-const ReorderPrice = styled.Text`font-size: 15px; font-weight: 800; color: #111827; margin-top: 4px;`;
-const ReorderBtn = styled.TouchableOpacity`
-  background-color: #F0FDF4; border-radius: 10px; padding: 8px 14px;
-  border-width: 1px; border-color: #DCFCE7;
+const FeaturedOverlay = styled.View<{ bgColor: string }>`
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: ${({ bgColor }) => bgColor};
+  opacity: 0.92;
 `;
-const ReorderBtnText = styled.Text`font-size: 13px; font-weight: 700; color: #0F8A3C;`;
-
-const NoOrdersCard = styled.View`
-  flex-direction: column; align-items: center; justify-content: center;
-  background-color: #F9FAFB; border-radius: 14px; padding: 24px 16px;
-  margin: 0 16px 10px; border-width: 1px; border-color: #E5E7EB;
+const FeaturedTitle = styled.Text`
+  position: absolute; top: 16px; left: 14px; right: 80px;
+  font-size: 12px; font-weight: 800; color: #ffffff; line-height: 17px;
 `;
-const NoOrdersText = styled.Text`font-size: 13px; color: #9CA3AF; text-align: center; margin-bottom: 14px;`;
-const ConfigurePouchBtn = styled.TouchableOpacity`
-  background-color: #0F8A3C; border-radius: 10px; padding: 10px 20px;
-`;
-const ConfigurePouchBtnText = styled.Text`font-size: 13px; font-weight: 700; color: #FFFFFF;`;
-
-

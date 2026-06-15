@@ -6,6 +6,8 @@
 
 export type RootStackParamList = {
   Onboarding: undefined;
+  SignIn: undefined;
+  SignUp: undefined;
   MainTabs: { screen?: keyof TabParamList } | undefined;
   ProductDetail: { productId: string };
   RequestQuote: { productId?: string } | undefined;
@@ -21,9 +23,10 @@ export type RootStackParamList = {
 export type TabParamList = {
   Home: undefined;
   Products: undefined;
-  DesignStudio: undefined;
   Orders: undefined;
+  DesignStudio: undefined;
   Account: undefined;
+  Cart: undefined;
 };
 
 /* ─── UI Helpers ────────────────────────────────────────────────────── */

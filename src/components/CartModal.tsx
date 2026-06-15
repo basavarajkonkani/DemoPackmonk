@@ -6,6 +6,11 @@ import { useAppDispatch, useAppSelector } from '../store';
 import { removeFromCart, updateQuantity, addToCart, selectCartTotal } from '../store/cartSlice';
 import { calculatePouchPrice } from '../store/pouchSlice';
 import { GST_RATE, DEFAULT_SHIPPING_FEE } from '../constants';
+import {
+  quantityValidator,
+  DEFAULT_QUANTITY_OPTIONS,
+  showQuantityValidationAlert,
+} from '../utils/quantityValidator';
 
 interface CartModalProps {
   visible: boolean;
@@ -27,18 +32,30 @@ const CartModal: React.FC<CartModalProps> = ({ visible, onClose, onCheckoutSucce
   const handleQty = (cartId: string, dir: 'inc' | 'dec', qty: number, productId: string) => {
     const item = cartItems.find((i) => i.cartId === cartId);
 
-    // Handle pouch items separately — they don't have a backing product in productsSlice
+    // Handle pouch items separately
     if (item?.category === 'pouch') {
-      const step = 500;
-      const minQty = item.pouchConfig ? 1000 : 500;
-      if (dir === 'dec' && qty <= minQty) {
-        Alert.alert('Min Order', `Minimum is ${minQty} pcs.`, [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Remove', style: 'destructive', onPress: () => dispatch(removeFromCart(cartId)) },
-        ]);
+      const result =
+        dir === 'inc'
+          ? quantityValidator.validateQuantityIncrement(qty, DEFAULT_QUANTITY_OPTIONS)
+          : quantityValidator.validateQuantityDecrement(qty, DEFAULT_QUANTITY_OPTIONS);
+
+      if (!result.isValid) {
+        if (result.alertType === 'min_order') {
+          Alert.alert('Min Order', result.message ?? 'Minimum quantity reached.', [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Remove', style: 'destructive', onPress: () => dispatch(removeFromCart(cartId)) },
+          ]);
+        } else {
+          showQuantityValidationAlert(result);
+        }
         return;
       }
-      const newQty = dir === 'inc' ? qty + step : qty - step;
+
+      const newQty = result.newQuantity!;
+      if (result.shouldShowAlert) {
+        showQuantityValidationAlert(result);
+      }
+
       if (item.pouchConfig) {
         const newTotal = calculatePouchPrice({
           pouchType: item.pouchConfig.pouchType,
@@ -62,15 +79,29 @@ const CartModal: React.FC<CartModalProps> = ({ visible, onClose, onCheckoutSucce
 
     const product = products.find((p) => p.id === productId);
     if (!product) return;
-    if (dir === 'dec' && qty <= product.minQuantity) {
-      Alert.alert('Min Order', `Minimum is ${product.minQuantity} units.`, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Remove', style: 'destructive', onPress: () => dispatch(removeFromCart(cartId)) },
-      ]);
+
+    const result =
+      dir === 'inc'
+        ? quantityValidator.validateQuantityIncrement(qty, DEFAULT_QUANTITY_OPTIONS)
+        : quantityValidator.validateQuantityDecrement(qty, DEFAULT_QUANTITY_OPTIONS);
+
+    if (!result.isValid) {
+      if (result.alertType === 'min_order') {
+        Alert.alert('Min Order', result.message ?? 'Minimum quantity reached.', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Remove', style: 'destructive', onPress: () => dispatch(removeFromCart(cartId)) },
+        ]);
+      } else {
+        showQuantityValidationAlert(result);
+      }
       return;
     }
-    const step = product.category === 'tape' ? 5 : 50;
-    dispatch(updateQuantity({ cartId, quantity: dir === 'inc' ? qty + step : qty - step, product }));
+
+    if (result.shouldShowAlert) {
+      showQuantityValidationAlert(result);
+    }
+
+    dispatch(updateQuantity({ cartId, quantity: result.newQuantity!, product }));
   };
 
   const handleCheckout = () => {
@@ -140,7 +171,7 @@ const CartModal: React.FC<CartModalProps> = ({ visible, onClose, onCheckoutSucce
                           </CartQtyBtn>
                         </CartQtyRow>
                         <CartUnitPrice>
-                          {item.category === 'pouch' ? `₹${item.unitPrice.toFixed(2)}/pc` : `$${item.unitPrice}/unit`}
+                          ₹{item.unitPrice.toFixed(2)}/{item.category === 'pouch' ? 'pc' : 'unit'}
                         </CartUnitPrice>
                       </CartItemPriceRow>
                     </CartItemInfo>
@@ -149,7 +180,7 @@ const CartModal: React.FC<CartModalProps> = ({ visible, onClose, onCheckoutSucce
                         <FontAwesome5 name="times" size={12} color="#9CA3AF" />
                       </CartRemoveBtn>
                       <CartItemTotal>
-                        {item.category === 'pouch' ? `₹${item.totalPrice.toLocaleString()}` : `$${item.totalPrice.toFixed(2)}`}
+                        ₹{item.totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </CartItemTotal>
                     </CartItemRight>
                   </CartItem>

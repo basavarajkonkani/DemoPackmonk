@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { ScrollView, View, Alert, Switch, Linking } from 'react-native';
 import styled from 'styled-components/native';
 import Header from '../components/Header';
-import CartModal from '../components/CartModal';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppSelector } from '../store';
 import { selectOrdersList, selectTotalBusinessSpending } from '../store/ordersSlice';
-import { SUPPORT_EMAIL, SUPPORT_PHONE, WHATSAPP_NUMBER } from '../constants';
+import { SUPPORT_EMAIL, SUPPORT_PHONE, WHATSAPP_NUMBER, AUTH_KEY, ONBOARDING_KEY } from '../constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MENU_ITEMS = [
   { icon: 'building', label: 'Company Profile', badge: null, color: '#DCFCE7', iconColor: '#0F8A3C' },
@@ -28,7 +28,6 @@ const NOTIFS = [
 ];
 
 const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const [cartVisible, setCartVisible] = useState(false);
   const [ecoTarget, setEcoTarget] = useState(500);
   const [notifToggles, setNotifToggles] = useState([true, true, true, true, true]);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -62,7 +61,8 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {
           text: 'Sign Out',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
+            await AsyncStorage.multiRemove([AUTH_KEY, ONBOARDING_KEY]);
             navigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
           },
         },
@@ -72,7 +72,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <Container>
-      <Header onCartPress={() => setCartVisible(true)} navigation={navigation} />
+      <Header navigation={navigation} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
 
         {/* Profile Card */}
@@ -82,7 +82,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <AvatarWrap>
               <AvatarRing>
                 <Avatar>
-                  <AvatarText>ZT</AvatarText>
+                  <AvatarText>RS</AvatarText>
                 </Avatar>
               </AvatarRing>
               <OnlineDot />
@@ -280,7 +280,6 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <AppVersion>PacMonk v1.0.0 · Enterprise Edition</AppVersion>
       </ScrollView>
 
-      <CartModal visible={cartVisible} onClose={() => setCartVisible(false)} onCheckoutSuccess={() => navigation.navigate('Checkout')} navigation={navigation} />
     </Container>
   );
 };

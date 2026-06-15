@@ -3,18 +3,10 @@ import {
   ScrollView,
   StatusBar,
   Platform,
-  Image,
-  View,
 } from 'react-native';
 import styled from 'styled-components/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ONBOARDING_KEY } from '../constants';
+import { IMAGES } from '../constants/images';
 
-/* ── Local assets ──────────────────────────────────────────────── */
-const LOGO       = require('../../assets/logo (1).png');
-const HERO_IMAGE = require('../../assets/banner-design-1.jpg.jpeg');
-
-/* ── Benefit pills ─────────────────────────────────────────────── */
 const BENEFITS = [
   { emoji: '🏆', label: 'Premium Quality' },
   { emoji: '🎨', label: 'Custom Packaging' },
@@ -28,54 +20,35 @@ interface Props {
 }
 
 const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
-  const finishOnboarding = async () => {
-    await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
-    navigation.replace('MainTabs');
-  };
-
   return (
     <Wrapper>
-      <StatusBar barStyle="dark-content" backgroundColor="#EAEDE9" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           flexGrow: 1,
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: 20,
-          paddingTop: Platform.OS === 'ios' ? 60 : 40,
-          paddingBottom: 40,
-          backgroundColor: '#EAEDE9',
+          paddingHorizontal: 20,
+          paddingTop: Platform.OS === 'ios' ? 52 : 28,
+          paddingBottom: 32,
         }}
         bounces={false}
       >
-        {/* ── Card ── */}
         <Card>
-
-          {/* Logo + Brand */}
           <BrandRow>
-            <Image
-              source={LOGO}
-              style={{ width: 34, height: 34 }}
-              resizeMode="contain"
-            />
-            <BrandName>PACKMONK</BrandName>
+            <LogoImage source={IMAGES.logo} resizeMode="contain" />
           </BrandRow>
 
-          {/* Hero image */}
           <HeroWrap>
-            <HeroImage source={HERO_IMAGE} resizeMode="cover" />
+            <HeroImage source={IMAGES.offerBanner} resizeMode="cover" />
           </HeroWrap>
 
-          {/* Headline */}
           <Title>End-to-End Packaging &{'\n'}Print Solutions</Title>
 
-          {/* Subtitle */}
           <Subtitle>
             Your one-stop platform for premium custom packaging — from design to doorstep, powered by AI.
           </Subtitle>
 
-          {/* Benefit pills */}
           <PillsWrap>
             {BENEFITS.map((b) => (
               <BenefitPill key={b.label}>
@@ -85,18 +58,21 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
             ))}
           </PillsWrap>
 
-          {/* CTA buttons */}
-          <GetStartedBtn onPress={finishOnboarding} activeOpacity={0.9}>
+          <GetStartedBtn
+            onPress={() => navigation.navigate('SignUp')}
+            activeOpacity={0.9}
+          >
             <GetStartedText>Get Started</GetStartedText>
           </GetStartedBtn>
 
-          <LoginBtn onPress={finishOnboarding} activeOpacity={0.85}>
+          <LoginBtn
+            onPress={() => navigation.navigate('SignIn')}
+            activeOpacity={0.85}
+          >
             <LoginBtnText>Login</LoginBtnText>
           </LoginBtn>
 
-          {/* Trust text */}
           <TrustText>Trusted by 5,000+ businesses across India</TrustText>
-
         </Card>
       </ScrollView>
     </Wrapper>
@@ -105,47 +81,34 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
 
 export default OnboardingScreen;
 
-/* ── Styles ─────────────────────────────────────────────────────── */
-
 const Wrapper = styled.View`
   flex: 1;
-  background-color: #EAEDE9;
+  background-color: #ffffff;
 `;
 
 const Card = styled.View`
   width: 100%;
-  background-color: #FFFFFF;
-  border-radius: 28px;
-  padding: 24px 20px 28px;
-  shadow-color: #000;
-  shadow-offset: 0px 4px;
-  shadow-opacity: 0.08;
-  shadow-radius: 20px;
-  elevation: 6;
+  max-width: 420px;
 `;
 
 const BrandRow = styled.View`
-  flex-direction: row;
   align-items: center;
   justify-content: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 `;
 
-const BrandName = styled.Text`
-  font-size: 20px;
-  font-weight: 900;
-  color: #111827;
-  letter-spacing: 2px;
-  margin-left: 10px;
+const LogoImage = styled.Image`
+  width: 120px;
+  height: 36px;
 `;
 
 const HeroWrap = styled.View`
   width: 100%;
-  height: 200px;
+  height: 210px;
   border-radius: 18px;
   overflow: hidden;
   margin-bottom: 22px;
-  background-color: #DCFCE7;
+  background-color: #f3f4f6;
 `;
 
 const HeroImage = styled.Image`
@@ -164,7 +127,7 @@ const Title = styled.Text`
 
 const Subtitle = styled.Text`
   font-size: 13px;
-  color: #6B7280;
+  color: #6b7280;
   line-height: 21px;
   margin-bottom: 20px;
 `;
@@ -172,19 +135,19 @@ const Subtitle = styled.Text`
 const PillsWrap = styled.View`
   flex-direction: row;
   flex-wrap: wrap;
-  margin-bottom: 26px;
+  margin-bottom: 24px;
 `;
 
 const BenefitPill = styled.View`
   flex-direction: row;
   align-items: center;
-  background-color: #F9FAFB;
+  background-color: #ffffff;
   border-radius: 20px;
   padding: 7px 12px;
   margin-right: 8px;
   margin-bottom: 8px;
   border-width: 1px;
-  border-color: #E5E7EB;
+  border-color: #e5e7eb;
 `;
 
 const PillEmoji = styled.Text`
@@ -201,7 +164,7 @@ const PillLabel = styled.Text`
 const GetStartedBtn = styled.TouchableOpacity`
   width: 100%;
   height: 52px;
-  background-color: #1A7A3C;
+  background-color: #0f8a3c;
   border-radius: 14px;
   align-items: center;
   justify-content: center;
@@ -211,31 +174,30 @@ const GetStartedBtn = styled.TouchableOpacity`
 const GetStartedText = styled.Text`
   font-size: 16px;
   font-weight: 700;
-  color: #FFFFFF;
-  letter-spacing: 0.2px;
+  color: #ffffff;
 `;
 
 const LoginBtn = styled.TouchableOpacity`
   width: 100%;
   height: 52px;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-radius: 14px;
   align-items: center;
   justify-content: center;
   border-width: 1.5px;
-  border-color: #1A7A3C;
+  border-color: #0f8a3c;
   margin-bottom: 20px;
 `;
 
 const LoginBtnText = styled.Text`
   font-size: 16px;
   font-weight: 700;
-  color: #1A7A3C;
+  color: #0f8a3c;
 `;
 
 const TrustText = styled.Text`
   font-size: 12px;
-  color: #9CA3AF;
+  color: #9ca3af;
   font-weight: 500;
   text-align: center;
 `;

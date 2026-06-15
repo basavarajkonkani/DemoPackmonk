@@ -35,7 +35,7 @@ const INITIAL_CONFIG: PouchConfig = {
   windowOption: null,
   materialType: null,
   capacity: null,
-  quantity: 5000,
+  quantity: 100,
   artworkUri: null,
   needsDesignAssistance: false,
 };
