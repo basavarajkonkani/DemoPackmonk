@@ -36,7 +36,7 @@ const OrderPlacedScreen: React.FC<{ navigation: any; route: any }> = ({ navigati
 
         <ContinueBtn
           onPress={() =>
-            navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] })
+            navigation.navigate('MainTabs', { screen: 'Home' })
           }
           activeOpacity={0.85}
         >

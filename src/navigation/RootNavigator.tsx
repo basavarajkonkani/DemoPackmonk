@@ -159,7 +159,16 @@ function TabNavigator() {
         options={{
           tabBarLabel: 'Cart',
           tabBarBadge: cartCount > 0 ? cartCount : undefined,
-          tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10, minWidth: 16, height: 16 },
+          tabBarBadgeStyle: { 
+            backgroundColor: '#EF4444',
+            fontSize: 11,
+            fontWeight: '700',
+            minWidth: 18,
+            height: 18,
+            borderRadius: 9,
+            top: 4,
+            right: -4,
+          },
         }}
       />
     </Tab.Navigator>

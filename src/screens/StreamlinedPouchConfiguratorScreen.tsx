@@ -219,14 +219,9 @@ const StreamlinedPouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ nav
         artworkUri: null,
         needsDesignAssistance: false,
         dimensions: {
-          code: `CUSTOM-${selectedSize.id}`,
-          capacity: selectedSize.desc,
           width: selectedSize.width,
           height: selectedSize.height,
-          gusset: 0,
           unit: selectedSize.unit,
-          piecesPerPacket: 100,
-          pricePerPiece: totalPrice / quantity,
         },
         finish: selectedFinish,
         zip: selectedZip,
@@ -240,14 +235,8 @@ const StreamlinedPouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ nav
     };
 
     dispatch(addToCart(cartItem));
-    Alert.alert(
-      '✅ Added to Cart',
-      'Your custom pouch configuration has been added to the cart.',
-      [
-        { text: 'Continue Shopping', style: 'cancel' },
-        { text: 'View Cart', onPress: () => navigation.navigate('Cart') },
-      ]
-    );
+    // Redirect directly to cart
+    navigation.navigate('MainTabs', { screen: 'Cart' });
   };
 
   const incrementQty = () => setQuantity((q) => q + 100);
@@ -374,6 +363,13 @@ const StreamlinedPouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ nav
                 onPress={() => setSelectedThickness(thick.value)}
                 activeOpacity={0.85}
               >
+                <ThicknessIconWrap active={selectedThickness === thick.value}>
+                  <FontAwesome5
+                    name="layer-group"
+                    size={20}
+                    color={selectedThickness === thick.value ? '#0F8A3C' : '#6B7280'}
+                  />
+                </ThicknessIconWrap>
                 <ThicknessBadge active={selectedThickness === thick.value}>
                   {thick.value}μ
                 </ThicknessBadge>
@@ -628,11 +624,21 @@ const OptionDesc = styled.Text`
   text-align: center;
 `;
 
+const ThicknessIconWrap = styled.View<{ active: boolean }>`
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background-color: ${({ active }) => (active ? '#DCFCE7' : '#F3F4F6')};
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+`;
+
 const ThicknessBadge = styled.Text<{ active: boolean }>`
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 800;
   color: ${({ active }) => (active ? '#0F8A3C' : '#6B7280')};
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 `;
 
 const SizeBadge = styled.View<{ active: boolean }>`

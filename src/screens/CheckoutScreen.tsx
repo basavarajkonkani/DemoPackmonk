@@ -39,29 +39,42 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     if (cartItems.length === 0) { Alert.alert('Empty Cart', 'Add items to cart first.'); return; }
     if (!gstNumber.trim()) { Alert.alert('Missing', 'Please enter a valid GST number.'); return; }
 
-    const orderId = `PCH${Math.floor(1000 + Math.random() * 9000)}`;
-    const order = {
-      id: orderId,
-      date: new Date().toISOString(),
-      status: 'pending_review' as const,
-      subtotal, setupFees, shipping, tax: gst, total,
-      estimatedDelivery: new Date(Date.now() + 15 * 86400000)
-        .toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
-      shippingAddress: { company, street, city: 'Bangalore', state: 'Karnataka', zip: '560058', country: 'India' },
-      trackingNumber: null,
-      milestones: [
-        { status: 'pending_review' as const, label: 'Order Confirmed', description: 'Order received.', timestamp: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }), isCompleted: true },
-        { status: 'artwork_approved' as const, label: 'Artwork Approved', description: 'Artwork being reviewed.', timestamp: null, isCompleted: false },
-        { status: 'in_production' as const, label: 'Production Started', description: 'Printing in progress.', timestamp: null, isCompleted: false },
-        { status: 'quality_check' as const, label: 'Printing', description: 'QC inspection.', timestamp: null, isCompleted: false },
-        { status: 'shipped' as const, label: 'Dispatched', description: 'Handed to courier.', timestamp: null, isCompleted: false },
-        { status: 'delivered' as const, label: 'Delivered', description: 'Delivered.', timestamp: null, isCompleted: false },
-      ],
-      items: [...cartItems],
-    };
-    dispatch(placeOrder(order));
-    dispatch(clearCart());
-    navigation.replace('OrderPlaced', { orderId });
+    // Show payment confirmation
+    Alert.alert(
+      'Confirm Order',
+      `Total Amount: ₹${total.toLocaleString()}\nPayment Method: ${PAYMENT_METHODS.find(p => p.id === payment)?.label}\n\nProceed with order?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm & Pay',
+          onPress: () => {
+            const orderId = `PCH${Math.floor(1000 + Math.random() * 9000)}`;
+            const order = {
+              id: orderId,
+              date: new Date().toISOString(),
+              status: 'pending_review' as const,
+              subtotal, setupFees, shipping, tax: gst, total,
+              estimatedDelivery: new Date(Date.now() + 15 * 86400000)
+                .toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
+              shippingAddress: { company, street, city: 'Bangalore', state: 'Karnataka', zip: '560058', country: 'India' },
+              trackingNumber: null,
+              milestones: [
+                { status: 'pending_review' as const, label: 'Order Confirmed', description: 'Order received.', timestamp: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }), isCompleted: true },
+                { status: 'artwork_approved' as const, label: 'Artwork Approved', description: 'Artwork being reviewed.', timestamp: null, isCompleted: false },
+                { status: 'in_production' as const, label: 'Production Started', description: 'Printing in progress.', timestamp: null, isCompleted: false },
+                { status: 'quality_check' as const, label: 'Printing', description: 'QC inspection.', timestamp: null, isCompleted: false },
+                { status: 'shipped' as const, label: 'Dispatched', description: 'Handed to courier.', timestamp: null, isCompleted: false },
+                { status: 'delivered' as const, label: 'Delivered', description: 'Delivered.', timestamp: null, isCompleted: false },
+              ],
+              items: [...cartItems],
+            };
+            dispatch(placeOrder(order));
+            dispatch(clearCart());
+            navigation.replace('OrderPlaced', { orderId });
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -125,6 +138,58 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 140, alignItems: 'center' }}>
         <ContentWrapper>
+        {/* Progress Indicator */}
+        <ProgressBar>
+          <ProgressStep completed>
+            <ProgressStepCircle completed>
+              <FontAwesome5 name="check" size={12} color="#FFFFFF" />
+            </ProgressStepCircle>
+            <ProgressStepLabel completed>Cart</ProgressStepLabel>
+          </ProgressStep>
+          <ProgressLine />
+          <ProgressStep active>
+            <ProgressStepCircle active>
+              <ProgressStepNumber>2</ProgressStepNumber>
+            </ProgressStepCircle>
+            <ProgressStepLabel active>Checkout</ProgressStepLabel>
+          </ProgressStep>
+          <ProgressLine />
+          <ProgressStep>
+            <ProgressStepCircle>
+              <ProgressStepNumber>3</ProgressStepNumber>
+            </ProgressStepCircle>
+            <ProgressStepLabel>Confirm</ProgressStepLabel>
+          </ProgressStep>
+        </ProgressBar>
+
+        {/* Order Summary */}
+        <SectionCard>
+          <SectionTitle>Order Summary</SectionTitle>
+          <OrderSummaryRow>
+            <OrderSummaryLabel>{cartItems.length} {cartItems.length === 1 ? 'Item' : 'Items'}</OrderSummaryLabel>
+            <OrderSummaryValue>₹{subtotal.toLocaleString()}</OrderSummaryValue>
+          </OrderSummaryRow>
+          {setupFees > 0 && (
+            <OrderSummaryRow>
+              <OrderSummaryLabel>Setup Fee</OrderSummaryLabel>
+              <OrderSummaryValue>₹{setupFees.toLocaleString()}</OrderSummaryValue>
+            </OrderSummaryRow>
+          )}
+          <OrderSummaryRow>
+            <OrderSummaryLabel>Shipping</OrderSummaryLabel>
+            <OrderSummaryValue>₹{shipping.toLocaleString()}</OrderSummaryValue>
+          </OrderSummaryRow>
+          <OrderSummaryRow>
+            <OrderSummaryLabel>GST (9%)</OrderSummaryLabel>
+            <OrderSummaryValue>₹{gst.toLocaleString()}</OrderSummaryValue>
+          </OrderSummaryRow>
+          <OrderSummaryDivider />
+          <OrderSummaryRow>
+            <OrderSummaryTotalLabel>Total Amount</OrderSummaryTotalLabel>
+            <OrderSummaryTotalValue>₹{total.toLocaleString()}</OrderSummaryTotalValue>
+          </OrderSummaryRow>
+        </SectionCard>
+
         {/* Delivery Address */}
         <SectionCard>
           <SectionHeader>
@@ -168,13 +233,29 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <PayOption
               key={pm.id}
               active={payment === pm.id}
-              onPress={() => setPayment(pm.id)}
-              activeOpacity={0.85}
+              disabled={pm.id === 'credit'}
+              onPress={() => {
+                if (pm.id === 'credit') {
+                  Alert.alert(
+                    'Credit Terms',
+                    'Credit payment is only available for existing customers with approved credit terms. Please contact our sales team.',
+                    [{ text: 'OK' }]
+                  );
+                  return;
+                }
+                setPayment(pm.id);
+              }}
+              activeOpacity={pm.id === 'credit' ? 1 : 0.85}
             >
-              <RadioOuter active={payment === pm.id}>
+              <RadioOuter active={payment === pm.id} disabled={pm.id === 'credit'}>
                 {payment === pm.id && <RadioInner />}
               </RadioOuter>
-              <PayLabel>{pm.label}</PayLabel>
+              <PayLabelWrapper>
+                <PayLabel disabled={pm.id === 'credit'}>{pm.label}</PayLabel>
+                {pm.id === 'credit' && (
+                  <PaymentNote>Approval required</PaymentNote>
+                )}
+              </PayLabelWrapper>
             </PayOption>
           ))}
         </SectionCard>
@@ -184,7 +265,8 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       {/* Place Order */}
       <BottomBar>
         <PlaceOrderBtn onPress={handlePlaceOrder} activeOpacity={0.9}>
-          <PlaceOrderText>Place Order</PlaceOrderText>
+          <FontAwesome5 name="lock" size={14} color="#FFFFFF" style={{ marginRight: 10 }} />
+          <PlaceOrderText>Review & Place Order</PlaceOrderText>
         </PlaceOrderBtn>
       </BottomBar>
     </Container>
@@ -231,19 +313,33 @@ const GSTRow = styled.View``;
 const GSTKey = styled.Text`font-size: 12px; color: #9CA3AF; margin-bottom: 3px;`;
 const GSTVal = styled.Text`font-size: 14px; font-weight: 600; color: #374151;`;
 
-const PayOption = styled.TouchableOpacity<{ active: boolean }>`
+const PayOption = styled.TouchableOpacity<{ active: boolean; disabled?: boolean }>`
   flex-direction: row; align-items: center; padding: 12px 0;
   border-bottom-width: 1px; border-bottom-color: #F3F4F6;
+  opacity: ${({ disabled }) => disabled ? 0.5 : 1};
 `;
-const RadioOuter = styled.View<{ active: boolean }>`
+const RadioOuter = styled.View<{ active: boolean; disabled?: boolean }>`
   width: 20px; height: 20px; border-radius: 10px; border-width: 2px;
-  border-color: ${({ active }: { active: boolean }) => active ? '#0F8A3C' : '#D1D5DB'};
+  border-color: ${({ active, disabled }: { active: boolean; disabled?: boolean }) => 
+    disabled ? '#D1D5DB' : active ? '#0F8A3C' : '#D1D5DB'};
   align-items: center; justify-content: center; margin-right: 12px;
 `;
 const RadioInner = styled.View`
   width: 8px; height: 8px; border-radius: 4px; background-color: #0F8A3C;
 `;
-const PayLabel = styled.Text`font-size: 14px; color: #374151; font-weight: 500;`;
+const PayLabelWrapper = styled.View`
+  flex: 1;
+`;
+const PayLabel = styled.Text<{ disabled?: boolean }>`
+  font-size: 14px; 
+  color: ${({ disabled }) => disabled ? '#9CA3AF' : '#374151'}; 
+  font-weight: 500;
+`;
+const PaymentNote = styled.Text`
+  font-size: 11px;
+  color: #9CA3AF;
+  margin-top: 2px;
+`;
 
 const BottomBar = styled.View`
   position: absolute; bottom: 0; left: 0; right: 0;
@@ -251,10 +347,99 @@ const BottomBar = styled.View`
   background-color: #FFFFFF; border-top-width: 1px; border-top-color: #E5E7EB;
 `;
 const PlaceOrderBtn = styled.TouchableOpacity`
+  flex-direction: row;
   height: 52px; background-color: #0F8A3C; border-radius: 14px;
   align-items: center; justify-content: center;
 `;
 const PlaceOrderText = styled.Text`font-size: 16px; font-weight: 700; color: #FFFFFF;`;
+
+const ProgressBar = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #FFFFFF;
+  border-radius: 14px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+  border-width: 1px;
+  border-color: #E5E7EB;
+`;
+
+const ProgressStep = styled.View<{ completed?: boolean; active?: boolean }>`
+  align-items: center;
+  flex: 1;
+`;
+
+const ProgressStepCircle = styled.View<{ completed?: boolean; active?: boolean }>`
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background-color: ${({ completed, active }) => 
+    completed ? '#10B981' : active ? '#0F8A3C' : '#F3F4F6'};
+  border-width: ${({ completed, active }) => (completed || active) ? 0 : 2}px;
+  border-color: #E5E7EB;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+`;
+
+const ProgressStepNumber = styled.Text`
+  font-size: 14px;
+  font-weight: 700;
+  color: #9CA3AF;
+`;
+
+const ProgressStepLabel = styled.Text<{ completed?: boolean; active?: boolean }>`
+  font-size: 12px;
+  font-weight: ${({ completed, active }) => (completed || active) ? '700' : '500'};
+  color: ${({ completed, active }) => 
+    completed ? '#10B981' : active ? '#0F8A3C' : '#9CA3AF'};
+`;
+
+const ProgressLine = styled.View`
+  flex: 1;
+  height: 2px;
+  background-color: #E5E7EB;
+  margin-horizontal: 4px;
+  margin-bottom: 32px;
+`;
+
+const OrderSummaryRow = styled.View`
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+`;
+
+const OrderSummaryLabel = styled.Text`
+  font-size: 13px;
+  color: #6B7280;
+  font-weight: 500;
+`;
+
+const OrderSummaryValue = styled.Text`
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+`;
+
+const OrderSummaryDivider = styled.View`
+  height: 1px;
+  background-color: #E5E7EB;
+  margin-vertical: 12px;
+`;
+
+const OrderSummaryTotalLabel = styled.Text`
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+`;
+
+const OrderSummaryTotalValue = styled.Text`
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F8A3C;
+`;
 
 /* Address Edit Modal */
 const ModalOverlay = styled.View`

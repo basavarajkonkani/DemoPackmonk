@@ -26,6 +26,9 @@ export interface PouchCartConfig {
   artworkUri: string | null;
   needsDesignAssistance: boolean;
   dimensions: { width: number; height: number; unit: string };
+  finish?: string;
+  zip?: string;
+  thickness?: number;
 }
 
 export interface CartItem {

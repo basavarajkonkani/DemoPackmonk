@@ -4,7 +4,7 @@ import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../store';
 import { selectProduct } from '../store/productsSlice';
-import { calculateItemPrice } from '../store/cartSlice';
+import { addToCart, calculateItemPrice } from '../store/cartSlice';
 import { QUANTITY_OPTIONS } from '../constants';
 import {
   quantityValidator,
@@ -101,6 +101,24 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const handleCustomize = () => {
     dispatch(selectProduct(product.id));
     navigation.navigate('DesignStudio');
+  };
+
+  const handleAddToCart = () => {
+    const cartItem = {
+      cartId: `${product.id}-${Date.now()}`,
+      productId: product.id,
+      name: product.name,
+      category: product.category,
+      design: defaultDesign,
+      quantity,
+      baseUnitPrice: product.basePrice,
+      unitPrice: totalPrice / quantity,
+      totalPrice,
+      setupFee: 0,
+    };
+    dispatch(addToCart(cartItem));
+    // Redirect directly to cart
+    navigation.navigate('MainTabs', { screen: 'Cart' });
   };
 
   return (
@@ -282,15 +300,20 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
       {/* Bottom CTA */}
       <BottomBar style={{ shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 8 }}>
-        <SampleBtn onPress={handleRequestSample} activeOpacity={0.8}>
-          <FontAwesome5 name="gift" size={14} color="#0F8A3C" style={{ marginRight: 6 }} />
-          <SampleBtnText>Sample</SampleBtnText>
-        </SampleBtn>
-        <QuoteBtn onPress={handleGetQuote} activeOpacity={0.9}
-          style={{ shadowColor: '#0F8A3C', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 }}>
-          <FontAwesome5 name="file-invoice-dollar" size={14} color="#FFF" style={{ marginRight: 8 }} />
-          <QuoteBtnText>Get Instant Quote</QuoteBtnText>
-        </QuoteBtn>
+        <BottomLeft>
+          <BottomPrice>₹{totalPrice.toLocaleString()}</BottomPrice>
+          <BottomQty>{quantity} units</BottomQty>
+        </BottomLeft>
+        <BottomRight>
+          <SampleBtnSmall onPress={handleRequestSample} activeOpacity={0.8}>
+            <FontAwesome5 name="gift" size={13} color="#0F8A3C" />
+          </SampleBtnSmall>
+          <AddToCartBtn onPress={handleAddToCart} activeOpacity={0.9}
+            style={{ shadowColor: '#0F8A3C', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 }}>
+            <FontAwesome5 name="shopping-cart" size={14} color="#FFF" style={{ marginRight: 8 }} />
+            <AddToCartBtnText>Add to Cart</AddToCartBtnText>
+          </AddToCartBtn>
+        </BottomRight>
       </BottomBar>
     </Container>
   );
@@ -504,15 +527,54 @@ const BottomBar = styled.View`
   position: absolute; bottom: 0; left: 0; right: 0;
   flex-direction: row; padding: 12px 16px ${Platform.OS === 'ios' ? 32 : 20}px;
   background-color: #FFFFFF; border-top-width: 1px; border-top-color: #F3F4F6;
+  align-items: center; justify-content: space-between;
 `;
-const SampleBtn = styled.TouchableOpacity`
-  flex-direction: row; align-items: center; justify-content: center;
-  height: 50px; border-radius: 14px; margin-right: 10px;
-  border-width: 1.5px; border-color: #0F8A3C; padding-horizontal: 18px;
+
+const BottomLeft = styled.View`
+  flex-direction: column;
 `;
-const SampleBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #0F8A3C;`;
-const QuoteBtn = styled.TouchableOpacity`
-  flex: 1; flex-direction: row; align-items: center; justify-content: center;
-  height: 50px; background-color: #0F8A3C; border-radius: 14px;
+
+const BottomPrice = styled.Text`
+  font-size: 20px;
+  font-weight: 800;
+  color: #0F8A3C;
 `;
-const QuoteBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #FFFFFF;`;
+
+const BottomQty = styled.Text`
+  font-size: 12px;
+  color: #6B7280;
+  margin-top: 2px;
+`;
+
+const BottomRight = styled.View`
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+`;
+
+const SampleBtnSmall = styled.TouchableOpacity`
+  width: 44px;
+  height: 50px;
+  border-radius: 14px;
+  align-items: center;
+  justify-content: center;
+  border-width: 1.5px;
+  border-color: #0F8A3C;
+  background-color: #FFFFFF;
+`;
+
+const AddToCartBtn = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  background-color: #0F8A3C;
+  border-radius: 14px;
+  padding-horizontal: 24px;
+`;
+
+const AddToCartBtnText = styled.Text`
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+`;

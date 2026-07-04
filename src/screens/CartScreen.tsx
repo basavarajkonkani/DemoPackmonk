@@ -3,7 +3,7 @@ import { ScrollView, View, Alert, Platform, Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../store';
-import { removeFromCart, updateQuantity, clearCart, selectCartTotal } from '../store/cartSlice';
+import { addToCart, removeFromCart, updateQuantity, clearCart, selectCartTotal } from '../store/cartSlice';
 import Header from '../components/Header';
 import { IMAGES, POUCH_TYPE_IMAGES } from '../constants/images';
 import { GST_RATE, DEFAULT_SHIPPING_FEE } from '../constants';
@@ -69,16 +69,13 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           needsDesignAssistance: updatedConfig.needsDesignAssistance,
         });
         dispatch(removeFromCart(cartId));
-        dispatch({
-          type: 'cart/addToCart',
-          payload: {
-            ...item,
-            quantity: newQty,
-            totalPrice: newTotal,
-            unitPrice: newTotal / newQty,
-            pouchConfig: updatedConfig,
-          },
-        });
+        dispatch(addToCart({
+          ...item,
+          quantity: newQty,
+          totalPrice: newTotal,
+          unitPrice: newTotal / newQty,
+          pouchConfig: updatedConfig,
+        }));
       }
       return;
     }
@@ -160,9 +157,14 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </EmptyIcon>
           <EmptyTitle>Your cart is empty</EmptyTitle>
           <EmptyDesc>Configure a pouch or browse products to get started.</EmptyDesc>
-          <BrowseBtn onPress={() => navigation.navigate('StreamlinedPouchConfigurator')} activeOpacity={0.9}>
-            <BrowseBtnText>Configure Pouch</BrowseBtnText>
-          </BrowseBtn>
+          <EmptyButtonsRow>
+            <BrowseBtn onPress={() => navigation.navigate('StreamlinedPouchConfigurator')} activeOpacity={0.9}>
+              <BrowseBtnText>Configure Pouch</BrowseBtnText>
+            </BrowseBtn>
+            <BrowseProductsBtn onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })} activeOpacity={0.9}>
+              <BrowseProductsBtnText>Browse Products</BrowseProductsBtnText>
+            </BrowseProductsBtn>
+          </EmptyButtonsRow>
         </EmptyWrap>
       </Container>
     );
@@ -265,6 +267,10 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
       {/* Checkout Bar */}
       <CheckoutBar>
+        <ContinueShoppingLink onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })} activeOpacity={0.8}>
+          <FontAwesome5 name="arrow-left" size={12} color="#0F8A3C" style={{ marginRight: 6 }} />
+          <ContinueShoppingText>Continue Shopping</ContinueShoppingText>
+        </ContinueShoppingLink>
         <CheckoutBtn onPress={() => navigation.navigate('Checkout')} activeOpacity={0.9}>
           <CheckoutLabel>Proceed to Checkout</CheckoutLabel>
         </CheckoutBtn>
@@ -314,11 +320,20 @@ const EmptyIcon = styled.View`
 const EmptyImage = styled.Image`width: 72px; height: 72px;`;
 const EmptyTitle = styled.Text`font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 8px;`;
 const EmptyDesc = styled.Text`font-size: 14px; color: #9CA3AF; text-align: center; line-height: 20px; margin-bottom: 24px;`;
+const EmptyButtonsRow = styled.View`
+  width: 100%; align-items: center; gap: 12px;
+`;
 const BrowseBtn = styled.TouchableOpacity`
-  height: 50px; background-color: #0F8A3C; border-radius: 14px;
-  padding-horizontal: 28px; align-items: center; justify-content: center;
+  width: 100%; max-width: 300px; height: 50px; background-color: #0F8A3C; border-radius: 14px;
+  align-items: center; justify-content: center;
 `;
 const BrowseBtnText = styled.Text`font-size: 15px; font-weight: 700; color: #FFF;`;
+const BrowseProductsBtn = styled.TouchableOpacity`
+  width: 100%; max-width: 300px; height: 50px; border-radius: 14px;
+  align-items: center; justify-content: center; border-width: 1.5px; border-color: #0F8A3C;
+  background-color: #FFFFFF;
+`;
+const BrowseProductsBtnText = styled.Text`font-size: 15px; font-weight: 700; color: #0F8A3C;`;
 
 const ItemCard = styled.View`
   flex-direction: row;
@@ -396,6 +411,18 @@ const CheckoutBar = styled.View`
   position: absolute; bottom: 0; left: 0; right: 0;
   padding: 12px 16px ${Platform.OS === 'ios' ? '36px' : '20px'};
   background-color: #FFFFFF; border-top-width: 1px; border-top-color: #E5E7EB;
+`;
+const ContinueShoppingLink = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  padding: 8px;
+`;
+const ContinueShoppingText = styled.Text`
+  font-size: 14px;
+  font-weight: 600;
+  color: #0F8A3C;
 `;
 const CheckoutBtn = styled.TouchableOpacity`
   height: 52px; background-color: #0F8A3C; border-radius: 14px;
