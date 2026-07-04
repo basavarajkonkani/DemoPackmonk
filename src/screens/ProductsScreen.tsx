@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, View, Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 import { useAppSelector, useAppDispatch } from '../store';
 import { selectProductsList, selectProduct } from '../store/productsSlice';
@@ -7,6 +7,9 @@ import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { IMAGES, POUCH_TYPE_IMAGES } from '../constants/images';
+import FilterPanel, { FilterOptions } from '../components/FilterPanel';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type CategoryFilter = 'all' | 'pouch' | 'box' | 'mailer' | 'bag' | 'tape';
 
@@ -23,26 +26,26 @@ const CATEGORIES: { key: CategoryFilter; label: string; icon: string }[] = [
 const POUCH_TYPES = [
   {
     key: 'plain',
-    label: 'Plain Pouches',
-    subtitle: 'No Printing',
+    label: 'Clear Standy Zipper',
+    subtitle: '50g–2kg • From ₹2.05/pc',
     image: POUCH_TYPE_IMAGES.plain,
   },
   {
     key: 'printed',
-    label: 'Printed Pouches',
-    subtitle: 'Custom Printing',
+    label: 'Printed Dry Fruit Pouch',
+    subtitle: '100g–1kg • From ₹3.80/pc',
     image: POUCH_TYPE_IMAGES.printed,
     recommended: true,
   },
   {
     key: 'kraft',
-    label: 'Kraft Pouches',
-    subtitle: 'Natural & Premium Look',
+    label: 'Kraft Standy (Brown)',
+    subtitle: '100g–1kg • From ₹4.75/pc',
     image: POUCH_TYPE_IMAGES.kraft,
   },
 ];
 
-const SORT_OPTIONS = ['Popular', 'Price: Low', 'Price: High', 'Eco Rating'];
+const SORT_OPTIONS = ['Popular', 'Price: Low', 'Price: High', 'Eco Rating', 'Newest'];
 
 const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
@@ -50,15 +53,40 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [selectedCat, setSelectedCat] = useState<CategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('Popular');
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<FilterOptions>({
+    materials: [],
+    priceRange: { min: 0, max: 10000 },
+    sizes: [],
+    features: [],
+    ecoRating: null,
+    inStockOnly: false,
+  });
 
   const handleSelectProduct = (productId: string) => {
     navigation.navigate('ProductDetail', { productId });
   };
 
   const handlePouchTypeSelect = () => {
-    // Navigate to the step-by-step pouch configurator
-    navigation.navigate('PouchConfigurator');
+    // Navigate to the streamlined pouch configurator
+    navigation.navigate('StreamlinedPouchConfigurator');
   };
+
+  const handleReadyStock = () => {
+    navigation.navigate('ReadyStockProducts');
+  };
+
+  const handleApplyFilters = (filters: FilterOptions) => {
+    setActiveFilters(filters);
+  };
+
+  const activeFiltersCount = 
+    activeFilters.materials.length + 
+    activeFilters.sizes.length + 
+    activeFilters.features.length + 
+    (activeFilters.ecoRating ? 1 : 0) + 
+    (activeFilters.inStockOnly ? 1 : 0) +
+    (activeFilters.priceRange.min > 0 || activeFilters.priceRange.max < 10000 ? 1 : 0);
 
   const filtered = products
     .filter((p) => {
@@ -71,12 +99,18 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       const matchSearch =
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchCat && matchSearch;
+      
+      // Apply advanced filters
+      const matchPrice = p.basePrice >= activeFilters.priceRange.min && p.basePrice <= activeFilters.priceRange.max;
+      const matchEcoRating = !activeFilters.ecoRating || p.ecoFriendlyRating >= activeFilters.ecoRating;
+      
+      return matchCat && matchSearch && matchPrice && matchEcoRating;
     })
     .sort((a, b) => {
       if (sortOption === 'Price: Low') return a.basePrice - b.basePrice;
       if (sortOption === 'Price: High') return b.basePrice - a.basePrice;
       if (sortOption === 'Eco Rating') return b.ecoFriendlyRating - a.ecoFriendlyRating;
+      if (sortOption === 'Newest') return 0; // Would sort by creation date if available
       return 0;
     });
 
@@ -96,10 +130,46 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             clearButtonMode="while-editing"
           />
         </SearchInner>
-        <FilterIconBtn onPress={() => setSelectedCat('all')}>
+        <FilterIconBtn onPress={() => setShowFilterPanel(true)}>
           <FontAwesome5 name="sliders-h" size={15} color="#0F8A3C" />
+          {activeFiltersCount > 0 && (
+            <FilterBadge>
+              <FilterBadgeText>{activeFiltersCount}</FilterBadgeText>
+            </FilterBadge>
+          )}
         </FilterIconBtn>
       </SearchBar>
+
+      {/* Active Filters Pills */}
+      {activeFiltersCount > 0 && (
+        <ActiveFiltersRow>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 4 }}>
+            {activeFilters.materials.map(material => (
+              <ActiveFilterPill key={material}>
+                <ActiveFilterText>{material}</ActiveFilterText>
+                <RemoveFilterBtn onPress={() => {
+                  setActiveFilters(prev => ({
+                    ...prev,
+                    materials: prev.materials.filter(m => m !== material)
+                  }));
+                }}>
+                  <FontAwesome5 name="times" size={8} color="#0F8A3C" />
+                </RemoveFilterBtn>
+              </ActiveFilterPill>
+            ))}
+            {activeFilters.inStockOnly && (
+              <ActiveFilterPill>
+                <ActiveFilterText>In Stock</ActiveFilterText>
+                <RemoveFilterBtn onPress={() => {
+                  setActiveFilters(prev => ({ ...prev, inStockOnly: false }));
+                }}>
+                  <FontAwesome5 name="times" size={8} color="#0F8A3C" />
+                </RemoveFilterBtn>
+              </ActiveFilterPill>
+            )}
+          </ScrollView>
+        </ActiveFiltersRow>
+      )}
 
       {/* Category Chips */}
       <ChipRow>
@@ -118,18 +188,34 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
       {/* Pouch configurator shortcut — shown when Pouches tab is active */}
       {selectedCat === 'pouch' && (
-        <PouchBanner onPress={handlePouchTypeSelect} activeOpacity={0.92}>
-          <PouchBannerImage source={IMAGES.batterPouch} resizeMode="cover" />
-          <PouchBannerOverlay />
-          <PouchBannerContent>
-            <PouchBannerTitle>Configure Your Pouch</PouchBannerTitle>
-            <PouchBannerDesc>Type → window → material → capacity → order</PouchBannerDesc>
-            <PouchBannerBtn>
-              <PouchBannerBtnText>Start</PouchBannerBtnText>
-              <FontAwesome5 name="arrow-right" size={11} color="#FFF" style={{ marginLeft: 5 }} />
-            </PouchBannerBtn>
-          </PouchBannerContent>
-        </PouchBanner>
+        <>
+          {/* Ready Stock Banner */}
+          <ReadyStockBanner onPress={handleReadyStock} activeOpacity={0.92}>
+            <ReadyStockContent>
+              <ReadyStockIcon>
+                <FontAwesome5 name="shipping-fast" size={20} color="#0F8A3C" />
+              </ReadyStockIcon>
+              <ReadyStockText>
+                <ReadyStockTitle>Ready Stock Products</ReadyStockTitle>
+                <ReadyStockDesc>Plain pouches • Ships within 24hrs • No MOQ</ReadyStockDesc>
+              </ReadyStockText>
+              <FontAwesome5 name="chevron-right" size={16} color="#0F8A3C" />
+            </ReadyStockContent>
+          </ReadyStockBanner>
+
+          <PouchBanner onPress={handlePouchTypeSelect} activeOpacity={0.92}>
+            <PouchBannerImage source={IMAGES.batterPouch} resizeMode="cover" />
+            <PouchBannerOverlay />
+            <PouchBannerContent>
+              <PouchBannerTitle>Configure Your Pouch</PouchBannerTitle>
+              <PouchBannerDesc>Type → window → material → capacity → order</PouchBannerDesc>
+              <PouchBannerBtn>
+                <PouchBannerBtnText>Start</PouchBannerBtnText>
+                <FontAwesome5 name="arrow-right" size={11} color="#FFF" style={{ marginLeft: 5 }} />
+              </PouchBannerBtn>
+            </PouchBannerContent>
+          </PouchBanner>
+        </>
       )}
 
       {/* Pouch type cards — shown when Pouches tab is active */}
@@ -197,6 +283,14 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           )}
         </ProductList>
       )}
+
+      {/* Filter Panel Modal */}
+      <FilterPanel
+        visible={showFilterPanel}
+        onClose={() => setShowFilterPanel(false)}
+        onApply={handleApplyFilters}
+        initialFilters={activeFilters}
+      />
     </Container>
   );
 };
@@ -204,6 +298,12 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 export default ProductsScreen;
 
 const Container = styled.View`flex: 1; background-color: #F8F9FA;`;
+
+const ContentWrapper = styled.View`
+  width: 100%;
+  max-width: 900px;
+  align-self: center;
+`;
 
 const SearchBar = styled.View`
   flex-direction: row; align-items: center; padding: 14px 16px 8px;
@@ -221,6 +321,99 @@ const FilterIconBtn = styled.TouchableOpacity`
   width: 46px; height: 46px; border-radius: 14px;
   background-color: #DCFCE7; align-items: center; justify-content: center;
   border-width: 1px; border-color: #BBF7D0;
+  position: relative;
+`;
+
+const FilterBadge = styled.View`
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background-color: #DC2626;
+  align-items: center;
+  justify-content: center;
+`;
+
+const FilterBadgeText = styled.Text`
+  font-size: 10px;
+  font-weight: 700;
+  color: #FFFFFF;
+`;
+
+const ActiveFiltersRow = styled.View`
+  height: 36px;
+  justify-content: center;
+`;
+
+const ActiveFilterPill = styled.View`
+  flex-direction: row;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background-color: #DCFCE7;
+  border-width: 1px;
+  border-color: #BBF7D0;
+  margin-right: 8px;
+`;
+
+const ActiveFilterText = styled.Text`
+  font-size: 11px;
+  font-weight: 600;
+  color: #0F8A3C;
+  margin-right: 6px;
+`;
+
+const RemoveFilterBtn = styled.TouchableOpacity`
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background-color: #FFFFFF;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ReadyStockBanner = styled.TouchableOpacity`
+  margin: 12px 16px 8px;
+  border-radius: 16px;
+  background-color: #FFFFFF;
+  border-width: 2px;
+  border-color: #0F8A3C;
+  overflow: hidden;
+`;
+
+const ReadyStockContent = styled.View`
+  flex-direction: row;
+  align-items: center;
+  padding: 16px;
+`;
+
+const ReadyStockIcon = styled.View`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: #DCFCE7;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+`;
+
+const ReadyStockText = styled.View`
+  flex: 1;
+`;
+
+const ReadyStockTitle = styled.Text`
+  font-size: 15px;
+  font-weight: 800;
+  color: #0F8A3C;
+  margin-bottom: 3px;
+`;
+
+const ReadyStockDesc = styled.Text`
+  font-size: 12px;
+  color: #6B7280;
+  font-weight: 500;
 `;
 
 const ChipRow = styled.View`height: 46px; justify-content: center;`;

@@ -21,7 +21,45 @@ import CartScreen from '../screens/CartScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import PouchConfiguratorScreen from '../screens/PouchConfiguratorScreen';
+import StreamlinedPouchConfiguratorScreen from '../screens/StreamlinedPouchConfiguratorScreen';
 import OrderPlacedScreen from '../screens/OrderPlacedScreen';
+import CustomOrderFlowScreen from '../screens/CustomOrderFlowScreen';
+import OrderProofApprovalScreen from '../screens/OrderProofApprovalScreen';
+import ProductionTimelineScreen from '../screens/ProductionTimelineScreen';
+
+// Admin Screens
+import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
+import AdminProductsScreen from '../screens/admin/AdminProductsScreen';
+import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
+import AdminOrdersScreen from '../screens/admin/AdminOrdersScreen';
+import AdminArtworkScreen from '../screens/admin/AdminArtworkScreen';
+import AdminPromotionsScreen from '../screens/admin/AdminPromotionsScreen';
+import AdminSupportScreen from '../screens/admin/AdminSupportScreen';
+
+// Buyer Screens
+import ManageAddressesScreen from '../screens/buyer/ManageAddressesScreen';
+import ManageTeamScreen from '../screens/buyer/ManageTeamScreen';
+import SupportTicketsScreen from '../screens/buyer/SupportTicketsScreen';
+
+// User Dashboard Screens
+import DashboardScreen from '../screens/user/DashboardScreen';
+import WalletScreen from '../screens/user/WalletScreen';
+import GSTDetailsScreen from '../screens/user/GSTDetailsScreen';
+
+// Additional User Screens
+import InvoicesScreen from '../screens/InvoicesScreen';
+import SavedDesignsScreen from '../screens/SavedDesignsScreen';
+import WishlistScreen from '../screens/WishlistScreen';
+
+// Additional Admin Screens
+import AdminInventoryScreen from '../screens/admin/AdminInventoryScreen';
+import AdminPricingScreen from '../screens/admin/AdminPricingScreen';
+import AdminAnalyticsScreen from '../screens/admin/AdminAnalyticsScreen';
+import AdminCustomersScreen from '../screens/admin/AdminCustomersScreen';
+import AdminBannersScreen from '../screens/admin/AdminBannersScreen';
+
+// Ready Stock Products
+import ReadyStockProductsScreen from '../screens/ReadyStockProductsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -45,12 +83,22 @@ function TabNavigator() {
           const name = icons[route.name] || 'circle';
 
           return (
-            <View style={{
-              width: 38, height: 38, borderRadius: 12,
-              backgroundColor: focused ? '#DCFCE7' : 'transparent',
-              alignItems: 'center', justifyContent: 'center',
-            }}>
-              <FontAwesome5 name={name as any} size={18} color={color} solid={focused} />
+            <View 
+              style={{
+                width: 38, 
+                height: 38, 
+                borderRadius: 12,
+                backgroundColor: focused ? '#DCFCE7' : 'transparent',
+                alignItems: 'center', 
+                justifyContent: 'center',
+              }}
+            >
+              <FontAwesome5 
+                name={name as any} 
+                size={18} 
+                color={color} 
+                solid={focused}
+              />
             </View>
           );
         },
@@ -74,6 +122,9 @@ function TabNavigator() {
           fontWeight: '600',
           marginTop: 0,
         },
+        // Force tab bar to always render
+        unmountOnBlur: false,
+        lazy: false,
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Home' }} />
@@ -116,7 +167,41 @@ export default function RootNavigator({ initialRoute = 'Onboarding' }: RootNavig
       <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="PouchConfigurator" component={PouchConfiguratorScreen} options={{ presentation: 'card' }} />
+      <Stack.Screen name="StreamlinedPouchConfigurator" component={StreamlinedPouchConfiguratorScreen} options={{ presentation: 'card' }} />
+      <Stack.Screen name="ReadyStockProducts" component={ReadyStockProductsScreen} options={{ presentation: 'card' }} />
+      <Stack.Screen name="CustomOrderFlow" component={CustomOrderFlowScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ presentation: 'card', gestureEnabled: false }} />
+      
+      {/* Admin Screens */}
+      <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+      <Stack.Screen name="AdminProducts" component={AdminProductsScreen} />
+      <Stack.Screen name="AdminUsers" component={AdminUsersScreen} />
+      <Stack.Screen name="AdminOrders" component={AdminOrdersScreen} />
+      <Stack.Screen name="AdminArtwork" component={AdminArtworkScreen} />
+      <Stack.Screen name="AdminPromotions" component={AdminPromotionsScreen} />
+      <Stack.Screen name="AdminSupport" component={AdminSupportScreen} />
+      <Stack.Screen name="AdminInventory" component={AdminInventoryScreen} />
+      <Stack.Screen name="AdminPricing" component={AdminPricingScreen} />
+      <Stack.Screen name="AdminAnalytics" component={AdminAnalyticsScreen} />
+      <Stack.Screen name="AdminCustomers" component={AdminCustomersScreen} />
+      <Stack.Screen name="AdminBanners" component={AdminBannersScreen} />
+      
+      {/* Buyer Screens */}
+      <Stack.Screen name="ManageAddresses" component={ManageAddressesScreen} />
+      <Stack.Screen name="ManageTeam" component={ManageTeamScreen} />
+      <Stack.Screen name="SupportTickets" component={SupportTicketsScreen} />
+      
+      {/* User Dashboard Screens */}
+      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="Wallet" component={WalletScreen} />
+      <Stack.Screen name="GSTDetails" component={GSTDetailsScreen} />
+      <Stack.Screen name="Invoices" component={InvoicesScreen} />
+      <Stack.Screen name="SavedDesigns" component={SavedDesignsScreen} />
+      <Stack.Screen name="Wishlist" component={WishlistScreen} />
+      
+      {/* Enhanced Order Flow */}
+      <Stack.Screen name="OrderProofApproval" component={OrderProofApprovalScreen} />
+      <Stack.Screen name="ProductionTimeline" component={ProductionTimelineScreen} />
     </Stack.Navigator>
   );
 }

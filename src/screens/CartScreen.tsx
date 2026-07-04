@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, View, Alert, Platform } from 'react-native';
+import { ScrollView, View, Alert, Platform, Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../store';
@@ -18,6 +18,8 @@ import {
   MATERIAL_LABELS,
   calculatePouchPrice,
 } from '../store/pouchSlice';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
@@ -158,7 +160,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </EmptyIcon>
           <EmptyTitle>Your cart is empty</EmptyTitle>
           <EmptyDesc>Configure a pouch or browse products to get started.</EmptyDesc>
-          <BrowseBtn onPress={() => navigation.navigate('PouchConfigurator')} activeOpacity={0.9}>
+          <BrowseBtn onPress={() => navigation.navigate('StreamlinedPouchConfigurator')} activeOpacity={0.9}>
             <BrowseBtnText>Configure Pouch</BrowseBtnText>
           </BrowseBtn>
         </EmptyWrap>
@@ -170,7 +172,8 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <Container>
       {renderTopBar(true)}
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 160 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 160, alignItems: 'center' }}>
+        <ContentWrapper>
         {cartItems.map((item) => (
           <ItemCard key={item.cartId}>
             <ItemIconBox>
@@ -257,6 +260,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <GrandVal>₹{total.toLocaleString()}</GrandVal>
           </GrandRow>
         </SummaryCard>
+        </ContentWrapper>
       </ScrollView>
 
       {/* Checkout Bar */}
@@ -272,6 +276,12 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 export default CartScreen;
 
 const Container = styled.View`flex: 1; background-color: #F8F9FA;`;
+
+const ContentWrapper = styled.View`
+  width: 100%;
+  max-width: 900px;
+  align-self: center;
+`;
 
 const NavBar = styled.View`
   height: ${Platform.OS === 'ios' ? '94px' : '56px'};
@@ -311,12 +321,26 @@ const BrowseBtn = styled.TouchableOpacity`
 const BrowseBtnText = styled.Text`font-size: 15px; font-weight: 700; color: #FFF;`;
 
 const ItemCard = styled.View`
-  flex-direction: row; background-color: #FFFFFF; border-radius: 14px;
-  border-width: 1px; border-color: #E5E7EB; padding: 14px; margin-bottom: 12px;
+  flex-direction: row;
+  background-color: #FFFFFF;
+  border-radius: 14px;
+  border-width: 1px;
+  border-color: #E5E7EB;
+  padding: 14px;
+  margin-bottom: 12px;
+  align-items: center;
+  width: 100%;
 `;
+
 const ItemIconBox = styled.View`
-  width: 52px; height: 52px; border-radius: 13px;
-  background-color: #f9fafb; overflow: hidden; margin-right: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  background-color: #f9fafb;
+  overflow: hidden;
+  margin-right: 12px;
+  align-items: center;
+  justify-content: center;
 `;
 const ItemThumb = styled.Image`width: 52px; height: 52px;`;
 const ItemBody = styled.View`flex: 1;`;

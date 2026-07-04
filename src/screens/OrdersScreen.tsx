@@ -25,7 +25,8 @@ const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <Container>
       <Header navigation={navigation} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 32, alignItems: 'center' }}>
+        <ContentWrapper>
         {/* Header Row */}
         <TitleRow>
           <TitleIcon>
@@ -195,6 +196,7 @@ const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             );
           })
         )}
+        </ContentWrapper>
       </ScrollView>
 
     </Container>
@@ -204,6 +206,12 @@ const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 export default OrdersScreen;
 
 const Container = styled.View`flex: 1; background-color: #F8F9FA;`;
+
+const ContentWrapper = styled.View`
+  width: 100%;
+  max-width: 900px;
+  align-self: center;
+`;
 
 const TitleRow = styled.View`flex-direction: row; align-items: center; margin-bottom: 16px;`;
 const TitleIcon = styled.View`

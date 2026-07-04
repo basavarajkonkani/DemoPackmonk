@@ -21,24 +21,31 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [gstNumber, setGstNumber] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('Missing details', 'Please fill in name, email, and password.');
+    if (!name.trim() || !email.trim() || !phone.trim() || !password.trim() || !companyName.trim()) {
+      Alert.alert('Missing details', 'Please fill in all required fields (name, email, phone, company, password).');
       return;
     }
 
     setLoading(true);
     try {
-      await AsyncStorage.setItem(
-        AUTH_KEY,
-        JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-        })
-      );
+      const user = {
+        id: Date.now().toString(),
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        role: 'buyer' as const,
+        companyName: companyName.trim(),
+        gstNumber: gstNumber.trim(),
+        createdAt: new Date().toISOString(),
+        isActive: true,
+      };
+      
+      await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(user));
       await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch {
@@ -111,6 +118,30 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
+            />
+          </InputWrap>
+
+          <FieldLabel>Company name *</FieldLabel>
+          <InputWrap>
+            <FontAwesome5 name="building" size={14} color="#9CA3AF" style={{ marginRight: 10 }} />
+            <Input
+              placeholder="Your Company Pvt Ltd"
+              placeholderTextColor="#9CA3AF"
+              value={companyName}
+              onChangeText={setCompanyName}
+              autoCapitalize="words"
+            />
+          </InputWrap>
+
+          <FieldLabel>GST Number (optional)</FieldLabel>
+          <InputWrap>
+            <FontAwesome5 name="file-invoice" size={14} color="#9CA3AF" style={{ marginRight: 10 }} />
+            <Input
+              placeholder="22AAAAA0000A1Z5"
+              placeholderTextColor="#9CA3AF"
+              value={gstNumber}
+              onChangeText={setGstNumber}
+              autoCapitalize="characters"
             />
           </InputWrap>
 

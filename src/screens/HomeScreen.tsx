@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ScrollView,
   TextInput,
   Platform,
   Dimensions,
   FlatList,
+  Animated,
+  TouchableOpacity,
 } from 'react-native';
 import styled from 'styled-components/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,6 +15,7 @@ import { IMAGES } from '../constants/images';
 import { AUTH_KEY } from '../constants';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const getResponsiveWidth = () => Math.min(SCREEN_WIDTH - 32, 900);
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
 
 const BANNERS = [
@@ -46,7 +49,7 @@ const CATEGORIES = [
   { id: 'flat', label: 'Flat\nBottom', image: IMAGES.kraftPouch, bg: '#FEF9C3' },
   { id: 'rolls', label: 'Laminated\nRolls', image: IMAGES.centerSealPouch, bg: '#F3F4F6' },
   { id: 'boxes', label: 'Corr.\nBoxes', image: IMAGES.boxes, bg: '#DBEAFE' },
-  { id: 'bottles', label: 'Bottles', icon: 'wine-bottle', bg: '#F3F4F6', iconColor: '#6B7280' },
+  { id: 'window', label: 'Window\nPouches', image: IMAGES.plainPouchWindow, bg: '#E0E7FF' },
 ];
 
 const FEATURED = [
@@ -55,14 +58,14 @@ const FEATURED = [
     title: 'PRINTED IDLI / DOSA BATTER PACKAGING',
     image: IMAGES.batterPouch,
     bg: '#1D4ED8',
-    route: 'PouchConfigurator',
+    route: 'StreamlinedPouchConfigurator',
   },
   {
     id: 'center-seal',
     title: 'PRINTED CENTER SEAL POUCH ROLL',
     image: IMAGES.centerSealPouch,
     bg: '#EA580C',
-    route: 'PouchConfigurator',
+    route: 'StreamlinedPouchConfigurator',
   },
 ];
 
@@ -77,6 +80,22 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeBanner, setActiveBanner] = useState(0);
   const [userName, setUserName] = useState('Rahul Sharma');
+  const [bannerWidth, setBannerWidth] = useState(getResponsiveWidth());
+
+  // Animation values for smooth interactions
+  const scaleAnims = useRef(
+    QUICK_ACTIONS.map(() => new Animated.Value(1))
+  ).current;
+
+  useEffect(() => {
+    const updateWidth = () => {
+      const { width } = Dimensions.get('window');
+      setBannerWidth(Math.min(width - 32, 900));
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateWidth);
+    return () => subscription?.remove();
+  }, []);
 
   useEffect(() => {
     AsyncStorage.getItem(AUTH_KEY).then((raw) => {
@@ -91,13 +110,37 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   }, []);
 
   const handleBannerScroll = (e: { nativeEvent: { contentOffset: { x: number } } }) => {
-    const index = Math.round(e.nativeEvent.contentOffset.x / BANNER_WIDTH);
+    const index = Math.round(e.nativeEvent.contentOffset.x / bannerWidth);
     setActiveBanner(index);
+  };
+
+  const handleQuickActionPress = (action: typeof QUICK_ACTIONS[0], index: number) => {
+    // Animate button press
+    Animated.sequence([
+      Animated.timing(scaleAnims[index], {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnims[index], {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Navigate
+    if (action.route === 'DesignStudio' || action.route === 'Orders') {
+      navigation.navigate('MainTabs', { screen: action.route });
+    } else {
+      navigation.navigate(action.route);
+    }
   };
 
   return (
     <Container>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24, alignItems: 'center' }}>
+        <ContentWrapper>
         {/* Header */}
         <HeaderRow>
           <HeaderLeft>
@@ -105,11 +148,11 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <UserName>{userName}</UserName>
           </HeaderLeft>
           <HeaderRight>
-            <IconCircle onPress={() => navigation.navigate('Notifications')} activeOpacity={0.85}>
+            <IconCircle onPress={() => navigation.navigate('Notifications')} activeOpacity={0.8}>
               <FontAwesome5 name="bell" size={16} color="#374151" />
               <NotifDot />
             </IconCircle>
-            <AvatarCircle onPress={() => navigation.navigate('Account')} activeOpacity={0.85}>
+            <AvatarCircle onPress={() => navigation.navigate('Account')} activeOpacity={0.8}>
               <AvatarText>RS</AvatarText>
             </AvatarCircle>
           </HeaderRight>
@@ -136,14 +179,14 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            snapToInterval={BANNER_WIDTH}
+            snapToInterval={bannerWidth}
             decelerationRate="fast"
             onScroll={handleBannerScroll}
             scrollEventThrottle={16}
             contentContainerStyle={{ paddingHorizontal: 0 }}
             renderItem={({ item }) => (
               <BannerCard
-                style={{ width: BANNER_WIDTH }}
+                style={{ width: bannerWidth }}
                 onPress={() => navigation.navigate(item.route)}
                 activeOpacity={0.92}
               >
@@ -173,23 +216,21 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <SectionTitle>Quick Actions</SectionTitle>
         </SectionHeader>
         <QuickActionsRow>
-          {QUICK_ACTIONS.map((action) => (
-            <QuickActionCard
+          {QUICK_ACTIONS.map((action, index) => (
+            <Animated.View
               key={action.id}
-              onPress={() => {
-                if (action.route === 'DesignStudio' || action.route === 'Orders') {
-                  navigation.navigate('MainTabs', { screen: action.route });
-                } else {
-                  navigation.navigate(action.route);
-                }
-              }}
-              activeOpacity={0.85}
+              style={{ transform: [{ scale: scaleAnims[index] }] }}
             >
-              <QuickIconWrap bgColor={action.bg}>
-                <FontAwesome5 name={action.icon as any} size={18} color={action.color} />
-              </QuickIconWrap>
-              <QuickLabel>{action.label}</QuickLabel>
-            </QuickActionCard>
+              <QuickActionCard
+                onPress={() => handleQuickActionPress(action, index)}
+                activeOpacity={0.85}
+              >
+                <QuickIconWrap bgColor={action.bg}>
+                  <FontAwesome5 name={action.icon as any} size={18} color={action.color} />
+                </QuickIconWrap>
+                <QuickLabel>{action.label}</QuickLabel>
+              </QuickActionCard>
+            </Animated.View>
           ))}
         </QuickActionsRow>
 
@@ -209,15 +250,11 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           {CATEGORIES.map((cat) => (
             <CategoryCard
               key={cat.id}
-              onPress={() => navigation.navigate('PouchConfigurator')}
+              onPress={() => navigation.navigate('StreamlinedPouchConfigurator')}
               activeOpacity={0.85}
             >
               <CategoryIconWrap bgColor={cat.bg}>
-                {cat.image ? (
-                  <CategoryImg source={cat.image} resizeMode="contain" />
-                ) : (
-                  <FontAwesome5 name={cat.icon as any} size={22} color={cat.iconColor} />
-                )}
+                <CategoryImg source={cat.image} resizeMode="contain" />
               </CategoryIconWrap>
               <CategoryLabel>{cat.label}</CategoryLabel>
             </CategoryCard>
@@ -250,6 +287,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             </FeaturedCard>
           ))}
         </ScrollView>
+        </ContentWrapper>
       </ScrollView>
     </Container>
   );
@@ -262,6 +300,12 @@ export default HomeScreen;
 const Container = styled.View`
   flex: 1;
   background-color: #f8f9fb;
+`;
+
+const ContentWrapper = styled.View`
+  width: 100%;
+  max-width: 900px;
+  align-self: center;
 `;
 
 const HeaderRow = styled.View`
@@ -346,12 +390,25 @@ const SeeAllBtn = styled.TouchableOpacity`flex-direction: row; align-items: cent
 const SeeAllText = styled.Text`font-size: 13px; color: #0f8a3c; font-weight: 600;`;
 
 const QuickActionsRow = styled.View`
-  flex-direction: row; padding: 0 16px 22px; justify-content: space-between;
+  flex-direction: row;
+  padding: 0 16px 22px;
+  justify-content: space-between;
+  flex-wrap: wrap;
 `;
+
 const QuickActionCard = styled.TouchableOpacity`
-  width: ${(SCREEN_WIDTH - 56) / 4}px; align-items: center;
-  background-color: #ffffff; border-radius: 16px; padding: 14px 6px 12px;
-  shadow-color: #000; shadow-offset: 0px 2px; shadow-opacity: 0.05; shadow-radius: 8px; elevation: 2;
+  width: ${(SCREEN_WIDTH - 56) / 4}px;
+  min-width: 70px;
+  max-width: 100px;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 14px 6px 12px;
+  shadow-color: #000;
+  shadow-offset: 0px 2px;
+  shadow-opacity: 0.05;
+  shadow-radius: 8px;
+  elevation: 2;
 `;
 const QuickIconWrap = styled.View<{ bgColor: string }>`
   width: 44px; height: 44px; border-radius: 22px;

@@ -1,12 +1,7 @@
 /**
  * PouchConfiguratorScreen
  * Exactly matches the image:
- * Step 1: Select Pouch Type (Plain / Printed / Kraft)
- * Step 2: Window Option (With Window / Without Window)
- * Step 3: Material Type (Metalised / Non-Metalised)
- * Step 4: Select Capacity (50g/100g/250g/500g/1kg + dimensions)
- * Step 5: Quantity & Artwork (quantity stepper, upload, design assist)
- * Step 6: Price Summary / Order Details
+ * Brochure-backed flow: pouch type, catalogue size, then quantity/artwork.
  */
 import React, { useState } from 'react';
 import {
@@ -33,11 +28,9 @@ import {
   resetPouchConfig,
   selectPouchConfig,
   calculatePouchPrice,
-  CAPACITY_DIMENSIONS,
-  MOQ_BY_CAPACITY,
+  POUCH_CATALOG,
+  getPouchVariant,
   POUCH_TYPE_LABELS,
-  WINDOW_LABELS,
-  MATERIAL_LABELS,
   DELIVERY_TIMELINE,
   PouchType,
   WindowOption,
@@ -62,15 +55,20 @@ import {
 } from '../utils/quantityValidator';
 import { IMAGES, POUCH_TYPE_IMAGES } from '../constants/images';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 3;
 
 const STEP_LABELS = [
   'Pouch\nType',
-  'Window\nOption',
-  'Material\nType',
   'Capacity\nSelection',
   'Quantity &\nCustomization',
 ];
+
+const CATALOG_QUANTITY_OPTIONS = [50, 100, 200, 500, 1000, 3000, 5000];
+const CATALOG_VALIDATION_OPTIONS = {
+  ...DEFAULT_QUANTITY_OPTIONS,
+  quantitySteps: CATALOG_QUANTITY_OPTIONS,
+  minimumOrderQuantity: 50,
+};
 
 const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
@@ -97,23 +95,17 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   };
 
   const livePrice = calculatePouchPrice(config);
-  const moq = config.capacity ? MOQ_BY_CAPACITY[config.capacity] : 5000;
-  const dimensions = config.capacity ? CAPACITY_DIMENSIONS[config.capacity] : null;
+  const selectedProduct = config.pouchType ? POUCH_CATALOG[config.pouchType] : null;
+  const selectedVariant = getPouchVariant(config);
+  const moq = selectedVariant?.piecesPerPacket ?? 50;
+  const dimensions = selectedVariant;
 
   const goNext = () => {
     if (step === 1 && !config.pouchType) {
       Alert.alert('Select Pouch Type', 'Please choose a pouch type to continue.');
       return;
     }
-    if (step === 2 && !config.windowOption) {
-      Alert.alert('Select Window Option', 'Please choose a window option to continue.');
-      return;
-    }
-    if (step === 3 && !config.materialType) {
-      Alert.alert('Select Material', 'Please choose a material type to continue.');
-      return;
-    }
-    if (step === 4 && !config.capacity) {
+    if (step === 2 && !config.capacity) {
       Alert.alert('Select Capacity', 'Please choose a capacity to continue.');
       return;
     }
@@ -133,7 +125,7 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   const incrementQty = () => {
     const result = quantityValidator.validateQuantityIncrement(
       config.quantity,
-      DEFAULT_QUANTITY_OPTIONS
+      CATALOG_VALIDATION_OPTIONS
     );
 
     applyQuantityValidationResult(result, (qty) => {
@@ -145,13 +137,13 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   const decrementQty = () => {
     const minQty = moq
       ? Math.max(
-          MINIMUM_ORDER_QUANTITY,
-          QUANTITY_OPTIONS.find((q) => q >= moq) ?? MINIMUM_ORDER_QUANTITY
+          50,
+          CATALOG_QUANTITY_OPTIONS.find((q) => q >= moq) ?? 50
         )
       : MINIMUM_ORDER_QUANTITY;
 
     const result = quantityValidator.validateQuantityDecrement(config.quantity, {
-      ...DEFAULT_QUANTITY_OPTIONS,
+      ...CATALOG_VALIDATION_OPTIONS,
       minimumOrderQuantity: minQty,
     });
 
@@ -169,7 +161,8 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
       Alert.alert('Incomplete', 'Please complete all configuration steps first.');
       return;
     }
-    const dims = CAPACITY_DIMENSIONS[config.capacity];
+    const dims = getPouchVariant(config);
+    if (!dims) return;
     const totalPrice = livePrice;
     const cartItem = {
       cartId: `pouch-${Date.now()}`,
@@ -192,7 +185,7 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
       baseUnitPrice: totalPrice / config.quantity,
       unitPrice: totalPrice / config.quantity,
       totalPrice,
-      setupFee: config.pouchType === 'printed' ? 1500 : 0,
+      setupFee: 0,
     };
     dispatch(addToCart(cartItem));
     dispatch(resetPouchConfig());
@@ -248,8 +241,8 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
           <Image source={POUCH_TYPE_IMAGES.plain} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
         </OptionImgBox>
         <OptionTextWrap>
-          <OptionName active={config.pouchType === 'plain'}>Plain Pouches</OptionName>
-          <OptionHint>No Printing</OptionHint>
+          <OptionName active={config.pouchType === 'plain'}>{POUCH_CATALOG.plain.name}</OptionName>
+          <OptionHint>{POUCH_CATALOG.plain.subtitle}</OptionHint>
         </OptionTextWrap>
         <ArrowIcon>
           <FontAwesome5 name="chevron-right" size={13} color="#D1D5DB" />
@@ -265,8 +258,8 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
           <Image source={POUCH_TYPE_IMAGES.printed} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
         </OptionImgBox>
         <OptionTextWrap>
-          <OptionName active={config.pouchType === 'printed'}>Printed Pouches</OptionName>
-          <OptionHint>Custom Printing</OptionHint>
+          <OptionName active={config.pouchType === 'printed'}>{POUCH_CATALOG.printed.name}</OptionName>
+          <OptionHint>{POUCH_CATALOG.printed.subtitle}</OptionHint>
         </OptionTextWrap>
         <ArrowIcon>
           <FontAwesome5 name="chevron-right" size={13} color="#D1D5DB" />
@@ -282,8 +275,8 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
           <Image source={POUCH_TYPE_IMAGES.kraft} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
         </OptionImgBox>
         <OptionTextWrap>
-          <OptionName active={config.pouchType === 'kraft'}>Kraft Pouches</OptionName>
-          <OptionHint>Natural & Premium Look</OptionHint>
+          <OptionName active={config.pouchType === 'kraft'}>{POUCH_CATALOG.kraft.name}</OptionName>
+          <OptionHint>{POUCH_CATALOG.kraft.subtitle}</OptionHint>
         </OptionTextWrap>
         <ArrowIcon>
           <FontAwesome5 name="chevron-right" size={13} color="#D1D5DB" />
@@ -396,24 +389,25 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
     </StepContent>
   );
 
-  // ── Step 4: Capacity ──────────────────────────────────────────────────
+  // ── Step 2: Brochure capacity / SKU ───────────────────────────────────
   const renderStep4 = () => (
     <StepContent>
       <StepHeading>Select Capacity</StepHeading>
-      <StepSubText>Step 4 of 5</StepSubText>
-      <StepDesc>Choose the capacity / size</StepDesc>
+      <StepSubText>Step 2 of 3</StepSubText>
+      <StepDesc>{selectedProduct?.description}</StepDesc>
 
       <CapacityGrid>
-        {(['50g', '100g', '250g', '500g', '1kg'] as CapacityOption[]).map((cap) => {
-          const active = config.capacity === cap;
+        {(selectedProduct?.variants ?? []).map((item) => {
+          const active = config.capacity === item.capacity;
           return (
             <CapBtn
-              key={cap}
+              key={item.code}
               active={active}
-              onPress={() => dispatch(setCapacity(cap))}
+              onPress={() => dispatch(setCapacity(item.capacity))}
               activeOpacity={0.85}
             >
-              <CapBtnText active={active}>{cap}</CapBtnText>
+              <CapBtnText active={active}>{item.capacity}</CapBtnText>
+              <CapPriceText active={active}>₹{item.pricePerPiece.toFixed(2)}/pc</CapPriceText>
             </CapBtn>
           );
         })}
@@ -423,19 +417,22 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
         <DimBox>
           <FontAwesome5 name="ruler-combined" size={14} color="#0F8A3C" style={{ marginRight: 8 }} />
           <View>
-            <DimTitle>Selected Capacity: {config.capacity}</DimTitle>
-            <DimValue>Pouch Size (W×H):  {dimensions.width} × {dimensions.height} {dimensions.unit}</DimValue>
+            <DimTitle>{dimensions.code} • {config.capacity} • {selectedProduct?.micron} micron</DimTitle>
+            <DimValue>
+              Size (W×H+G): {dimensions.width} × {dimensions.height} + {dimensions.gusset} {dimensions.unit}
+            </DimValue>
+            <DimValue>Pack: {dimensions.piecesPerPacket} pcs • Price: ₹{dimensions.pricePerPiece.toFixed(2)}/pc</DimValue>
           </View>
         </DimBox>
       )}
     </StepContent>
   );
 
-  // ── Step 5: Quantity & Artwork ────────────────────────────────────────
+  // ── Step 3: Quantity & Artwork ────────────────────────────────────────
   const renderStep5 = () => (
     <StepContent>
       <StepHeading>Order Details</StepHeading>
-      <StepSubText>Step 5 of 5</StepSubText>
+      <StepSubText>Step 3 of 3</StepSubText>
 
       {/* Quantity */}
       <FieldLabel>Quantity</FieldLabel>
@@ -562,11 +559,12 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
               />
             </YSImgWrap>
 
-            <YSRow><YSKey>Printed Pouch</YSKey></YSRow>
+            <YSRow><YSKey>{selectedProduct?.name}</YSKey></YSRow>
             <YSDivider />
-            <YSRow><YSKey>• {WINDOW_LABELS[config.windowOption]}</YSKey></YSRow>
-            <YSRow><YSKey>• {MATERIAL_LABELS[config.materialType]}</YSKey></YSRow>
-            <YSRow><YSKey>• {config.capacity}</YSKey></YSRow>
+            <YSRow><YSKey>• Code: {selectedVariant?.code}</YSKey></YSRow>
+            <YSRow><YSKey>• {selectedProduct?.material} • {selectedProduct?.micron} micron</YSKey></YSRow>
+            <YSRow><YSKey>• {config.capacity} • ₹{selectedVariant?.pricePerPiece.toFixed(2)}/pc</YSKey></YSRow>
+            <YSRow><YSKey>• {selectedVariant?.width} × {selectedVariant?.height} + {selectedVariant?.gusset} cm</YSKey></YSRow>
             <YSRow><YSKey>• Qty: {config.quantity.toLocaleString()} pcs</YSKey></YSRow>
             <YSDivider />
 
@@ -589,8 +587,10 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
             Alert.alert(
               '💰 Price Breakdown',
               `Pouch Type: ${config.pouchType ? POUCH_TYPE_LABELS[config.pouchType] : '—'}\n` +
-              `Material: ${config.materialType ? MATERIAL_LABELS[config.materialType] : '—'}\n` +
+              `Product code: ${selectedVariant?.code ?? '—'}\n` +
+              `Material: ${selectedProduct?.material ?? '—'}\n` +
               `Capacity: ${config.capacity ?? '—'}\n` +
+              `Brochure unit price: ₹${selectedVariant?.pricePerPiece.toFixed(2) ?? '—'}\n` +
               `Quantity: ${config.quantity.toLocaleString()} pcs\n` +
               `─────────────────\n` +
               `Estimated Price: ₹${livePrice.toLocaleString()}\n` +
@@ -638,7 +638,7 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
         </NavBackBtn>
         <NavCenter>
           <NavTitle>
-            {showSummary ? 'Price Summary' : step === 1 ? 'Select Pouch Type' : step === 2 ? 'Window Option' : step === 3 ? 'Material Type' : step === 4 ? 'Select Capacity' : 'Order Details'}
+            {showSummary ? 'Price Summary' : step === 1 ? 'Select Pouch Type' : step === 2 ? 'Select Capacity' : 'Order Details'}
           </NavTitle>
         </NavCenter>
         <NavFavBtn onPress={() => Alert.alert('Saved', 'Configuration saved to favourites.')} activeOpacity={0.8}>
@@ -658,9 +658,7 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
         {showSummary
           ? renderSummary()
           : step === 1 ? renderStep1()
-          : step === 2 ? renderStep2()
-          : step === 3 ? renderStep3()
-          : step === 4 ? renderStep4()
+          : step === 2 ? renderStep4()
           : renderStep5()
         }
       </ScrollView>
@@ -829,6 +827,10 @@ const CapBtn = styled.TouchableOpacity<{ active: boolean }>`
 const CapBtnText = styled.Text<{ active: boolean }>`
   font-size: 15px; font-weight: 700;
   color: ${({ active }) => active ? '#0F8A3C' : '#374151'};
+`;
+const CapPriceText = styled.Text<{ active: boolean }>`
+  font-size: 10px; font-weight: 600; margin-top: 2px;
+  color: ${({ active }) => active ? '#0F8A3C' : '#9CA3AF'};
 `;
 const DimBox = styled.View`
   flex-direction: row; align-items: flex-start;

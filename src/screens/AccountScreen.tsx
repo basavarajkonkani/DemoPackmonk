@@ -8,17 +8,6 @@ import { selectOrdersList, selectTotalBusinessSpending } from '../store/ordersSl
 import { SUPPORT_EMAIL, SUPPORT_PHONE, WHATSAPP_NUMBER, AUTH_KEY, ONBOARDING_KEY } from '../constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const MENU_ITEMS = [
-  { icon: 'building', label: 'Company Profile', badge: null, color: '#DCFCE7', iconColor: '#0F8A3C' },
-  { icon: 'paint-brush', label: 'Saved Designs', badge: '3', color: '#F5F3FF', iconColor: '#7C3AED' },
-  { icon: 'clipboard-list', label: 'Order History', badge: null, color: '#DCFCE7', iconColor: '#0F8A3C' },
-  { icon: 'file-invoice-dollar', label: 'Invoices & Billing', badge: '2', color: '#FEF3C7', iconColor: '#D97706' },
-  { icon: 'map-marker-alt', label: 'Address Book', badge: null, color: '#FEE2E2', iconColor: '#DC2626' },
-  { icon: 'credit-card', label: 'Payment Methods', badge: null, color: '#F3E8FF', iconColor: '#9333EA' },
-  { icon: 'headset', label: 'Support Tickets', badge: '1', color: '#FEF3C7', iconColor: '#D97706' },
-  { icon: 'bell', label: 'Notifications', badge: '5', color: '#FEE2E2', iconColor: '#EF4444' },
-];
-
 const NOTIFS = [
   { label: 'Quote Approved', desc: 'When your quote is approved' },
   { label: 'Design Approved', desc: 'When pre-press approves your artwork' },
@@ -34,19 +23,54 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const orders = useAppSelector(selectOrdersList);
   const totalSpent = useAppSelector(selectTotalBusinessSpending);
+  const authUser = useAppSelector((state) => state.auth.user);
+  
+  // Get user role from auth state, default to 'buyer'
+  const userRole = authUser?.role || 'buyer';
+
+  // Role-based menu items
+  const BUYER_MENU_ITEMS = [
+    { icon: 'tachometer-alt', label: 'Dashboard', badge: null, color: '#DBEAFE', iconColor: '#3B82F6', screen: 'Dashboard' },
+    { icon: 'clipboard-list', label: 'Order History', badge: null, color: '#DCFCE7', iconColor: '#0F8A3C', screen: 'Orders' },
+    { icon: 'file-invoice-dollar', label: 'Invoices & Billing', badge: '2', color: '#FEF3C7', iconColor: '#D97706', screen: 'Invoices' },
+    { icon: 'paint-brush', label: 'Saved Designs', badge: '3', color: '#F5F3FF', iconColor: '#7C3AED', screen: 'SavedDesigns' },
+    { icon: 'heart', label: 'Wishlist', badge: '5', color: '#FCE7F3', iconColor: '#EC4899', screen: 'Wishlist' },
+    { icon: 'wallet', label: 'Wallet', badge: null, color: '#DBEAFE', iconColor: '#3B82F6', screen: 'Wallet' },
+    { icon: 'map-marker-alt', label: 'Manage Addresses', badge: null, color: '#FEE2E2', iconColor: '#DC2626', screen: 'ManageAddresses' },
+    { icon: 'id-card', label: 'GST Details', badge: null, color: '#DCFCE7', iconColor: '#0F8A3C', screen: 'GSTDetails' },
+    { icon: 'users', label: 'Team Members', badge: null, color: '#DBEAFE', iconColor: '#3B82F6', screen: 'ManageTeam' },
+    { icon: 'headset', label: 'Support Tickets', badge: '1', color: '#FEF3C7', iconColor: '#D97706', screen: 'SupportTickets' },
+    { icon: 'bell', label: 'Notifications', badge: '5', color: '#FEE2E2', iconColor: '#EF4444', screen: 'Notifications' },
+  ];
+
+  const ADMIN_MENU_ITEMS = [
+    { icon: 'tachometer-alt', label: 'Admin Dashboard', badge: null, color: '#DBEAFE', iconColor: '#3B82F6', screen: 'AdminDashboard' },
+    { icon: 'warehouse', label: 'Inventory', badge: '15', color: '#E0E7FF', iconColor: '#6366F1', screen: 'AdminInventory' },
+    { icon: 'dollar-sign', label: 'Price Management', badge: null, color: '#FEF3C7', iconColor: '#D97706', screen: 'AdminPricing' },
+    { icon: 'box', label: 'Manage Products', badge: null, color: '#DCFCE7', iconColor: '#10B981', screen: 'AdminProducts' },
+    { icon: 'clipboard-list', label: 'Orders', badge: '12', color: '#DCFCE7', iconColor: '#10B981', screen: 'AdminOrders' },
+    { icon: 'users', label: 'Customers', badge: null, color: '#FCE7F3', iconColor: '#EC4899', screen: 'AdminCustomers' },
+    { icon: 'image', label: 'Artwork Review', badge: '3', color: '#FEF3C7', iconColor: '#F59E0B', screen: 'AdminArtwork' },
+    { icon: 'chart-line', label: 'Analytics', badge: null, color: '#FEE2E2', iconColor: '#EF4444', screen: 'AdminAnalytics' },
+    { icon: 'tags', label: 'Promotions', badge: null, color: '#FCE7F3', iconColor: '#EC4899', screen: 'AdminPromotions' },
+    { icon: 'images', label: 'Banners', badge: null, color: '#E0E7FF', iconColor: '#8B5CF6', screen: 'AdminBanners' },
+    { icon: 'headset', label: 'Support Tickets', badge: '8', color: '#DBEAFE', iconColor: '#3B82F6', screen: 'AdminSupport' },
+    { icon: 'bell', label: 'Notifications', badge: '5', color: '#FEE2E2', iconColor: '#EF4444', screen: 'Notifications' },
+  ];
+
+  const MENU_ITEMS = userRole === 'admin' ? ADMIN_MENU_ITEMS : BUYER_MENU_ITEMS;
 
   // CO2 savings: 0.3kg per order as a rough estimate based on eco packaging
   const co2Saved = Math.round(orders.length * 0.3 * 100 + 240); // 240 = baseline from past orders
   const ecoGoalPct = Math.min(100, Math.round((co2Saved / ecoTarget) * 100));
 
-  const handleMenu = (label: string) => {
-    if (label === 'Order History') navigation.navigate('Orders');
-    else if (label === 'Notifications') {
+  const handleMenu = (label: string, screen: string | null) => {
+    if (screen) {
+      navigation.navigate(screen);
+    } else if (label === 'Order History') {
+      navigation.navigate('Orders');
+    } else if (label === 'Notifications') {
       navigation.navigate('Notifications');
-    } else if (label === 'Support Tickets') {
-      Alert.alert('Support Tickets', 'Contact support@pacmonk.com or call +91-80-4567-8900', [
-        { text: 'OK' },
-      ]);
     } else {
       Alert.alert(label, `${label} settings are coming in the next update.`);
     }
@@ -140,7 +164,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <MenuCard style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
           {MENU_ITEMS.map((item, idx) => (
             <React.Fragment key={item.label}>
-              <MenuItem onPress={() => handleMenu(item.label)} activeOpacity={0.7}>
+              <MenuItem onPress={() => handleMenu(item.label, item.screen)} activeOpacity={0.7}>
                 <MenuIconBox bgColor={item.color}>
                   <FontAwesome5 name={item.icon as any} size={14} color={item.iconColor} />
                 </MenuIconBox>

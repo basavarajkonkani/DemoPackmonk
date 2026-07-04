@@ -3,25 +3,28 @@ import { TouchableOpacity, Image } from 'react-native';
 import styled from 'styled-components/native';
 import { PackagingProduct } from '../store/productsSlice';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { IMAGES } from '../constants/images';
+import { IMAGES, PRODUCT_IMAGES, CATEGORY_IMAGES } from '../constants/images';
 
 interface ProductCardProps {
   product: PackagingProduct;
   onPress: () => void;
 }
 
-const getCategoryConfig = (cat: string) => {
-  switch (cat) {
-    case 'box': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'box-open', img: IMAGES.bannerPrint };
-    case 'mailer': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'mail-bulk', img: IMAGES.bannerDesign };
-    case 'bag': return { bg: '#FEF3C7', iconColor: '#D97706', icon: 'shopping-bag', img: IMAGES.batterPouch };
-    case 'tape': return { bg: '#F3E8FF', iconColor: '#7C3AED', icon: 'tape', img: IMAGES.centerSealPouch };
-    default: return { bg: '#F3F4F6', iconColor: '#6B7280', icon: 'box', img: IMAGES.standupPouch };
+const getCategoryConfig = (product: PackagingProduct) => {
+  // First try to get product-specific image, then fall back to category image
+  const img = PRODUCT_IMAGES[product.id] || CATEGORY_IMAGES[product.category] || IMAGES.standupPouch;
+  
+  switch (product.category) {
+    case 'box': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'box-open', img };
+    case 'mailer': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'mail-bulk', img };
+    case 'bag': return { bg: '#FEF3C7', iconColor: '#D97706', icon: 'shopping-bag', img };
+    case 'tape': return { bg: '#F3E8FF', iconColor: '#7C3AED', icon: 'tape', img };
+    default: return { bg: '#F3F4F6', iconColor: '#6B7280', icon: 'box', img };
   }
 };
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onPress }) => {
-  const cfg = getCategoryConfig(product.category);
+  const cfg = getCategoryConfig(product);
   const isEco = product.ecoFriendlyRating >= 4;
 
   return (
@@ -90,7 +93,7 @@ const Card = styled.View`
 
 const ImageWrap = styled.View<{ bgColor: string }>`
   height: 160px;
-  background-color: ${({ bgColor }) => bgColor};
+  background-color: ${({ bgColor }: { bgColor: string }) => bgColor};
   position: relative;
   overflow: hidden;
 `;

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Alert, Platform, Modal, TextInput } from 'react-native';
+import { ScrollView, View, Alert, Platform, Modal, TextInput, Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../store';
 import { clearCart, selectCartTotal } from '../store/cartSlice';
 import { placeOrder } from '../store/ordersSlice';
 import { GST_RATE, DEFAULT_SHIPPING_FEE } from '../constants';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const PAYMENT_METHODS = [
   { id: 'upi', label: 'UPI / QR', icon: 'qrcode' },
@@ -121,8 +123,8 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </ModalOverlay>
       </Modal>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 140 }}>
-
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 140, alignItems: 'center' }}>
+        <ContentWrapper>
         {/* Delivery Address */}
         <SectionCard>
           <SectionHeader>
@@ -176,7 +178,7 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             </PayOption>
           ))}
         </SectionCard>
-
+        </ContentWrapper>
       </ScrollView>
 
       {/* Place Order */}
@@ -192,6 +194,12 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 export default CheckoutScreen;
 
 const Container = styled.View`flex: 1; background-color: #F8F9FA;`;
+
+const ContentWrapper = styled.View`
+  width: 100%;
+  max-width: 900px;
+  align-self: center;
+`;
 
 const NavBar = styled.View`
   height: ${Platform.OS === 'ios' ? '94px' : '56px'};
@@ -229,7 +237,7 @@ const PayOption = styled.TouchableOpacity<{ active: boolean }>`
 `;
 const RadioOuter = styled.View<{ active: boolean }>`
   width: 20px; height: 20px; border-radius: 10px; border-width: 2px;
-  border-color: ${({ active }) => active ? '#0F8A3C' : '#D1D5DB'};
+  border-color: ${({ active }: { active: boolean }) => active ? '#0F8A3C' : '#D1D5DB'};
   align-items: center; justify-content: center; margin-right: 12px;
 `;
 const RadioInner = styled.View`

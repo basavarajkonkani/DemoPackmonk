@@ -299,11 +299,11 @@ const GridOverlay = styled.View`
 
 const GridLine = styled.View<{ horizontal?: boolean; top?: number; left?: number }>`
   position: absolute;
-  ${({ horizontal }) => horizontal
+  ${({ horizontal }: { horizontal?: boolean }) => horizontal
     ? 'left: 0; right: 0; height: 1px;'
     : 'top: 0; bottom: 0; width: 1px;'}
-  ${({ top }) => top !== undefined ? `top: ${top}px;` : ''}
-  ${({ left }) => left !== undefined ? `left: ${left}px;` : ''}
+  ${({ top }: { top?: number }) => top !== undefined ? `top: ${top}px;` : ''}
+  ${({ left }: { left?: number }) => left !== undefined ? `left: ${left}px;` : ''}
   background-color: rgba(100,116,139,0.07);
 `;
 
@@ -446,7 +446,7 @@ const SideFace = styled.View`
 const SideStripe = styled.View<{ color: string }>`
   width: 2px;
   height: 70%;
-  background-color: ${({ color }) => color};
+  background-color: ${({ color }: { color: string }) => color};
   opacity: 0.4;
 `;
 

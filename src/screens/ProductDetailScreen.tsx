@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Alert, Platform } from 'react-native';
+import { ScrollView, View, Alert, Platform, Image } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../store';
@@ -11,6 +11,9 @@ import {
   DEFAULT_QUANTITY_OPTIONS,
   applyQuantityValidationResult,
 } from '../utils/quantityValidator';
+import MOQBadge from '../components/MOQBadge';
+import PincodeChecker from '../components/PincodeChecker';
+import { IMAGES, PRODUCT_IMAGES, CATEGORY_IMAGES } from '../constants/images';
 
 const SIZE_OPTIONS = [
   { key: 'S', label: 'Small', factor: 0.7 },
@@ -61,12 +64,15 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   }
 
   const getCategoryConfig = () => {
+    // Get product-specific image or fall back to category image
+    const productImage = PRODUCT_IMAGES[product.id] || CATEGORY_IMAGES[product.category] || IMAGES.standupPouch;
+    
     switch (product.category) {
-      case 'box': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'box-open' };
-      case 'mailer': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'mail-bulk' };
-      case 'bag': return { bg: '#FEF3C7', iconColor: '#D97706', icon: 'shopping-bag' };
-      case 'tape': return { bg: '#F3E8FF', iconColor: '#7C3AED', icon: 'tape' };
-      default: return { bg: '#F3F4F6', iconColor: '#6B7280', icon: 'box' };
+      case 'box': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'box-open', image: productImage };
+      case 'mailer': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'mail-bulk', image: productImage };
+      case 'bag': return { bg: '#FEF3C7', iconColor: '#D97706', icon: 'shopping-bag', image: productImage };
+      case 'tape': return { bg: '#F3E8FF', iconColor: '#7C3AED', icon: 'tape', image: productImage };
+      default: return { bg: '#F3F4F6', iconColor: '#6B7280', icon: 'box', image: productImage };
     }
   };
 
@@ -113,11 +119,10 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
         {/* Gallery */}
         <Gallery bgColor={cfg.bg}>
+          <ProductImageFull source={cfg.image} resizeMode="cover" />
+          <GalleryOverlay bgColor={cfg.bg} />
           <GalleryDecor size={200} top={-50} right={-60} color={cfg.iconColor} />
           <GalleryDecor size={100} bottom={-20} left={20} color={cfg.iconColor} />
-          <GalleryIconCircle>
-            <FontAwesome5 name={cfg.icon as any} size={64} color={cfg.iconColor} />
-          </GalleryIconCircle>
           {product.ecoFriendlyRating >= 4 && (
             <EcoBadge>
               <FontAwesome5 name="leaf" size={9} color="#FFF" style={{ marginRight: 4 }} />
@@ -163,6 +168,11 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             </MetricBlock>
           </MetricsRow>
 
+          {/* MOQ Badge */}
+          <MOQBadgeWrapper>
+            <MOQBadge moq={product.minQuantity} currentQuantity={quantity} size="medium" />
+          </MOQBadgeWrapper>
+
           {/* Description */}
           <DescText>{product.longDescription}</DescText>
 
@@ -192,6 +202,9 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             ))}
           </QtyRow>
           <QtyTotal>Total: ₹{totalPrice.toFixed(2)}</QtyTotal>
+
+          {/* Pincode Checker */}
+          <PincodeChecker />
 
           {/* Tabs */}
           <TabContainer>
@@ -303,6 +316,27 @@ const Gallery = styled.View<{ bgColor: string }>`
   height: 260px; background-color: ${({ bgColor }) => bgColor};
   align-items: center; justify-content: center; position: relative; overflow: hidden;
 `;
+
+const ProductImageFull = styled.Image`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+`;
+
+const GalleryOverlay = styled.View<{ bgColor: string }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: ${({ bgColor }) => bgColor};
+  opacity: 0.15;
+`;
+
 const GalleryDecor = styled.View<{ size: number; top?: number; bottom?: number; right?: number; left?: number; color: string }>`
   position: absolute;
   width: ${({ size }) => size}px; height: ${({ size }) => size}px;
@@ -402,6 +436,10 @@ const QtyOptionText = styled.Text<{ active: boolean }>`
 `;
 const QtyTotal = styled.Text`
   font-size: 14px; font-weight: 700; color: #0F8A3C; margin-bottom: 22px;
+`;
+
+const MOQBadgeWrapper = styled.View`
+  margin-bottom: 18px;
 `;
 
 const TabContainer = styled.View`

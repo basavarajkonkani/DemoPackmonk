@@ -59,6 +59,21 @@ export interface QuoteEstimate {
 
 /* ─── User / Company ─────────────────────────────────────────────────── */
 
+export type UserRole = 'buyer' | 'admin';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: UserRole;
+  companyName?: string;
+  gstNumber?: string;
+  companyAddress?: string;
+  createdAt: string;
+  isActive: boolean;
+}
+
 export interface UserProfile {
   id: string;
   companyName: string;
@@ -71,6 +86,7 @@ export interface UserProfile {
 }
 
 export interface ShippingAddress {
+  id: string;
   company: string;
   street: string;
   city: string;
@@ -78,6 +94,15 @@ export interface ShippingAddress {
   zip: string;
   country: string;
   isDefault?: boolean;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  addedAt: string;
 }
 
 /* ─── Payment ────────────────────────────────────────────────────────── */
@@ -123,4 +148,69 @@ export interface Notification {
   type: 'order' | 'shipment' | 'design' | 'promo';
   read: boolean;
   createdAt: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  userId: string;
+  subject: string;
+  message: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Artwork {
+  id: string;
+  userId: string;
+  name: string;
+  fileUrl: string;
+  thumbnail?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  orderId?: string;
+  uploadedAt: string;
+}
+
+/* ─── Admin Types ────────────────────────────────────────────────────── */
+
+export interface Product {
+  id: string;
+  name: string;
+  category: string;
+  material: string;
+  size: string;
+  thickness: string;
+  zipperType?: string;
+  price: number;
+  stock: number;
+  lowStockThreshold: number;
+  imageUrl: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface BannerPromo {
+  id: string;
+  title: string;
+  imageUrl: string;
+  linkUrl?: string;
+  isActive: boolean;
+  startDate: string;
+  endDate: string;
+}
+
+export interface CouponCode {
+  id: string;
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minOrderAmount: number;
+  maxDiscount?: number;
+  validFrom: string;
+  validUntil: string;
+  usageLimit: number;
+  usedCount: number;
+  isActive: boolean;
 }

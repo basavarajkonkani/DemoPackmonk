@@ -169,7 +169,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       `${selectedProduct.name} custom config added successfully.`,
       [
         { text: 'Configure Another', onPress: () => dispatch(clearSelectedProduct()) },
-        { text: 'View Cart', onPress: () => setCartVisible(true) },
+        { text: 'View Cart', onPress: () => navigation.navigate('Cart') },
       ]
     );
   };

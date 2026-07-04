@@ -4,9 +4,11 @@ import productsReducer from './productsSlice';
 import cartReducer from './cartSlice';
 import ordersReducer from './ordersSlice';
 import pouchReducer from './pouchSlice';
+import authReducer from './authSlice';
 
 export const store = configureStore({
   reducer: {
+    auth: authReducer,
     products: productsReducer,
     cart: cartReducer,
     orders: ordersReducer,

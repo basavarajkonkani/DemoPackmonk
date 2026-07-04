@@ -5,6 +5,10 @@
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>PacMonk — B2B Packaging Platform</title>
+    
+    <!-- Load FontAwesome for web -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       html, body, #root {
@@ -14,6 +18,16 @@
       }
       body { display: flex; flex-direction: column; }
       #root { flex: 1; display: flex; flex-direction: column; }
+      
+      /* Ensure FontAwesome icons render properly */
+      .fa, .fas, .far, .fal, .fad, .fab {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-style: normal;
+        font-variant: normal;
+        text-rendering: auto;
+        line-height: 1;
+      }
     </style>
   </head>
   <body>
