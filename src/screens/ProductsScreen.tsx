@@ -264,7 +264,7 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       {selectedCat !== 'pouch' && (
         <ProductList
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: Platform.OS === 'web' ? 120 : 100 }}
         >
           {filtered.length === 0 ? (
             <EmptyWrap>

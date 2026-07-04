@@ -25,7 +25,7 @@ const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <Container>
       <Header navigation={navigation} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 100, alignItems: 'center' }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: Platform.OS === 'web' ? 120 : 100, alignItems: 'center' }}>
         <ContentWrapper>
         {/* Header Row */}
         <TitleRow>
