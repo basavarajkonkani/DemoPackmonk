@@ -181,7 +181,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <Container>
       <Header navigation={navigation} />
 
-      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 100 }}>
 
         {/* Product info bar */}
         <ProductInfoBar>

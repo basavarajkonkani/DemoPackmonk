@@ -97,7 +97,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
     <Container>
       <Header navigation={navigation} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 
         {/* Profile Card */}
         <ProfileCard style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.07, shadowRadius: 12, elevation: 4 }}>

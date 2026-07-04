@@ -116,6 +116,10 @@ function TabNavigator() {
           shadowOpacity: 0.06,
           shadowRadius: 8,
           elevation: 10,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
         },
         tabBarLabelStyle: {
           fontSize: 10,
