@@ -799,14 +799,17 @@ const QuickQtyText = styled.Text<{ active: boolean }>`
 `;
 
 const BottomBar = styled.View`
-  position: absolute;
+  position: ${Platform.OS === 'web' ? 'fixed' : 'absolute'};
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 12px 16px ${Platform.OS === 'ios' ? 32 : 20}px;
+  width: ${Platform.OS === 'web' ? '100%' : 'auto'};
+  padding: 12px 16px ${Platform.OS === 'ios' ? '32px' : '24px'};
   background-color: #ffffff;
   border-top-width: 1px;
   border-top-color: #f3f4f6;
+  z-index: ${Platform.OS === 'web' ? '9999' : '1000'};
+  ${Platform.OS === 'web' ? 'box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);' : ''}
 `;
 
 const AddToCartBtn = styled.TouchableOpacity`
