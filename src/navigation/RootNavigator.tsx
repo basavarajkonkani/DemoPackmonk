@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -104,23 +104,40 @@ function TabNavigator() {
         },
         tabBarActiveTintColor: '#0F8A3C',
         tabBarInactiveTintColor: '#9CA3AF',
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#F3F4F6',
-          height: 72,
-          paddingBottom: 10,
-          paddingTop: 6,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.06,
-          shadowRadius: 8,
-          elevation: 10,
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-        },
+        tabBarStyle: Platform.select({
+          web: {
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 1,
+            borderTopColor: '#F3F4F6',
+            height: 72,
+            paddingBottom: 10,
+            paddingTop: 6,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 8,
+            elevation: 10,
+            position: 'fixed' as any,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            zIndex: 1000,
+          },
+          default: {
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 1,
+            borderTopColor: '#F3F4F6',
+            height: 72,
+            paddingBottom: 10,
+            paddingTop: 6,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 8,
+            elevation: 10,
+          },
+        }),
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',

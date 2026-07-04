@@ -21,7 +21,7 @@ if (Platform.OS !== 'web') {
 }
 
 const rootStyle = Platform.OS === 'web'
-  ? { flex: 1, height: '100vh' as any, overflow: 'hidden' as any }
+  ? { flex: 1, height: '100vh' as any, display: 'flex' as any, flexDirection: 'column' as any }
   : { flex: 1 };
 
 const App: React.FC = () => {
