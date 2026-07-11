@@ -87,19 +87,20 @@ function TabNavigator() {
           return (
             <View 
               style={{
-                width: focused ? 56 : 48, 
-                height: focused ? 56 : 48, 
-                borderRadius: focused ? 18 : 16,
-                backgroundColor: focused ? '#0F8A3C' : '#F3F4F6',
+                width: 44, 
+                height: 44, 
+                borderRadius: 14,
+                backgroundColor: focused ? '#0F8A3C' : '#F9FAFB',
                 alignItems: 'center', 
                 justifyContent: 'center',
-                boxShadow: focused ? '0px 4px 8px rgba(15, 138, 60, 0.3)' : '0px 2px 4px rgba(0, 0, 0, 0.1)',
-                transform: [{ translateY: focused ? -8 : 0 }],
+                ...(Platform.OS === 'web' && focused && {
+                  boxShadow: '0px 2px 8px rgba(15, 138, 60, 0.2)',
+                }),
               }}
             >
               <FontAwesome5 
                 name={name as any} 
-                size={focused ? 24 : 20} 
+                size={20} 
                 color={focused ? '#FFFFFF' : color} 
                 solid={focused}
               />
@@ -110,41 +111,42 @@ function TabNavigator() {
         tabBarInactiveTintColor: '#6B7280',
         tabBarStyle: Platform.select({
           web: {
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            borderTopWidth: 0,
-            height: 88,
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 1,
+            borderTopColor: '#E5E7EB',
+            height: 80,
             paddingBottom: 12,
-            paddingTop: 12,
-            paddingHorizontal: 16,
-            boxShadow: '0px -4px 16px rgba(0, 0, 0, 0.15)',
-            position: 'fixed' as any,
-            bottom: 16,
-            left: 16,
-            right: 16,
-            marginLeft: 'auto' as any,
-            marginRight: 'auto' as any,
-            borderRadius: 24,
-            zIndex: 1000,
+            paddingTop: 8,
+            paddingHorizontal: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
+            elevation: 8,
           } as any,
           default: {
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            borderTopWidth: 0,
-            height: 88,
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 1,
+            borderTopColor: '#E5E7EB',
+            height: 80,
             paddingBottom: 12,
-            paddingTop: 12,
-            paddingHorizontal: 16,
-            boxShadow: '0px -4px 16px rgba(0, 0, 0, 0.15)',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
+            paddingTop: 8,
+            paddingHorizontal: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
+            elevation: 8,
           },
         }),
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
-          marginTop: 6,
+          marginTop: 4,
         },
         tabBarItemStyle: {
-          paddingVertical: 4,
+          paddingVertical: 2,
+          paddingHorizontal: 4,
         },
         // Force tab bar to always render
         unmountOnBlur: false,
