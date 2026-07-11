@@ -34,7 +34,7 @@ const OrderProofApprovalScreen: React.FC<Props> = ({ navigation, route }) => {
         {
           text: 'Approve & Continue',
           onPress: () => {
-            navigation.navigate('Checkout', {
+            navigation.navigate('PreCheckoutInfo', {
               orderDetails: { ...orderDetails, colorOption: selectedColor, notes },
             });
           },

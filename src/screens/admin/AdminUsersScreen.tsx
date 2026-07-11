@@ -16,7 +16,7 @@ const AdminUsersScreen: React.FC<Props> = ({ navigation }) => {
       phone: '+91 98765 43210',
       companyName: 'Sharma Industries',
       gstNumber: '22AAAAA0000A1Z5',
-      role: 'buyer' as const,
+      role: 'user' as const,
       isActive: true,
       createdAt: '2024-01-15',
     },
@@ -27,7 +27,7 @@ const AdminUsersScreen: React.FC<Props> = ({ navigation }) => {
       phone: '+91 98765 43211',
       companyName: 'Patel Enterprises',
       gstNumber: '24BBBBB1111B2Y6',
-      role: 'buyer' as const,
+      role: 'user' as const,
       isActive: true,
       createdAt: '2024-02-20',
     },
@@ -43,7 +43,7 @@ const AdminUsersScreen: React.FC<Props> = ({ navigation }) => {
     },
   ]);
 
-  const [filter, setFilter] = useState<'all' | 'buyer' | 'admin'>('all');
+  const [filter, setFilter] = useState<'all' | 'user' | 'admin'>('all');
 
   const toggleUserStatus = (id: string) => {
     setUsers((prev) =>
@@ -81,11 +81,11 @@ const AdminUsersScreen: React.FC<Props> = ({ navigation }) => {
           <FilterText isActive={filter === 'all'}>All ({users.length})</FilterText>
         </FilterBtn>
         <FilterBtn
-          isActive={filter === 'buyer'}
-          onPress={() => setFilter('buyer')}
+          isActive={filter === 'user'}
+          onPress={() => setFilter('user')}
         >
-          <FilterText isActive={filter === 'buyer'}>
-            Buyers ({users.filter((u) => u.role === 'buyer').length})
+          <FilterText isActive={filter === 'user'}>
+            Users ({users.filter((u) => u.role === 'user').length})
           </FilterText>
         </FilterBtn>
         <FilterBtn

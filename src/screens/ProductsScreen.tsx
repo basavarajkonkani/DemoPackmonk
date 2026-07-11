@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Dimensions } from 'react-native';
+import { ScrollView, View, Dimensions, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import { useAppSelector, useAppDispatch } from '../store';
 import { selectProductsList, selectProduct } from '../store/productsSlice';
@@ -25,23 +25,41 @@ const CATEGORIES: { key: CategoryFilter; label: string; icon: string }[] = [
 // Pouch sub-type cards shown when 'pouch' category is selected
 const POUCH_TYPES = [
   {
-    key: 'plain',
-    label: 'Clear Standy Zipper',
-    subtitle: '50g–2kg • From ₹2.05/pc',
-    image: POUCH_TYPE_IMAGES.plain,
-  },
-  {
-    key: 'printed',
-    label: 'Printed Dry Fruit Pouch',
-    subtitle: '100g–1kg • From ₹3.80/pc',
-    image: POUCH_TYPE_IMAGES.printed,
+    key: 'gold',
+    label: 'Gold Standy Pouch',
+    subtitle: 'Premium • From ₹5.50/pc',
+    image: POUCH_TYPE_IMAGES.gold,
     recommended: true,
   },
   {
-    key: 'kraft',
+    key: 'silver',
+    label: 'Silver Standy Pouch',
+    subtitle: 'Classic • From ₹4.80/pc',
+    image: POUCH_TYPE_IMAGES.silver,
+  },
+  {
+    key: 'milky',
+    label: 'Milky Standy Pouch',
+    subtitle: 'Elegant • From ₹4.20/pc',
+    image: POUCH_TYPE_IMAGES.milky,
+  },
+  {
+    key: 'kraft-brown',
     label: 'Kraft Standy (Brown)',
-    subtitle: '100g–1kg • From ₹4.75/pc',
-    image: POUCH_TYPE_IMAGES.kraft,
+    subtitle: 'Eco-Friendly • From ₹4.50/pc',
+    image: POUCH_TYPE_IMAGES['kraft-brown'],
+  },
+  {
+    key: 'kraft-window-brown',
+    label: 'Kraft Window (Brown)',
+    subtitle: 'With Window • From ₹5.80/pc',
+    image: POUCH_TYPE_IMAGES['kraft-window-brown'],
+  },
+  {
+    key: 'kraft-window-white',
+    label: 'Kraft Window (White)',
+    subtitle: 'Premium Eco • From ₹6.20/pc',
+    image: POUCH_TYPE_IMAGES['kraft-window-white'],
   },
 ];
 
@@ -204,7 +222,7 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </ReadyStockBanner>
 
           <PouchBanner onPress={handlePouchTypeSelect} activeOpacity={0.92}>
-            <PouchBannerImage source={IMAGES.batterPouch} resizeMode="cover" />
+            <PouchBannerImage source={IMAGES.goldStandyZipperPouch} resizeMode="cover" />
             <PouchBannerOverlay />
             <PouchBannerContent>
               <PouchBannerTitle>Configure Your Pouch</PouchBannerTitle>
@@ -468,7 +486,7 @@ const PouchTypeIconWrap = styled.View`
   background-color: #f9fafb; align-items: center; justify-content: center;
   margin-right: 14px; overflow: hidden;
 `;
-const PouchTypeImg = styled.Image`width: 44px; height: 44px;`;
+const PouchTypeImg = styled.Image`width: 48px; height: 48px;`;
 const PouchTypeBody = styled.View`flex: 1;`;
 const PouchTypeLabel = styled.Text`font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 3px;`;
 const PouchTypeSubtitle = styled.Text`font-size: 12px; color: #9CA3AF;`;

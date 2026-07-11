@@ -1,12 +1,9 @@
-import React, { useState } from 'react';
-import { ScrollView, Alert, Platform } from 'react-native';
+import React from 'react';
+import { ScrollView, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useAppDispatch } from '../store';
-import { addToCart } from '../store/cartSlice';
 import StockIndicator from '../components/StockIndicator';
 import MOQBadge from '../components/MOQBadge';
-import PincodeChecker from '../components/PincodeChecker';
 import { IMAGES } from '../constants/images';
 
 interface ReadyStockProduct {
@@ -32,27 +29,141 @@ interface ReadyStockProduct {
 const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
   {
     id: 'rs001',
-    name: 'Clear Stand-Up Pouch with Zipper',
-    description: 'Crystal clear BOPP pouch with resealable zipper, perfect for dry fruits, snacks, and tea.',
+    name: 'Gold Standy Pouch',
+    description: 'Premium gold standy pouch with excellent barrier properties, perfect for premium products and long shelf life.',
     category: 'pouch',
-    material: 'BOPP',
-    finish: 'Clear',
+    material: 'Metalized',
+    finish: 'Gold',
     size: 'Medium',
     dimensions: { length: 150, width: 100, height: 50 },
-    hasZipper: true,
+    hasZipper: false,
     hasWindow: false,
-    thickness: '100μ',
-    price: 2.05,
+    thickness: '120μ',
+    price: 5.50,
     moq: 500,
-    stockCount: 5000,
+    stockCount: 3500,
     inStock: true,
-    image: IMAGES.plainPouch,
+    image: IMAGES.goldStandyPouch,
     ecoRating: 3,
   },
   {
     id: 'rs002',
-    name: 'Kraft Stand-Up Pouch (Brown)',
-    description: 'Eco-friendly kraft paper pouch with window, ideal for organic products.',
+    name: 'Gold Standy Zipper Pouch',
+    description: 'Premium gold standy pouch with resealable zipper, ideal for high-value products requiring freshness.',
+    category: 'pouch',
+    material: 'Metalized',
+    finish: 'Gold',
+    size: 'Medium',
+    dimensions: { length: 160, width: 110, height: 60 },
+    hasZipper: true,
+    hasWindow: false,
+    thickness: '130μ',
+    price: 6.75,
+    moq: 500,
+    stockCount: 2800,
+    inStock: true,
+    image: IMAGES.goldStandyZipperPouch,
+    ecoRating: 3,
+  },
+  {
+    id: 'rs003',
+    name: 'Silver Standy Pouch',
+    description: 'Classic silver metalized standy pouch with superior barrier protection for extended shelf life.',
+    category: 'pouch',
+    material: 'Metalized',
+    finish: 'Silver',
+    size: 'Medium',
+    dimensions: { length: 150, width: 100, height: 50 },
+    hasZipper: false,
+    hasWindow: false,
+    thickness: '120μ',
+    price: 4.80,
+    moq: 500,
+    stockCount: 4200,
+    inStock: true,
+    image: IMAGES.silverStandyPouch,
+    ecoRating: 3,
+  },
+  {
+    id: 'rs004',
+    name: 'Silver Standy Zipper Pouch',
+    description: 'Silver metalized pouch with zipper closure, perfect for snacks, dry fruits, and coffee.',
+    category: 'pouch',
+    material: 'Metalized',
+    finish: 'Silver',
+    size: 'Medium',
+    dimensions: { length: 160, width: 110, height: 60 },
+    hasZipper: true,
+    hasWindow: false,
+    thickness: '130μ',
+    price: 5.95,
+    moq: 500,
+    stockCount: 3700,
+    inStock: true,
+    image: IMAGES.silverStandyZipperPouch,
+    ecoRating: 3,
+  },
+  {
+    id: 'rs005',
+    name: 'Milky Standy Pouch',
+    description: 'Elegant milky white standy pouch, perfect for premium food products and cosmetics.',
+    category: 'pouch',
+    material: 'BOPP',
+    finish: 'Milky White',
+    size: 'Medium',
+    dimensions: { length: 150, width: 100, height: 50 },
+    hasZipper: false,
+    hasWindow: false,
+    thickness: '100μ',
+    price: 4.20,
+    moq: 500,
+    stockCount: 3200,
+    inStock: true,
+    image: IMAGES.milkyStandyPouch,
+    ecoRating: 4,
+  },
+  {
+    id: 'rs006',
+    name: 'Milky Standy Zipper Pouch',
+    description: 'Milky white standy pouch with resealable zipper, ideal for tea, spices, and wellness products.',
+    category: 'pouch',
+    material: 'BOPP',
+    finish: 'Milky White',
+    size: 'Medium',
+    dimensions: { length: 160, width: 110, height: 60 },
+    hasZipper: true,
+    hasWindow: false,
+    thickness: '110μ',
+    price: 5.40,
+    moq: 500,
+    stockCount: 2900,
+    inStock: true,
+    image: IMAGES.milkyStandyZipperPouch,
+    ecoRating: 4,
+  },
+  {
+    id: 'rs007',
+    name: 'Kraft Standy Pouch (Brown)',
+    description: 'Eco-friendly kraft paper standy pouch, perfect for organic and natural products.',
+    category: 'pouch',
+    material: 'Kraft',
+    finish: 'Brown',
+    size: 'Medium',
+    dimensions: { length: 150, width: 100, height: 50 },
+    hasZipper: false,
+    hasWindow: false,
+    thickness: '120μ',
+    price: 4.50,
+    moq: 500,
+    stockCount: 4500,
+    inStock: true,
+    image: IMAGES.kraftStandyPouchBrown,
+    ecoRating: 5,
+  },
+  {
+    id: 'rs008',
+    name: 'Kraft Window Standy Pouch (Brown)',
+    description: 'Brown kraft standy pouch with transparent window, ideal for showcasing organic products.',
     category: 'pouch',
     material: 'Kraft',
     finish: 'Brown',
@@ -61,88 +172,31 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     hasZipper: true,
     hasWindow: true,
     thickness: '120μ',
-    price: 4.75,
+    price: 5.80,
     moq: 500,
-    stockCount: 85,
+    stockCount: 3100,
     inStock: true,
-    image: IMAGES.kraftWindowPouch,
+    image: IMAGES.kraftWindowStandyPouchBrown,
     ecoRating: 5,
   },
   {
-    id: 'rs003',
-    name: 'Silver Metalized Pouch',
-    description: 'Premium metalized finish with excellent barrier properties for long shelf life.',
-    category: 'pouch',
-    material: 'Metalized',
-    finish: 'Silver',
-    size: 'Large',
-    dimensions: { length: 200, width: 130, height: 70 },
-    hasZipper: true,
-    hasWindow: false,
-    thickness: '150μ',
-    price: 6.20,
-    moq: 1000,
-    stockCount: 2500,
-    inStock: true,
-    image: IMAGES.metalised,
-    ecoRating: 3,
-  },
-  {
-    id: 'rs004',
-    name: 'Small Clear Pouch (No Zipper)',
-    description: 'Economical clear pouch without zipper for one-time use products.',
-    category: 'pouch',
-    material: 'BOPP',
-    finish: 'Clear',
-    size: 'Small',
-    dimensions: { length: 100, width: 80, height: 40 },
-    hasZipper: false,
-    hasWindow: false,
-    thickness: '80μ',
-    price: 1.30,
-    moq: 1000,
-    stockCount: 10000,
-    inStock: true,
-    image: IMAGES.plainPouch,
-    ecoRating: 2,
-  },
-  {
-    id: 'rs005',
-    name: 'Kraft Window Pouch with Zipper',
-    description: 'Brown kraft with transparent window, perfect for showcasing products.',
+    id: 'rs009',
+    name: 'Kraft Window Standy Pouch (White)',
+    description: 'White kraft standy pouch with window, perfect for premium organic and artisanal products.',
     category: 'pouch',
     material: 'Kraft',
-    finish: 'Brown',
-    size: 'Small',
-    dimensions: { length: 120, width: 90, height: 50 },
+    finish: 'White',
+    size: 'Medium',
+    dimensions: { length: 160, width: 110, height: 60 },
     hasZipper: true,
     hasWindow: true,
-    thickness: '100μ',
-    price: 3.50,
+    thickness: '120μ',
+    price: 6.20,
     moq: 500,
-    stockCount: 45,
+    stockCount: 2500,
     inStock: true,
-    image: IMAGES.kraftPouch,
+    image: IMAGES.kraftWindowStandyPouchWhite,
     ecoRating: 5,
-  },
-  {
-    id: 'rs006',
-    name: 'X-Large Silver Metalized Pouch',
-    description: 'Heavy-duty pouch for bulk packaging with superior protection.',
-    category: 'pouch',
-    material: 'Metalized',
-    finish: 'Silver',
-    size: 'X-Large',
-    dimensions: { length: 250, width: 150, height: 90 },
-    hasZipper: true,
-    hasWindow: false,
-    thickness: '150μ',
-    price: 8.90,
-    moq: 1000,
-    stockCount: 0,
-    inStock: false,
-    image: IMAGES.metalised,
-    ecoRating: 2,
   },
 ];
 
@@ -151,75 +205,11 @@ interface Props {
 }
 
 const ReadyStockProductsScreen: React.FC<Props> = ({ navigation }) => {
-  const dispatch = useAppDispatch();
-  const [selectedProduct, setSelectedProduct] = useState<ReadyStockProduct | null>(null);
-  const [quantity, setQuantity] = useState(500);
-  const [showPincodeChecker, setShowPincodeChecker] = useState(false);
-
   const handleSelectProduct = (product: ReadyStockProduct) => {
-    setSelectedProduct(product);
-    setQuantity(product.moq);
-    setShowPincodeChecker(false);
+    navigation.navigate('ReadyStockProductDetail', { product });
   };
 
-  const handleAddToCart = () => {
-    if (!selectedProduct) return;
 
-    if (quantity < selectedProduct.moq) {
-      Alert.alert(
-        'Below MOQ',
-        `Minimum order quantity is ${selectedProduct.moq} units. Please increase quantity.`
-      );
-      return;
-    }
-
-    if (!selectedProduct.inStock) {
-      Alert.alert('Out of Stock', 'This product is currently out of stock.');
-      return;
-    }
-
-    const cartItem = {
-      cartId: `${selectedProduct.id}-${Date.now()}`,
-      productId: selectedProduct.id,
-      name: selectedProduct.name,
-      category: 'pouch' as const,
-      design: {
-        length: selectedProduct.dimensions.length,
-        width: selectedProduct.dimensions.width,
-        height: selectedProduct.dimensions.height,
-        materialId: selectedProduct.material.toLowerCase(),
-        inkColor: '#000000',
-        logoUri: null,
-        logoScale: 1,
-        logoPosX: 0,
-        logoPosY: 0,
-        customText: '',
-        textColor: '#000000',
-        textSize: 12,
-      },
-      pouchConfig: {
-        finish: selectedProduct.finish,
-        zip: selectedProduct.hasZipper ? 'With Zipper' : 'No Zipper',
-        thickness: selectedProduct.thickness,
-        size: selectedProduct.size,
-        material: selectedProduct.material,
-        hasWindow: selectedProduct.hasWindow,
-      },
-      quantity,
-      unitPrice: selectedProduct.price,
-      totalPrice: selectedProduct.price * quantity,
-      setupFee: 0,
-      isReadyStock: true,
-    };
-
-    dispatch(addToCart(cartItem));
-    Alert.alert('Added to Cart', `${quantity} units added to your cart`, [
-      { text: 'Continue Shopping', style: 'cancel' },
-      { text: 'View Cart', onPress: () => navigation.navigate('Cart') },
-    ]);
-  };
-
-  const totalPrice = selectedProduct ? selectedProduct.price * quantity : 0;
 
   return (
     <Container>
@@ -237,7 +227,7 @@ const ReadyStockProductsScreen: React.FC<Props> = ({ navigation }) => {
       <ContentWrapper>
         <ScrollView 
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: selectedProduct ? 200 : 20 }}
+          contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 110 : 90 }}
         >
           {/* Info Banner */}
           <InfoBanner>
@@ -250,14 +240,16 @@ const ReadyStockProductsScreen: React.FC<Props> = ({ navigation }) => {
           {/* Product List */}
           <SectionTitle>Available Products</SectionTitle>
           {READY_STOCK_PRODUCTS.map(product => {
-            const isSelected = selectedProduct?.id === product.id;
             return (
               <ProductCard
                 key={product.id}
-                selected={isSelected}
                 onPress={() => handleSelectProduct(product)}
                 activeOpacity={0.8}
               >
+                <ProductImageContainer>
+                  <ProductImage source={product.image} resizeMode="cover" />
+                </ProductImageContainer>
+
                 <ProductHeader>
                   <ProductName>{product.name}</ProductName>
                   <ProductPrice>₹{product.price.toFixed(2)}/pc</ProductPrice>
@@ -313,89 +305,6 @@ const ReadyStockProductsScreen: React.FC<Props> = ({ navigation }) => {
             );
           })}
         </ScrollView>
-
-        {/* Selected Product Details */}
-        {selectedProduct && (
-          <BottomSheet>
-            <SheetHandle />
-            
-            <SelectedProductName>{selectedProduct.name}</SelectedProductName>
-            <SelectedProductPrice>₹{selectedProduct.price.toFixed(2)} per unit</SelectedProductPrice>
-
-            <Divider />
-
-            {/* Quantity Selector */}
-            <QuantitySection>
-              <QuantityLabel>Quantity (MOQ: {selectedProduct.moq})</QuantityLabel>
-              <QuantityControls>
-                <QuantityBtn 
-                  onPress={() => setQuantity(Math.max(selectedProduct.moq, quantity - 100))}
-                  activeOpacity={0.8}
-                >
-                  <FontAwesome5 name="minus" size={14} color="#FFFFFF" />
-                </QuantityBtn>
-                <QuantityInput
-                  value={quantity.toString()}
-                  onChangeText={(text: string) => {
-                    const num = parseInt(text) || 0;
-                    setQuantity(num);
-                  }}
-                  keyboardType="number-pad"
-                />
-                <QuantityBtn 
-                  onPress={() => setQuantity(quantity + 100)}
-                  activeOpacity={0.8}
-                >
-                  <FontAwesome5 name="plus" size={14} color="#FFFFFF" />
-                </QuantityBtn>
-              </QuantityControls>
-              
-              {/* Quick Select */}
-              <QuickSelectRow>
-                {[500, 1000, 2000, 5000].map(qty => (
-                  <QuickSelectBtn
-                    key={qty}
-                    onPress={() => setQuantity(qty)}
-                    active={quantity === qty}
-                    activeOpacity={0.8}
-                  >
-                    <QuickSelectText active={quantity === qty}>{qty}</QuickSelectText>
-                  </QuickSelectBtn>
-                ))}
-              </QuickSelectRow>
-
-              <MOQBadge moq={selectedProduct.moq} currentQuantity={quantity} />
-            </QuantitySection>
-
-            {/* Pincode Checker Toggle */}
-            <PincodeToggle 
-              onPress={() => setShowPincodeChecker(!showPincodeChecker)}
-              activeOpacity={0.8}
-            >
-              <PincodeToggleText>Check delivery at your location</PincodeToggleText>
-              <FontAwesome5 
-                name={showPincodeChecker ? 'chevron-up' : 'chevron-down'} 
-                size={12} 
-                color="#0F8A3C" 
-              />
-            </PincodeToggle>
-
-            {showPincodeChecker && <PincodeChecker />}
-
-            <Divider />
-
-            {/* Total & CTA */}
-            <TotalRow>
-              <TotalLabel>Total Amount</TotalLabel>
-              <TotalPrice>₹{totalPrice.toFixed(2)}</TotalPrice>
-            </TotalRow>
-
-            <AddToCartBtn onPress={handleAddToCart} activeOpacity={0.9}>
-              <FontAwesome5 name="shopping-cart" size={14} color="#FFFFFF" style={{ marginRight: 8 }} />
-              <AddToCartText>Add to Cart</AddToCartText>
-            </AddToCartBtn>
-          </BottomSheet>
-        )}
       </ContentWrapper>
     </Container>
   );
@@ -470,13 +379,32 @@ const SectionTitle = styled.Text`
   padding: 12px 16px 8px;
 `;
 
-const ProductCard = styled.TouchableOpacity<{ selected: boolean }>`
+const ProductCard = styled.TouchableOpacity`
   background-color: #FFFFFF;
   border-radius: 16px;
   padding: 16px;
   margin: 8px 16px;
-  border-width: 2px;
-  border-color: ${({ selected }) => selected ? '#0F8A3C' : '#F3F4F6'};
+  border-width: 1px;
+  border-color: #F3F4F6;
+  shadow-color: #000;
+  shadow-offset: 0px 2px;
+  shadow-opacity: 0.05;
+  shadow-radius: 4px;
+  elevation: 2;
+`;
+
+const ProductImageContainer = styled.View`
+  width: 100%;
+  height: 180px;
+  background-color: #F9FAFB;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+`;
+
+const ProductImage = styled.Image`
+  width: 100%;
+  height: 100%;
 `;
 
 const ProductHeader = styled.View`
@@ -553,160 +481,4 @@ const BadgeRow = styled.View`
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 4px;
-`;
-
-const BottomSheet = styled.View`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: #FFFFFF;
-  border-top-left-radius: 24px;
-  border-top-right-radius: 24px;
-  padding: 20px 16px ${Platform.OS === 'ios' ? '32px' : '20px'};
-  shadow-color: #000;
-  shadow-offset: 0px -4px;
-  shadow-opacity: 0.1;
-  shadow-radius: 12px;
-  elevation: 20;
-  max-height: 70%;
-`;
-
-const SheetHandle = styled.View`
-  width: 40px;
-  height: 4px;
-  background-color: #E5E7EB;
-  border-radius: 2px;
-  align-self: center;
-  margin-bottom: 16px;
-`;
-
-const SelectedProductName = styled.Text`
-  font-size: 17px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 4px;
-`;
-
-const SelectedProductPrice = styled.Text`
-  font-size: 14px;
-  color: #6B7280;
-  margin-bottom: 12px;
-`;
-
-const Divider = styled.View`
-  height: 1px;
-  background-color: #F3F4F6;
-  margin-vertical: 12px;
-`;
-
-const QuantitySection = styled.View``;
-
-const QuantityLabel = styled.Text`
-  font-size: 13px;
-  font-weight: 700;
-  color: #374151;
-  margin-bottom: 10px;
-`;
-
-const QuantityControls = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 12px;
-`;
-
-const QuantityBtn = styled.TouchableOpacity`
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background-color: #0F8A3C;
-  align-items: center;
-  justify-content: center;
-`;
-
-const QuantityInput = styled.TextInput`
-  width: 120px;
-  height: 44px;
-  border-radius: 12px;
-  border-width: 1.5px;
-  border-color: #E5E7EB;
-  background-color: #F9FAFB;
-  text-align: center;
-  font-size: 16px;
-  font-weight: 700;
-  color: #111827;
-`;
-
-const QuickSelectRow = styled.View`
-  flex-direction: row;
-  gap: 8px;
-  margin-bottom: 12px;
-`;
-
-const QuickSelectBtn = styled.TouchableOpacity<{ active: boolean }>`
-  flex: 1;
-  padding: 8px;
-  border-radius: 8px;
-  background-color: ${({ active }) => active ? '#0F8A3C' : '#F9FAFB'};
-  border-width: 1px;
-  border-color: ${({ active }) => active ? '#0F8A3C' : '#E5E7EB'};
-  align-items: center;
-`;
-
-const QuickSelectText = styled.Text<{ active: boolean }>`
-  font-size: 12px;
-  font-weight: 600;
-  color: ${({ active }) => active ? '#FFFFFF' : '#6B7280'};
-`;
-
-const PincodeToggle = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  background-color: #F9FAFB;
-  border-radius: 10px;
-  margin-vertical: 8px;
-`;
-
-const PincodeToggleText = styled.Text`
-  font-size: 13px;
-  font-weight: 600;
-  color: #0F8A3C;
-`;
-
-const TotalRow = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-`;
-
-const TotalLabel = styled.Text`
-  font-size: 15px;
-  color: #6B7280;
-  font-weight: 500;
-`;
-
-const TotalPrice = styled.Text`
-  font-size: 22px;
-  font-weight: 800;
-  color: #111827;
-`;
-
-const AddToCartBtn = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  height: 50px;
-  background-color: #0F8A3C;
-  border-radius: 14px;
-`;
-
-const AddToCartText = styled.Text`
-  font-size: 16px;
-  font-weight: 700;
-  color: #FFFFFF;
 `;

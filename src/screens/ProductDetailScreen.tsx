@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ScrollView, View, Alert, Platform, Image } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../store';
 import { selectProduct } from '../store/productsSlice';
 import { addToCart, calculateItemPrice } from '../store/cartSlice';
@@ -32,7 +33,8 @@ interface Props {
   navigation: any;
 }
 
-const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
+const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) => {
+  const navigation = useNavigation<any>(); // Use the hook for better navigation handling
   const dispatch = useAppDispatch();
   const { productId } = route.params;
   const products = useAppSelector((s) => s.products.items);
@@ -65,7 +67,7 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const getCategoryConfig = () => {
     // Get product-specific image or fall back to category image
-    const productImage = PRODUCT_IMAGES[product.id] || CATEGORY_IMAGES[product.category] || IMAGES.standupPouch;
+    const productImage = PRODUCT_IMAGES[product.id] || CATEGORY_IMAGES[product.category] || IMAGES.printedStandupPouch;
     
     switch (product.category) {
       case 'box': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'box-open', image: productImage };
@@ -116,9 +118,22 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       totalPrice,
       setupFee: 0,
     };
+    
     dispatch(addToCart(cartItem));
-    // Redirect directly to cart
-    navigation.navigate('MainTabs', { screen: 'Cart' });
+    
+    try {
+      const parent = navigation.getParent();
+      if (parent) {
+        parent.navigate('MainTabs', { screen: 'Cart' });
+      } else {
+        navigation.navigate('MainTabs', { screen: 'Cart' });
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      Alert.alert('Item Added', 'Item has been added to your cart!', [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
+    }
   };
 
   return (
@@ -299,7 +314,7 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       </ScrollView>
 
       {/* Bottom CTA */}
-      <BottomBar style={{ shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 8 }}>
+      <BottomBar>
         <BottomLeft>
           <BottomPrice>₹{totalPrice.toLocaleString()}</BottomPrice>
           <BottomQty>{quantity} units</BottomQty>
@@ -308,8 +323,8 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           <SampleBtnSmall onPress={handleRequestSample} activeOpacity={0.8}>
             <FontAwesome5 name="gift" size={13} color="#0F8A3C" />
           </SampleBtnSmall>
-          <AddToCartBtn onPress={handleAddToCart} activeOpacity={0.9}
-            style={{ shadowColor: '#0F8A3C', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 }}>
+          <View style={{ width: 10 }} />
+          <AddToCartBtn onPress={handleAddToCart} activeOpacity={0.9}>
             <FontAwesome5 name="shopping-cart" size={14} color="#FFF" style={{ marginRight: 8 }} />
             <AddToCartBtnText>Add to Cart</AddToCartBtnText>
           </AddToCartBtn>
@@ -524,10 +539,19 @@ const EmptyCenter = styled.View`flex: 1; align-items: center; justify-content: c
 const EmptyText = styled.Text`font-size: 16px; color: #9CA3AF;`;
 
 const BottomBar = styled.View`
-  position: absolute; bottom: 0; left: 0; right: 0;
-  flex-direction: row; padding: 12px 16px ${Platform.OS === 'ios' ? 32 : 20}px;
-  background-color: #FFFFFF; border-top-width: 1px; border-top-color: #F3F4F6;
-  align-items: center; justify-content: space-between;
+  position: absolute; 
+  bottom: 0; 
+  left: 0; 
+  right: 0;
+  flex-direction: row; 
+  padding: 12px 16px ${Platform.OS === 'ios' ? 32 : 20}px;
+  background-color: #FFFFFF; 
+  border-top-width: 1px; 
+  border-top-color: #F3F4F6;
+  align-items: center; 
+  justify-content: space-between;
+  box-shadow: 0px -2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 1000;
 `;
 
 const BottomLeft = styled.View`
@@ -549,7 +573,6 @@ const BottomQty = styled.Text`
 const BottomRight = styled.View`
   flex-direction: row;
   align-items: center;
-  gap: 10px;
 `;
 
 const SampleBtnSmall = styled.TouchableOpacity`
@@ -571,6 +594,8 @@ const AddToCartBtn = styled.TouchableOpacity`
   background-color: #0F8A3C;
   border-radius: 14px;
   padding-horizontal: 24px;
+  box-shadow: 0px 4px 10px rgba(15, 138, 60, 0.3);
+  z-index: 10;
 `;
 
 const AddToCartBtnText = styled.Text`

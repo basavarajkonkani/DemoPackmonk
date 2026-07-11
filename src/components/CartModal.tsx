@@ -138,7 +138,7 @@ const CartModal: React.FC<CartModalProps> = ({ visible, onClose, onCheckoutSucce
               <EmptyDesc>Customize a product in the Design Studio to add items.</EmptyDesc>
               <BrowseCatalogBtn onPress={() => { onClose(); if (navigation) navigation.navigate('Products'); }} activeOpacity={0.9}>
                 <FontAwesome5 name="box-open" size={13} color="#0F8A3C" style={{ marginRight: 6 }} />
-                <BrowseCatalogBtnText>Browse Catalog</BrowseCatalogBtnText>
+                <BrowseCatalogBtnText>Contact</BrowseCatalogBtnText>
               </BrowseCatalogBtn>
             </EmptyWrap>
           ) : (

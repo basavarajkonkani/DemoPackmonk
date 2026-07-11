@@ -33,8 +33,13 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const handleQty = (cartId: string, dir: 'inc' | 'dec', qty: number, productId: string) => {
     const item = cartItems.find((i) => i.cartId === cartId);
+    if (!item) return;
 
-    if (item?.category === 'pouch') {
+    // Check if this is a ready stock item
+    const isReadyStockItem = (item as any).isReadyStock === true;
+
+    if (item?.category === 'pouch' && !isReadyStockItem) {
+      // Handle regular pouch configurator items
       const result =
         dir === 'inc'
           ? quantityValidator.validateQuantityIncrement(qty, DEFAULT_QUANTITY_OPTIONS)
@@ -57,16 +62,16 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         showQuantityValidationAlert(result);
       }
 
-      if (item.pouchConfig) {
+      if (item.pouchConfig && (item.pouchConfig as any).pouchType) {
         const updatedConfig = { ...item.pouchConfig, quantity: newQty };
         const newTotal = calculatePouchPrice({
-          pouchType: updatedConfig.pouchType,
-          windowOption: updatedConfig.windowOption,
-          materialType: updatedConfig.materialType,
-          capacity: updatedConfig.capacity,
+          pouchType: (updatedConfig as any).pouchType,
+          windowOption: (updatedConfig as any).windowOption,
+          materialType: (updatedConfig as any).materialType,
+          capacity: (updatedConfig as any).capacity,
           quantity: newQty,
-          artworkUri: updatedConfig.artworkUri,
-          needsDesignAssistance: updatedConfig.needsDesignAssistance,
+          artworkUri: (updatedConfig as any).artworkUri,
+          needsDesignAssistance: (updatedConfig as any).needsDesignAssistance,
         });
         dispatch(removeFromCart(cartId));
         dispatch(addToCart({
@@ -80,9 +85,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       return;
     }
 
-    const product = products.find((p) => p.id === productId);
-    if (!product) return;
-
+    // Handle ready stock items and other products
     const result =
       dir === 'inc'
         ? quantityValidator.validateQuantityIncrement(qty, DEFAULT_QUANTITY_OPTIONS)
@@ -104,7 +107,24 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       showQuantityValidationAlert(result);
     }
 
-    dispatch(updateQuantity({ cartId, quantity: result.newQuantity!, product }));
+    const newQty = result.newQuantity!;
+
+    if (isReadyStockItem) {
+      // For ready stock items, simple price calculation
+      const newTotal = item.unitPrice * newQty;
+      dispatch(removeFromCart(cartId));
+      dispatch(addToCart({
+        ...item,
+        quantity: newQty,
+        totalPrice: newTotal,
+      }));
+    } else {
+      // For regular products from the catalog
+      const product = products.find((p) => p.id === productId);
+      if (product) {
+        dispatch(updateQuantity({ cartId, quantity: newQty, product }));
+      }
+    }
   };
 
   const showBack = navigation.canGoBack();
@@ -153,7 +173,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {renderTopBar(false)}
         <EmptyWrap>
           <EmptyIcon>
-            <EmptyImage source={IMAGES.plainPouch} resizeMode="contain" />
+            <EmptyImage source={IMAGES.silverStandyPouch} resizeMode="contain" />
           </EmptyIcon>
           <EmptyTitle>Your cart is empty</EmptyTitle>
           <EmptyDesc>Configure a pouch or browse products to get started.</EmptyDesc>
@@ -176,31 +196,53 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 160, alignItems: 'center' }}>
         <ContentWrapper>
-        {cartItems.map((item) => (
-          <ItemCard key={item.cartId}>
-            <ItemIconBox>
-              <ItemThumb
-                source={
-                  item.category === 'pouch' && item.pouchConfig
-                    ? POUCH_TYPE_IMAGES[item.pouchConfig.pouchType]
-                    : IMAGES.boxes
-                }
-                resizeMode="contain"
-              />
-            </ItemIconBox>
-            <ItemBody>
-              <ItemName>{item.name}</ItemName>
+        {cartItems.map((item) => {
+          // Check if this is a ready stock item (has isReadyStock flag)
+          const isReadyStockItem = (item as any).isReadyStock === true;
+          
+          // Determine the image source
+          let imageSource = IMAGES.boxes;
+          if (item.category === 'pouch' && item.pouchConfig) {
+            if (isReadyStockItem) {
+              // For ready stock items, use a default pouch image
+              imageSource = IMAGES.goldStandyPouch;
+            } else if ((item.pouchConfig as any).pouchType) {
+              // For regular pouch configurator items
+              imageSource = POUCH_TYPE_IMAGES[(item.pouchConfig as any).pouchType];
+            }
+          }
+          
+          return (
+            <ItemCard key={item.cartId}>
+              <ItemIconBox>
+                <ItemThumb
+                  source={imageSource}
+                  resizeMode="contain"
+                />
+              </ItemIconBox>
+              <ItemBody>
+                <ItemName>{item.name}</ItemName>
 
-              {item.category === 'pouch' && item.pouchConfig ? (
-                <ItemSpec>
-                  {WINDOW_LABELS[item.pouchConfig.windowOption]} • {MATERIAL_LABELS[item.pouchConfig.materialType]}{'\n'}
-                  {item.pouchConfig.capacity} — {item.pouchConfig.dimensions.width}×{item.pouchConfig.dimensions.height}{item.pouchConfig.dimensions.unit}
-                </ItemSpec>
-              ) : (
-                <ItemSpec>
-                  {item.design.length}" × {item.design.width}" · {item.design.materialId.replace(/-/g, ' ')}
-                </ItemSpec>
-              )}
+                {item.category === 'pouch' && item.pouchConfig ? (
+                  isReadyStockItem ? (
+                    // For ready stock items, display different specs
+                    <ItemSpec>
+                      {(item.pouchConfig as any).material} • {(item.pouchConfig as any).thickness}{'\n'}
+                      {(item.pouchConfig as any).size} — {(item.pouchConfig as any).finish}
+                      {(item.pouchConfig as any).zip && ` • ${(item.pouchConfig as any).zip}`}
+                    </ItemSpec>
+                  ) : (
+                    // For regular pouch configurator items
+                    <ItemSpec>
+                      {WINDOW_LABELS[(item.pouchConfig as any).windowOption]} • {MATERIAL_LABELS[(item.pouchConfig as any).materialType]}{'\n'}
+                      {(item.pouchConfig as any).capacity} — {(item.pouchConfig as any).dimensions.width}×{(item.pouchConfig as any).dimensions.height}{(item.pouchConfig as any).dimensions.unit}
+                    </ItemSpec>
+                  )
+                ) : (
+                  <ItemSpec>
+                    {item.design.length}" × {item.design.width}" · {item.design.materialId.replace(/-/g, ' ')}
+                  </ItemSpec>
+                )}
 
               <QtyRow>
                 <QtyBtn onPress={() => handleQty(item.cartId, 'dec', item.quantity, item.productId)}>
@@ -221,7 +263,8 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               </ItemTotal>
             </ItemRight>
           </ItemCard>
-        ))}
+          );
+        })}
 
         {/* GST Details */}
         <GSTCard>
@@ -271,7 +314,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <FontAwesome5 name="arrow-left" size={12} color="#0F8A3C" style={{ marginRight: 6 }} />
           <ContinueShoppingText>Continue Shopping</ContinueShoppingText>
         </ContinueShoppingLink>
-        <CheckoutBtn onPress={() => navigation.navigate('Checkout')} activeOpacity={0.9}>
+        <CheckoutBtn onPress={() => navigation.navigate('PreCheckoutInfo')} activeOpacity={0.9}>
           <CheckoutLabel>Proceed to Checkout</CheckoutLabel>
         </CheckoutBtn>
       </CheckoutBar>

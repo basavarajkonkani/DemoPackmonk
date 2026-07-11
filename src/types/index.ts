@@ -59,7 +59,7 @@ export interface QuoteEstimate {
 
 /* ─── User / Company ─────────────────────────────────────────────────── */
 
-export type UserRole = 'buyer' | 'admin';
+export type UserRole = 'user' | 'admin';
 
 export interface User {
   id: string;

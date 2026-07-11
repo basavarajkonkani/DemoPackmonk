@@ -3,13 +3,12 @@ import { Animated, View, Image, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as ExpoSplashScreen from 'expo-splash-screen';
+import { IMAGES } from '../constants/images';
 
 // Only call preventAutoHideAsync on native — it throws on web
 if (Platform.OS !== 'web') {
   ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 }
-
-const LOGO = require('../../assets/logo (1).png');
 
 interface Props {
   onFinish: () => void;
@@ -60,7 +59,7 @@ const SplashScreen: React.FC<Props> = ({ onFinish }) => {
           <LogoMark>
             <LogoMarkInner>
               <Image
-                source={LOGO}
+                source={IMAGES.logo}
                 style={{ width: 70, height: 70 }}
                 resizeMode="contain"
               />

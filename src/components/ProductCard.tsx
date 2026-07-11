@@ -12,7 +12,7 @@ interface ProductCardProps {
 
 const getCategoryConfig = (product: PackagingProduct) => {
   // First try to get product-specific image, then fall back to category image
-  const img = PRODUCT_IMAGES[product.id] || CATEGORY_IMAGES[product.category] || IMAGES.standupPouch;
+  const img = PRODUCT_IMAGES[product.id] || CATEGORY_IMAGES[product.category] || IMAGES.printedStandupPouch;
   
   switch (product.category) {
     case 'box': return { bg: '#DCFCE7', iconColor: '#0F8A3C', icon: 'box-open', img };

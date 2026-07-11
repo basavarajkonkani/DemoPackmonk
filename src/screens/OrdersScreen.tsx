@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, View, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import { useAppSelector } from '../store';
 import { selectOrdersList } from '../store/ordersSlice';

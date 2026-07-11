@@ -1,0 +1,697 @@
+import React, { useState } from 'react';
+import { ScrollView, Alert, Platform } from 'react-native';
+import styled from 'styled-components/native';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useAppDispatch } from '../store';
+import { addToCart } from '../store/cartSlice';
+import StockIndicator from '../components/StockIndicator';
+import MOQBadge from '../components/MOQBadge';
+import PincodeChecker from '../components/PincodeChecker';
+
+interface ReadyStockProduct {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  material: string;
+  finish: string;
+  size: string;
+  dimensions: { length: number; width: number; height: number };
+  hasZipper: boolean;
+  hasWindow: boolean;
+  thickness: string;
+  price: number;
+  moq: number;
+  stockCount: number;
+  inStock: boolean;
+  image: any;
+  ecoRating: number;
+}
+
+interface Props {
+  route: any;
+  navigation: any;
+}
+
+const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
+  const dispatch = useAppDispatch();
+  const { product } = route.params as { product: ReadyStockProduct };
+
+  const [quantity, setQuantity] = useState(product.moq);
+  const [showPincodeChecker, setShowPincodeChecker] = useState(false);
+
+  const handleQuantityChange = (newQty: number) => {
+    if (newQty < product.moq) {
+      Alert.alert('Below MOQ', `Minimum order quantity is ${product.moq} units.`);
+      return;
+    }
+    if (newQty > product.stockCount) {
+      Alert.alert('Stock Limit', `Only ${product.stockCount} units available in stock.`);
+      return;
+    }
+    setQuantity(newQty);
+  };
+
+  const handleAddToCart = () => {
+    if (quantity < product.moq) {
+      Alert.alert(
+        'Below MOQ',
+        `Minimum order quantity is ${product.moq} units. Please increase quantity.`
+      );
+      return;
+    }
+
+    if (!product.inStock) {
+      Alert.alert('Out of Stock', 'This product is currently out of stock.');
+      return;
+    }
+
+    const cartItem = {
+      cartId: `${product.id}-${Date.now()}`,
+      productId: product.id,
+      name: product.name,
+      category: 'pouch' as const,
+      design: {
+        length: product.dimensions.length,
+        width: product.dimensions.width,
+        height: product.dimensions.height,
+        materialId: product.material.toLowerCase(),
+        inkColor: '#000000',
+        logoUri: null,
+        logoScale: 1,
+        logoPosX: 0,
+        logoPosY: 0,
+        customText: '',
+        textColor: '#000000',
+        textSize: 12,
+      },
+      pouchConfig: {
+        finish: product.finish,
+        zip: product.hasZipper ? 'With Zipper' : 'No Zipper',
+        thickness: product.thickness,
+        size: product.size,
+        material: product.material,
+        hasWindow: product.hasWindow,
+      },
+      quantity,
+      unitPrice: product.price,
+      baseUnitPrice: product.price,
+      totalPrice: product.price * quantity,
+      setupFee: 0,
+      isReadyStock: true,
+    };
+
+    dispatch(addToCart(cartItem));
+    navigation.navigate('MainTabs', { screen: 'Cart' });
+  };
+
+  const totalPrice = product.price * quantity;
+
+  return (
+    <Container>
+      {/* Header */}
+      <NavBar>
+        <NavBtn onPress={() => navigation.goBack()}>
+          <FontAwesome5 name="arrow-left" size={16} color="#111827" />
+        </NavBtn>
+        <NavTitle>Product Details</NavTitle>
+        <NavBtn onPress={() => navigation.navigate('MainTabs', { screen: 'Cart' })}>
+          <FontAwesome5 name="shopping-cart" size={16} color="#111827" />
+        </NavBtn>
+      </NavBar>
+
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 180 : 160 }}
+      >
+        {/* Product Image */}
+        <ProductImageContainer>
+          <ProductImage source={product.image} resizeMode="cover" />
+          {product.ecoRating >= 4 && (
+            <EcoBadge>
+              <FontAwesome5 name="leaf" size={9} color="#FFF" style={{ marginRight: 4 }} />
+              <EcoBadgeText>Eco-Friendly</EcoBadgeText>
+            </EcoBadge>
+          )}
+        </ProductImageContainer>
+
+        <ContentSection>
+          {/* Product Info */}
+          <ProductHeader>
+            <ProductName>{product.name}</ProductName>
+            <PriceRow>
+              <PriceLabel>Price Per Piece</PriceLabel>
+              <PriceValue>₹{product.price.toFixed(2)}</PriceValue>
+            </PriceRow>
+          </ProductHeader>
+
+          <ProductDescription>{product.description}</ProductDescription>
+
+          {/* Stock & MOQ Info */}
+          <InfoRow>
+            <StockIndicator 
+              inStock={product.inStock} 
+              stockCount={product.stockCount}
+              size="medium"
+            />
+            <MOQBadge moq={product.moq} currentQuantity={quantity} size="medium" />
+          </InfoRow>
+
+          <Divider />
+
+          {/* Specifications */}
+          <SectionTitle>Specifications</SectionTitle>
+          <SpecsCard>
+            <SpecRow>
+              <SpecLabel>Material</SpecLabel>
+              <SpecValue>{product.material}</SpecValue>
+            </SpecRow>
+            <SpecRow>
+              <SpecLabel>Thickness</SpecLabel>
+              <SpecValue>{product.thickness}</SpecValue>
+            </SpecRow>
+            <SpecRow>
+              <SpecLabel>Capacity</SpecLabel>
+              <SpecValue>{product.size}</SpecValue>
+            </SpecRow>
+            <SpecRow>
+              <SpecLabel>Dimensions</SpecLabel>
+              <SpecValue>
+                {product.dimensions.length} × {product.dimensions.width} × {product.dimensions.height} mm
+              </SpecValue>
+            </SpecRow>
+            <SpecRow>
+              <SpecLabel>Finish</SpecLabel>
+              <SpecValue>{product.finish}</SpecValue>
+            </SpecRow>
+            <SpecRow noBorder>
+              <SpecLabel>Features</SpecLabel>
+              <FeaturesColumn>
+                {product.hasZipper && (
+                  <FeatureItem>
+                    <FontAwesome5 name="check-circle" size={12} color="#0F8A3C" />
+                    <FeatureText>Resealable Zipper</FeatureText>
+                  </FeatureItem>
+                )}
+                {product.hasWindow && (
+                  <FeatureItem>
+                    <FontAwesome5 name="check-circle" size={12} color="#0F8A3C" />
+                    <FeatureText>Transparent Window</FeatureText>
+                  </FeatureItem>
+                )}
+                {product.ecoRating >= 4 && (
+                  <FeatureItem>
+                    <FontAwesome5 name="check-circle" size={12} color="#059669" />
+                    <FeatureText>Eco-Friendly Material</FeatureText>
+                  </FeatureItem>
+                )}
+              </FeaturesColumn>
+            </SpecRow>
+          </SpecsCard>
+
+          <Divider />
+
+          {/* Delivery Info */}
+          <SectionTitle>Delivery Information</SectionTitle>
+          <DeliveryCard>
+            <DeliveryRow>
+              <FontAwesome5 name="shipping-fast" size={16} color="#0F8A3C" />
+              <DeliveryText>Ships within 24 hours</DeliveryText>
+            </DeliveryRow>
+            <DeliveryRow>
+              <FontAwesome5 name="box-open" size={16} color="#0F8A3C" />
+              <DeliveryText>Plain pouches without custom printing</DeliveryText>
+            </DeliveryRow>
+          </DeliveryCard>
+
+          {/* Pincode Checker */}
+          <PincodeToggle 
+            onPress={() => setShowPincodeChecker(!showPincodeChecker)}
+            activeOpacity={0.8}
+          >
+            <PincodeToggleText>Check delivery at your location</PincodeToggleText>
+            <FontAwesome5 
+              name={showPincodeChecker ? 'chevron-up' : 'chevron-down'} 
+              size={12} 
+              color="#0F8A3C" 
+            />
+          </PincodeToggle>
+
+          {showPincodeChecker && <PincodeChecker />}
+
+          <Divider />
+
+          {/* Quantity Selection */}
+          <SectionTitle>Select Quantity</SectionTitle>
+          <QuantityHint>Minimum order: {product.moq} units</QuantityHint>
+
+          <QuantityControls>
+            <QuantityBtn 
+              onPress={() => handleQuantityChange(Math.max(product.moq, quantity - 100))}
+              activeOpacity={0.8}
+            >
+              <FontAwesome5 name="minus" size={14} color="#FFFFFF" />
+            </QuantityBtn>
+            <QuantityInput
+              value={quantity.toString()}
+              onChangeText={(text: string) => {
+                const num = parseInt(text) || product.moq;
+                handleQuantityChange(num);
+              }}
+              keyboardType="number-pad"
+            />
+            <QuantityBtn 
+              onPress={() => handleQuantityChange(quantity + 100)}
+              activeOpacity={0.8}
+            >
+              <FontAwesome5 name="plus" size={14} color="#FFFFFF" />
+            </QuantityBtn>
+          </QuantityControls>
+
+          {/* Quick Select */}
+          <QuickSelectRow>
+            {[500, 1000, 2000, 5000].map(qty => (
+              <QuickSelectBtn
+                key={qty}
+                onPress={() => handleQuantityChange(qty)}
+                active={quantity === qty}
+                activeOpacity={0.8}
+              >
+                <QuickSelectText active={quantity === qty}>{qty}</QuickSelectText>
+              </QuickSelectBtn>
+            ))}
+          </QuickSelectRow>
+
+          {/* Price Summary */}
+          <PriceSummaryCard>
+            <PriceSummaryRow>
+              <PriceSummaryLabel>Quantity</PriceSummaryLabel>
+              <PriceSummaryValue>{quantity} units</PriceSummaryValue>
+            </PriceSummaryRow>
+            <PriceSummaryRow>
+              <PriceSummaryLabel>Unit Price</PriceSummaryLabel>
+              <PriceSummaryValue>₹{product.price.toFixed(2)}</PriceSummaryValue>
+            </PriceSummaryRow>
+            <PriceSummaryDivider />
+            <PriceSummaryRow>
+              <PriceSummaryTotalLabel>Total Amount</PriceSummaryTotalLabel>
+              <PriceSummaryTotal>₹{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</PriceSummaryTotal>
+            </PriceSummaryRow>
+          </PriceSummaryCard>
+        </ContentSection>
+      </ScrollView>
+
+      {/* Bottom Action Bar - Fixed with proper padding */}
+      <BottomActionBar>
+        <BottomTotalSection>
+          <BottomTotalLabel>Total</BottomTotalLabel>
+          <BottomTotalPrice>₹{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</BottomTotalPrice>
+          <BottomTotalQty>{quantity} units</BottomTotalQty>
+        </BottomTotalSection>
+        <AddToCartButton onPress={handleAddToCart} activeOpacity={0.9}>
+          <FontAwesome5 name="shopping-cart" size={14} color="#FFFFFF" style={{ marginRight: 8 }} />
+          <AddToCartButtonText>Add to Cart</AddToCartButtonText>
+        </AddToCartButton>
+      </BottomActionBar>
+    </Container>
+  );
+};
+
+export default ReadyStockProductDetailScreen;
+
+const Container = styled.View`
+  flex: 1;
+  background-color: #F8F9FA;
+`;
+
+const NavBar = styled.View`
+  height: ${Platform.OS === 'ios' ? '88px' : '56px'};
+  padding-top: ${Platform.OS === 'ios' ? '44px' : '0px'};
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-horizontal: 16px;
+  border-bottom-width: 1px;
+  border-bottom-color: #F3F4F6;
+  background-color: #FFFFFF;
+`;
+
+const NavBtn = styled.TouchableOpacity`
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background-color: #F9FAFB;
+  align-items: center;
+  justify-content: center;
+  border-width: 1px;
+  border-color: #F3F4F6;
+`;
+
+const NavTitle = styled.Text`
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+`;
+
+const ProductImageContainer = styled.View`
+  width: 100%;
+  height: 300px;
+  background-color: #FFFFFF;
+  position: relative;
+`;
+
+const ProductImage = styled.Image`
+  width: 100%;
+  height: 100%;
+`;
+
+const EcoBadge = styled.View`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: #059669;
+  flex-direction: row;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+`;
+
+const EcoBadgeText = styled.Text`
+  font-size: 11px;
+  font-weight: 700;
+  color: #FFFFFF;
+`;
+
+const ContentSection = styled.View`
+  padding: 20px 16px;
+`;
+
+const ProductHeader = styled.View`
+  margin-bottom: 12px;
+`;
+
+const ProductName = styled.Text`
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 12px;
+  line-height: 32px;
+`;
+
+const PriceRow = styled.View`
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+`;
+
+const PriceLabel = styled.Text`
+  font-size: 13px;
+  color: #6B7280;
+  font-weight: 500;
+`;
+
+const PriceValue = styled.Text`
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F8A3C;
+`;
+
+const ProductDescription = styled.Text`
+  font-size: 14px;
+  color: #6B7280;
+  line-height: 22px;
+  margin-bottom: 16px;
+`;
+
+const InfoRow = styled.View`
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+`;
+
+const Divider = styled.View`
+  height: 1px;
+  background-color: #E5E7EB;
+  margin-vertical: 20px;
+`;
+
+const SectionTitle = styled.Text`
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12px;
+`;
+
+const SpecsCard = styled.View`
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border-width: 1px;
+  border-color: #E5E7EB;
+  overflow: hidden;
+`;
+
+const SpecRow = styled.View<{ noBorder?: boolean }>`
+  flex-direction: row;
+  padding: 14px 16px;
+  border-bottom-width: ${({ noBorder }) => (noBorder ? '0' : '1')}px;
+  border-bottom-color: #F3F4F6;
+`;
+
+const SpecLabel = styled.Text`
+  width: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6B7280;
+`;
+
+const SpecValue = styled.Text`
+  flex: 1;
+  font-size: 13px;
+  color: #111827;
+  font-weight: 500;
+`;
+
+const FeaturesColumn = styled.View`
+  flex: 1;
+  gap: 8px;
+`;
+
+const FeatureItem = styled.View`
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+`;
+
+const FeatureText = styled.Text`
+  font-size: 13px;
+  color: #111827;
+  font-weight: 500;
+`;
+
+const DeliveryCard = styled.View`
+  background-color: #DCFCE7;
+  border-radius: 12px;
+  padding: 14px 16px;
+  border-width: 1px;
+  border-color: #BBF7D0;
+  gap: 10px;
+`;
+
+const DeliveryRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+`;
+
+const DeliveryText = styled.Text`
+  flex: 1;
+  font-size: 13px;
+  color: #0A6B2E;
+  font-weight: 500;
+  line-height: 19px;
+`;
+
+const PincodeToggle = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  background-color: #F9FAFB;
+  border-radius: 10px;
+  margin-top: 12px;
+  border-width: 1px;
+  border-color: #E5E7EB;
+`;
+
+const PincodeToggleText = styled.Text`
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F8A3C;
+`;
+
+const QuantityHint = styled.Text`
+  font-size: 12px;
+  color: #6B7280;
+  margin-bottom: 12px;
+`;
+
+const QuantityControls = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+`;
+
+const QuantityBtn = styled.TouchableOpacity`
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: #0F8A3C;
+  align-items: center;
+  justify-content: center;
+`;
+
+const QuantityInput = styled.TextInput`
+  width: 120px;
+  height: 44px;
+  border-radius: 12px;
+  border-width: 1.5px;
+  border-color: #E5E7EB;
+  background-color: #FFFFFF;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+`;
+
+const QuickSelectRow = styled.View`
+  flex-direction: row;
+  gap: 8px;
+  margin-bottom: 16px;
+`;
+
+const QuickSelectBtn = styled.TouchableOpacity<{ active: boolean }>`
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: ${({ active }) => (active ? '#0F8A3C' : '#FFFFFF')};
+  border-width: 1.5px;
+  border-color: ${({ active }) => (active ? '#0F8A3C' : '#E5E7EB')};
+  align-items: center;
+`;
+
+const QuickSelectText = styled.Text<{ active: boolean }>`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ active }) => (active ? '#FFFFFF' : '#6B7280')};
+`;
+
+const PriceSummaryCard = styled.View`
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  border-width: 1px;
+  border-color: #E5E7EB;
+`;
+
+const PriceSummaryRow = styled.View`
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+`;
+
+const PriceSummaryLabel = styled.Text`
+  font-size: 13px;
+  color: #6B7280;
+`;
+
+const PriceSummaryValue = styled.Text`
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+`;
+
+const PriceSummaryDivider = styled.View`
+  height: 1px;
+  background-color: #F3F4F6;
+  margin-vertical: 10px;
+`;
+
+const PriceSummaryTotalLabel = styled.Text`
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+`;
+
+const PriceSummaryTotal = styled.Text`
+  font-size: 20px;
+  font-weight: 800;
+  color: #0F8A3C;
+`;
+
+const BottomActionBar = styled.View`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #FFFFFF;
+  padding: 16px;
+  padding-bottom: ${Platform.OS === 'ios' ? '32px' : '16px'};
+  border-top-width: 1px;
+  border-top-color: #E5E7EB;
+  shadow-color: #000;
+  shadow-offset: 0px -2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 8px;
+  elevation: 10;
+`;
+
+const BottomTotalSection = styled.View`
+  flex: 1;
+`;
+
+const BottomTotalLabel = styled.Text`
+  font-size: 12px;
+  color: #6B7280;
+  margin-bottom: 2px;
+`;
+
+const BottomTotalPrice = styled.Text`
+  font-size: 20px;
+  font-weight: 800;
+  color: #0F8A3C;
+  line-height: 24px;
+`;
+
+const BottomTotalQty = styled.Text`
+  font-size: 11px;
+  color: #9CA3AF;
+  margin-top: 2px;
+`;
+
+const AddToCartButton = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  background-color: #0F8A3C;
+  padding-horizontal: 24px;
+  height: 50px;
+  border-radius: 14px;
+  shadow-color: #0F8A3C;
+  shadow-offset: 0px 4px;
+  shadow-opacity: 0.3;
+  shadow-radius: 8px;
+  elevation: 5;
+`;
+
+const AddToCartButtonText = styled.Text`
+  font-size: 15px;
+  font-weight: 700;
+  color: #FFFFFF;
+`;

@@ -110,7 +110,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <EmptyCTA onPress={() => navigation.navigate('Products')} activeOpacity={0.9}
             style={{ shadowColor: '#0F8A3C', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 }}>
             <FontAwesome5 name="box-open" size={15} color="#FFF" style={{ marginRight: 8 }} />
-            <EmptyCTAText>Browse Catalog</EmptyCTAText>
+            <EmptyCTAText>Contact</EmptyCTAText>
           </EmptyCTA>
 
           {/* Feature Cards */}

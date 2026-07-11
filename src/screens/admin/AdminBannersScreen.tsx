@@ -45,9 +45,9 @@ const AdminBannersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     },
     {
       id: '4',
-      title: 'Premium Standup Pouches',
-      subtitle: 'High-quality printed pouches',
-      image: IMAGES.standupPouch,
+      title: 'Premium Gold Standy Pouches',
+      subtitle: 'Luxury packaging for premium products',
+      image: IMAGES.goldStandyZipperPouch,
       position: 4,
       isActive: true,
       startDate: '2024-01-01',

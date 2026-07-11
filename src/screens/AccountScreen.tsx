@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Alert, Switch, Linking } from 'react-native';
+import { ScrollView, View, Alert, Switch, Linking, Platform } from 'react-native';
 import styled from 'styled-components/native';
+import { CommonActions } from '@react-navigation/native';
 import Header from '../components/Header';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useAppSelector } from '../store';
+import { useAppSelector, useAppDispatch } from '../store';
 import { selectOrdersList, selectTotalBusinessSpending } from '../store/ordersSlice';
+import { logout } from '../store/authSlice';
 import { SUPPORT_EMAIL, SUPPORT_PHONE, WHATSAPP_NUMBER, AUTH_KEY, ONBOARDING_KEY } from '../constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -17,6 +19,7 @@ const NOTIFS = [
 ];
 
 const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
   const [ecoTarget, setEcoTarget] = useState(500);
   const [notifToggles, setNotifToggles] = useState([true, true, true, true, true]);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -25,11 +28,11 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const totalSpent = useAppSelector(selectTotalBusinessSpending);
   const authUser = useAppSelector((state) => state.auth.user);
   
-  // Get user role from auth state, default to 'buyer'
-  const userRole = authUser?.role || 'buyer';
+  // Get user role from auth state, default to 'user'
+  const userRole = authUser?.role || 'user';
 
   // Role-based menu items
-  const BUYER_MENU_ITEMS = [
+  const USER_MENU_ITEMS = [
     { icon: 'tachometer-alt', label: 'Dashboard', badge: null, color: '#DBEAFE', iconColor: '#3B82F6', screen: 'Dashboard' },
     { icon: 'clipboard-list', label: 'Order History', badge: null, color: '#DCFCE7', iconColor: '#0F8A3C', screen: 'Orders' },
     { icon: 'file-invoice-dollar', label: 'Invoices & Billing', badge: '2', color: '#FEF3C7', iconColor: '#D97706', screen: 'Invoices' },
@@ -58,7 +61,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     { icon: 'bell', label: 'Notifications', badge: '5', color: '#FEE2E2', iconColor: '#EF4444', screen: 'Notifications' },
   ];
 
-  const MENU_ITEMS = userRole === 'admin' ? ADMIN_MENU_ITEMS : BUYER_MENU_ITEMS;
+  const MENU_ITEMS = userRole === 'admin' ? ADMIN_MENU_ITEMS : USER_MENU_ITEMS;
 
   // CO2 savings: 0.3kg per order as a rough estimate based on eco packaging
   const co2Saved = Math.round(orders.length * 0.3 * 100 + 240); // 240 = baseline from past orders
@@ -77,6 +80,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   const handleSignOut = () => {
+    console.log('Sign Out button clicked');
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
@@ -86,8 +90,23 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           text: 'Sign Out',
           style: 'destructive',
           onPress: async () => {
-            await AsyncStorage.multiRemove([AUTH_KEY, ONBOARDING_KEY]);
-            navigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
+            console.log('Sign out confirmed - starting sign out process');
+            try {
+              // Step 1: Clear AsyncStorage
+              console.log('Clearing AsyncStorage...');
+              await AsyncStorage.multiRemove([AUTH_KEY, ONBOARDING_KEY]);
+              console.log('AsyncStorage cleared successfully');
+              
+              // Step 2: Dispatch logout action to clear Redux state
+              // This will trigger the App component to redirect to Onboarding
+              console.log('Dispatching logout action...');
+              dispatch(logout());
+              console.log('Sign out complete - App will handle navigation');
+              
+            } catch (error) {
+              console.error('Error during sign out:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
           },
         },
       ]

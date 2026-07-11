@@ -61,6 +61,7 @@ import AdminBannersScreen from '../screens/admin/AdminBannersScreen';
 
 // Ready Stock Products
 import ReadyStockProductsScreen from '../screens/ReadyStockProductsScreen';
+import ReadyStockProductDetailScreen from '../screens/ReadyStockProductDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -75,7 +76,7 @@ function TabNavigator() {
         tabBarIcon: ({ color, focused }) => {
           const icons: Record<string, string> = {
             Home: 'home',
-            Products: 'box-open',
+            Products: 'box',
             Orders: 'clipboard-list',
             DesignStudio: 'palette',
             Account: 'user',
@@ -92,11 +93,7 @@ function TabNavigator() {
                 backgroundColor: focused ? '#0F8A3C' : '#F3F4F6',
                 alignItems: 'center', 
                 justifyContent: 'center',
-                shadowColor: focused ? '#0F8A3C' : '#000',
-                shadowOffset: { width: 0, height: focused ? 4 : 2 },
-                shadowOpacity: focused ? 0.3 : 0.1,
-                shadowRadius: focused ? 8 : 4,
-                elevation: focused ? 8 : 4,
+                boxShadow: focused ? '0px 4px 8px rgba(15, 138, 60, 0.3)' : '0px 2px 4px rgba(0, 0, 0, 0.1)',
                 transform: [{ translateY: focused ? -8 : 0 }],
               }}
             >
@@ -119,11 +116,7 @@ function TabNavigator() {
             paddingBottom: 12,
             paddingTop: 12,
             paddingHorizontal: 16,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 16,
-            elevation: 20,
+            boxShadow: '0px -4px 16px rgba(0, 0, 0, 0.15)',
             position: 'fixed' as any,
             bottom: 16,
             left: 16,
@@ -140,11 +133,7 @@ function TabNavigator() {
             paddingBottom: 12,
             paddingTop: 12,
             paddingHorizontal: 16,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 16,
-            elevation: 20,
+            boxShadow: '0px -4px 16px rgba(0, 0, 0, 0.15)',
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
           },
@@ -163,7 +152,7 @@ function TabNavigator() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="Products" component={ProductsScreen} options={{ tabBarLabel: 'Products' }} />
+      <Tab.Screen name="Products" component={ReadyStockProductsScreen} options={{ tabBarLabel: 'Stock Pouches' }} />
       <Tab.Screen name="Orders" component={OrdersScreen} options={{ tabBarLabel: 'Orders' }} />
       <Tab.Screen name="DesignStudio" component={DesignStudioScreen} options={{ tabBarLabel: 'Studio' }} />
       <Tab.Screen name="Account" component={AccountScreen} options={{ tabBarLabel: 'Account' }} />
@@ -214,6 +203,7 @@ export default function RootNavigator({ initialRoute = 'Onboarding' }: RootNavig
       <Stack.Screen name="PouchConfigurator" component={PouchConfiguratorScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="StreamlinedPouchConfigurator" component={StreamlinedPouchConfiguratorScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="ReadyStockProducts" component={ReadyStockProductsScreen} options={{ presentation: 'card' }} />
+      <Stack.Screen name="ReadyStockProductDetail" component={ReadyStockProductDetailScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="CustomOrderFlow" component={CustomOrderFlowScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ presentation: 'card', gestureEnabled: false }} />
       

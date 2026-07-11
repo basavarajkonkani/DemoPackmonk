@@ -45,11 +45,11 @@ const QUICK_ACTIONS = [
 ];
 
 const CATEGORIES = [
-  { id: 'standup', label: 'Stand Up\nPouches', image: IMAGES.standupPouch, bg: '#FEF3C7' },
-  { id: 'flat', label: 'Flat\nBottom', image: IMAGES.kraftPouch, bg: '#FEF9C3' },
+  { id: 'standup', label: 'Stand Up\nPouches', image: IMAGES.printedStandupPouch, bg: '#FEF3C7' },
+  { id: 'flat', label: 'Flat\nBottom', image: IMAGES.kraftStandyPouchBrown, bg: '#FEF9C3' },
   { id: 'rolls', label: 'Laminated\nRolls', image: IMAGES.centerSealPouch, bg: '#F3F4F6' },
   { id: 'boxes', label: 'Corr.\nBoxes', image: IMAGES.boxes, bg: '#DBEAFE' },
-  { id: 'window', label: 'Window\nPouches', image: IMAGES.plainPouchWindow, bg: '#E0E7FF' },
+  { id: 'window', label: 'Window\nPouches', image: IMAGES.kraftWindowStandyPouchBrown, bg: '#E0E7FF' },
 ];
 
 const FEATURED = [
@@ -426,9 +426,10 @@ const CategoryIconWrap = styled.View<{ bgColor: string }>`
   width: 64px; height: 64px; border-radius: 16px;
   background-color: ${({ bgColor }) => bgColor};
   align-items: center; justify-content: center; margin-bottom: 8px;
+  overflow: hidden;
   shadow-color: #000; shadow-offset: 0px 1px; shadow-opacity: 0.04; shadow-radius: 4px; elevation: 1;
 `;
-const CategoryImg = styled.Image`width: 44px; height: 44px;`;
+const CategoryImg = styled.Image`width: 52px; height: 52px;`;
 const CategoryLabel = styled.Text`
   font-size: 11px; font-weight: 600; color: #374151; text-align: center; line-height: 14px;
 `;
