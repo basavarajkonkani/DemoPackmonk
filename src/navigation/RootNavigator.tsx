@@ -19,6 +19,7 @@ import AIRecommendationsScreen from '../screens/AIRecommendationsScreen';
 import ShipmentTrackingScreen from '../screens/ShipmentTrackingScreen';
 import CartScreen from '../screens/CartScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
+import PreCheckoutInfoScreen from '../screens/PreCheckoutInfoScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import PouchConfiguratorScreen from '../screens/PouchConfiguratorScreen';
 import StreamlinedPouchConfiguratorScreen from '../screens/StreamlinedPouchConfiguratorScreen';
@@ -28,18 +29,18 @@ import OrderProofApprovalScreen from '../screens/OrderProofApprovalScreen';
 import ProductionTimelineScreen from '../screens/ProductionTimelineScreen';
 
 // Admin Screens
-import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
+import AdminTabNavigator from '../navigation/AdminTabNavigator';
 import AdminProductsScreen from '../screens/admin/AdminProductsScreen';
 import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
-import AdminOrdersScreen from '../screens/admin/AdminOrdersScreen';
 import AdminArtworkScreen from '../screens/admin/AdminArtworkScreen';
 import AdminPromotionsScreen from '../screens/admin/AdminPromotionsScreen';
 import AdminSupportScreen from '../screens/admin/AdminSupportScreen';
+import AdminSettingsScreen from '../screens/admin/AdminSettingsScreen';
 
-// Buyer Screens
-import ManageAddressesScreen from '../screens/buyer/ManageAddressesScreen';
-import ManageTeamScreen from '../screens/buyer/ManageTeamScreen';
-import SupportTicketsScreen from '../screens/buyer/SupportTicketsScreen';
+// User Screens
+import ManageAddressesScreen from '../screens/user/ManageAddressesScreen';
+import ManageTeamScreen from '../screens/user/ManageTeamScreen';
+import SupportTicketsScreen from '../screens/user/SupportTicketsScreen';
 
 // User Dashboard Screens
 import DashboardScreen from '../screens/user/DashboardScreen';
@@ -85,63 +86,76 @@ function TabNavigator() {
           return (
             <View 
               style={{
-                width: 38, 
-                height: 38, 
-                borderRadius: 12,
-                backgroundColor: focused ? '#DCFCE7' : 'transparent',
+                width: focused ? 56 : 48, 
+                height: focused ? 56 : 48, 
+                borderRadius: focused ? 18 : 16,
+                backgroundColor: focused ? '#0F8A3C' : '#F3F4F6',
                 alignItems: 'center', 
                 justifyContent: 'center',
+                shadowColor: focused ? '#0F8A3C' : '#000',
+                shadowOffset: { width: 0, height: focused ? 4 : 2 },
+                shadowOpacity: focused ? 0.3 : 0.1,
+                shadowRadius: focused ? 8 : 4,
+                elevation: focused ? 8 : 4,
+                transform: [{ translateY: focused ? -8 : 0 }],
               }}
             >
               <FontAwesome5 
                 name={name as any} 
-                size={18} 
-                color={color} 
+                size={focused ? 24 : 20} 
+                color={focused ? '#FFFFFF' : color} 
                 solid={focused}
               />
             </View>
           );
         },
         tabBarActiveTintColor: '#0F8A3C',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarInactiveTintColor: '#6B7280',
         tabBarStyle: Platform.select({
           web: {
-            backgroundColor: '#FFFFFF',
-            borderTopWidth: 1,
-            borderTopColor: '#F3F4F6',
-            height: 72,
-            paddingBottom: 10,
-            paddingTop: 6,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            borderTopWidth: 0,
+            height: 88,
+            paddingBottom: 12,
+            paddingTop: 12,
+            paddingHorizontal: 16,
             shadowColor: '#000',
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.06,
-            shadowRadius: 8,
-            elevation: 10,
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 16,
+            elevation: 20,
             position: 'fixed' as any,
-            bottom: 0,
-            left: 0,
-            right: 0,
-            width: '100%',
+            bottom: 16,
+            left: 16,
+            right: 16,
+            marginLeft: 'auto' as any,
+            marginRight: 'auto' as any,
+            borderRadius: 24,
             zIndex: 1000,
-          },
+          } as any,
           default: {
-            backgroundColor: '#FFFFFF',
-            borderTopWidth: 1,
-            borderTopColor: '#F3F4F6',
-            height: 72,
-            paddingBottom: 10,
-            paddingTop: 6,
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            borderTopWidth: 0,
+            height: 88,
+            paddingBottom: 12,
+            paddingTop: 12,
+            paddingHorizontal: 16,
             shadowColor: '#000',
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.06,
-            shadowRadius: 8,
-            elevation: 10,
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 16,
+            elevation: 20,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
           },
         }),
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: '600',
-          marginTop: 0,
+          marginTop: 6,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 4,
         },
         // Force tab bar to always render
         unmountOnBlur: false,
@@ -194,6 +208,7 @@ export default function RootNavigator({ initialRoute = 'Onboarding' }: RootNavig
       <Stack.Screen name="AIRecommendations" component={AIRecommendationsScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="ShipmentTracking" component={ShipmentTrackingScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Cart" component={CartScreen} options={{ presentation: 'card' }} />
+      <Stack.Screen name="PreCheckoutInfo" component={PreCheckoutInfoScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="PouchConfigurator" component={PouchConfiguratorScreen} options={{ presentation: 'card' }} />
@@ -202,21 +217,21 @@ export default function RootNavigator({ initialRoute = 'Onboarding' }: RootNavig
       <Stack.Screen name="CustomOrderFlow" component={CustomOrderFlowScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ presentation: 'card', gestureEnabled: false }} />
       
-      {/* Admin Screens */}
-      <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+      {/* Admin Tab Navigator - Main Admin Panel */}
+      <Stack.Screen name="AdminTabs" component={AdminTabNavigator} />
+      
+      {/* Individual Admin Screens (accessed from Dashboard) */}
       <Stack.Screen name="AdminProducts" component={AdminProductsScreen} />
       <Stack.Screen name="AdminUsers" component={AdminUsersScreen} />
-      <Stack.Screen name="AdminOrders" component={AdminOrdersScreen} />
       <Stack.Screen name="AdminArtwork" component={AdminArtworkScreen} />
       <Stack.Screen name="AdminPromotions" component={AdminPromotionsScreen} />
       <Stack.Screen name="AdminSupport" component={AdminSupportScreen} />
       <Stack.Screen name="AdminInventory" component={AdminInventoryScreen} />
       <Stack.Screen name="AdminPricing" component={AdminPricingScreen} />
-      <Stack.Screen name="AdminAnalytics" component={AdminAnalyticsScreen} />
-      <Stack.Screen name="AdminCustomers" component={AdminCustomersScreen} />
       <Stack.Screen name="AdminBanners" component={AdminBannersScreen} />
+      <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
       
-      {/* Buyer Screens */}
+      {/* User Screens */}
       <Stack.Screen name="ManageAddresses" component={ManageAddressesScreen} />
       <Stack.Screen name="ManageTeam" component={ManageTeamScreen} />
       <Stack.Screen name="SupportTickets" component={SupportTicketsScreen} />
