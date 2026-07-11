@@ -650,6 +650,7 @@ const BottomActionBar = styled.View`
   shadow-opacity: 0.1;
   shadow-radius: 8px;
   elevation: 10;
+  z-index: 1000;
 `;
 
 const BottomTotalSection = styled.View`

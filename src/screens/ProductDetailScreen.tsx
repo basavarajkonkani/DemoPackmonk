@@ -550,7 +550,11 @@ const BottomBar = styled.View`
   border-top-color: #F3F4F6;
   align-items: center; 
   justify-content: space-between;
-  box-shadow: 0px -2px 8px rgba(0, 0, 0, 0.06);
+  shadow-color: #000;
+  shadow-offset: 0px -2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 8px;
+  elevation: 10;
   z-index: 1000;
 `;
 

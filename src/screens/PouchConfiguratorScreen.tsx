@@ -943,6 +943,12 @@ const BottomBar = styled.View`
   padding: 12px 16px ${Platform.OS === 'ios' ? '36px' : '20px'};
   background-color: #FFFFFF;
   border-top-width: 1px; border-top-color: #F3F4F6;
+  z-index: 1000;
+  elevation: 10;
+  shadow-color: #000;
+  shadow-offset: 0px -2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 8px;
 `;
 const ContinueBtn = styled.TouchableOpacity`
   height: 52px; background-color: #0F8A3C; border-radius: 14px;

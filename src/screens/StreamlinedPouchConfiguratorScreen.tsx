@@ -809,7 +809,12 @@ const BottomBar = styled.View`
   border-top-width: 1px;
   border-top-color: #f3f4f6;
   z-index: ${Platform.OS === 'web' ? '9999' : '1000'};
+  elevation: 10;
   ${Platform.OS === 'web' ? 'box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);' : ''}
+  shadow-color: #000;
+  shadow-offset: 0px -2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 8px;
 `;
 
 const AddToCartBtn = styled.TouchableOpacity`
