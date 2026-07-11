@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import styled from 'styled-components/native';
 import { IMAGES } from '../constants/images';
+import { useAppSelector } from '../store';
 
 const BENEFITS = [
   { emoji: '🏆', label: 'Premium Quality' },
@@ -20,6 +21,23 @@ interface Props {
 }
 
 const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      // User is already logged in, go to main app
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+    } else {
+      // New user, go to sign up
+      navigation.navigate('SignUp');
+    }
+  };
+
+  const handleLogin = () => {
+    // Always go to sign in screen to authenticate with OTP
+    navigation.navigate('SignIn');
+  };
+
   return (
     <Wrapper>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -59,14 +77,14 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
           </PillsWrap>
 
           <GetStartedBtn
-            onPress={() => navigation.navigate('SignUp')}
+            onPress={handleGetStarted}
             activeOpacity={0.9}
           >
-            <GetStartedText>Get Started</GetStartedText>
+            <GetStartedText>{isAuthenticated ? 'Continue to App' : 'Get Started'}</GetStartedText>
           </GetStartedBtn>
 
           <LoginBtn
-            onPress={() => navigation.navigate('SignIn')}
+            onPress={handleLogin}
             activeOpacity={0.85}
           >
             <LoginBtnText>Login</LoginBtnText>
