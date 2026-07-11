@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import styled from 'styled-components/native';
 import { IMAGES } from '../constants/images';
-import { useAppSelector } from '../store';
 
 const BENEFITS = [
   { emoji: '🏆', label: 'Premium Quality' },
@@ -21,16 +20,9 @@ interface Props {
 }
 
 const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-
   const handleGetStarted = () => {
-    if (isAuthenticated) {
-      // User is already logged in, go to main app
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-    } else {
-      // New user, go to sign up
-      navigation.navigate('SignUp');
-    }
+    // Always go to sign up for new users
+    navigation.navigate('SignUp');
   };
 
   const handleLogin = () => {
@@ -80,7 +72,7 @@ const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
             onPress={handleGetStarted}
             activeOpacity={0.9}
           >
-            <GetStartedText>{isAuthenticated ? 'Continue to App' : 'Get Started'}</GetStartedText>
+            <GetStartedText>Get Started</GetStartedText>
           </GetStartedBtn>
 
           <LoginBtn

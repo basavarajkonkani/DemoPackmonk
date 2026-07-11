@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Provider } from 'react-redux';
-import { store } from './src/store';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { Provider, useSelector } from 'react-redux';
+import { store, RootState, useAppDispatch } from './src/store';
+import { login } from './src/store/authSlice';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider } from 'styled-components/native';
@@ -24,36 +25,60 @@ const rootStyle = Platform.OS === 'web'
   ? { flex: 1, height: '100vh' as any, display: 'flex' as any, flexDirection: 'column' as any }
   : { flex: 1 };
 
-const App: React.FC = () => {
+// Inner component that has access to Redux store
+const AppContent: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const [initialRoute, setInitialRoute] = useState<'Onboarding' | 'MainTabs' | null>(null);
   const [webFontsReady, setWebFontsReady] = useState(Platform.OS !== 'web');
+  const [isReady, setIsReady] = useState(false);
   
   // Use the useFonts hook for proper font loading
   const [fontsLoaded, fontError] = useFonts({
     ...FontAwesome5.font,
   });
 
+  // Check initial route - Always start at Onboarding, do NOT auto-login
   useEffect(() => {
     async function checkInitialRoute() {
       try {
-        const [auth, onboarding] = await Promise.all([
-          AsyncStorage.getItem(AUTH_KEY),
-          AsyncStorage.getItem(ONBOARDING_KEY),
-        ]);
-        setInitialRoute(auth && onboarding === 'true' ? 'MainTabs' : 'Onboarding');
+        // Always start with Onboarding screen
+        // Users must authenticate via OTP each session
+        setInitialRoute('Onboarding');
+        
+        console.log('App initialized - starting at Onboarding screen');
+        
+        setIsReady(true);
       } catch (error) {
         console.warn('Error checking initial route:', error);
         setInitialRoute('Onboarding');
+        setIsReady(true);
       }
     }
 
     checkInitialRoute();
-  }, []);
+  }, [dispatch]);
+
+  // React to Redux auth state changes ONLY after initial load
+  // This prevents the immediate redirect on app start
+  useEffect(() => {
+    // Only react to auth changes after we've set the initial route
+    if (!isReady) return;
+    
+    // Add a small delay to prevent race condition
+    const timer = setTimeout(() => {
+      if (!isAuthenticated && initialRoute === 'MainTabs') {
+        console.log('Auth state changed to unauthenticated - switching to Onboarding');
+        setInitialRoute('Onboarding');
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, isReady, initialRoute]);
 
   // For web, wait for FontAwesome to load from CDN
   useEffect(() => {
     if (Platform.OS === 'web' && fontsLoaded) {
-      // Add a delay to ensure web fonts are fully loaded and cached
       const timer = setTimeout(() => {
         setWebFontsReady(true);
       }, 500);
@@ -70,14 +95,12 @@ const App: React.FC = () => {
     }
   }, [fontsLoaded, fontError]);
 
-  // For web, show loading until both fonts and web fonts are ready
+  // Show loading while fonts are loading
   if (Platform.OS === 'web' && (!fontsLoaded || !webFontsReady) && !fontError) {
     return (
-      <GestureHandlerRootView style={rootStyle}>
-        <View style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#0F8A3C" />
-        </View>
-      </GestureHandlerRootView>
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0F8A3C" />
+      </View>
     );
   }
 
@@ -85,27 +108,30 @@ const App: React.FC = () => {
     return null;
   }
 
-  if (initialRoute === null) {
+  if (!isReady || initialRoute === null) {
     return (
-      <GestureHandlerRootView style={rootStyle}>
-        <StatusBar style="dark" backgroundColor="#FFFFFF" />
-        <View style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#0F8A3C" />
-        </View>
-      </GestureHandlerRootView>
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0F8A3C" />
+      </View>
     );
   }
 
   return (
-    <GestureHandlerRootView style={rootStyle} onLayout={onLayoutRootView}>
+    <SafeAreaProvider>
+      <NavigationContainer onReady={onLayoutRootView}>
+        <StatusBar style="dark" backgroundColor="#FFFFFF" translucent={false} />
+        <RootNavigator key={initialRoute} initialRoute={initialRoute} />
+      </NavigationContainer>
+    </SafeAreaProvider>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <GestureHandlerRootView style={rootStyle}>
       <Provider store={store}>
         <ThemeProvider theme={theme}>
-          <SafeAreaProvider>
-            <NavigationContainer>
-              <StatusBar style="dark" backgroundColor="#FFFFFF" translucent={false} />
-              <RootNavigator initialRoute={initialRoute} />
-            </NavigationContainer>
-          </SafeAreaProvider>
+          <AppContent />
         </ThemeProvider>
       </Provider>
     </GestureHandlerRootView>
