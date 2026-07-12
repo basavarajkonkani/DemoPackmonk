@@ -569,7 +569,7 @@ const BottomBar = styled.View<{ bottomTabBarHeight: number }>`
   };
   left: 0; 
   right: 0;
-  width: ${Platform.OS === 'web' ? '100%' : 'auto'};
+  width: 100%;
   flex-direction: row; 
   padding: 12px 16px ${Platform.OS === 'ios' ? '32px' : '20px'};
   background-color: #FFFFFF; 
@@ -582,8 +582,8 @@ const BottomBar = styled.View<{ bottomTabBarHeight: number }>`
   shadow-offset: 0px -2px;
   shadow-opacity: 0.1;
   shadow-radius: 8px;
-  elevation: 10;
-  z-index: ${Platform.OS === 'web' ? '9998' : '999'};
+  elevation: ${Platform.OS === 'android' ? '25' : '10'};
+  z-index: 10000;
 `;
 
 const BottomLeft = styled.View`

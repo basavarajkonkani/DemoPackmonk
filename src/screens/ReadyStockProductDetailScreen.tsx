@@ -665,7 +665,7 @@ const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight
   };
   left: 0;
   right: 0;
-  width: ${Platform.OS === 'web' ? '100%' : 'auto'};
+  width: 100%;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -686,8 +686,8 @@ const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight
   shadow-offset: 0px -2px;
   shadow-opacity: 0.1;
   shadow-radius: 8px;
-  elevation: 20;
-  z-index: ${Platform.OS === 'web' ? '9998' : '999'};
+  elevation: ${Platform.OS === 'android' ? '25' : '20'};
+  z-index: 10000;
   min-height: 82px;
 `;
 

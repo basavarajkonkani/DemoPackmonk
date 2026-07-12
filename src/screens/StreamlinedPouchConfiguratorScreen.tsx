@@ -803,13 +803,13 @@ const BottomBar = styled.View`
   bottom: 0;
   left: 0;
   right: 0;
-  width: ${Platform.OS === 'web' ? '100%' : 'auto'};
+  width: 100%;
   padding: 12px 16px ${Platform.OS === 'ios' ? '32px' : '24px'};
   background-color: #ffffff;
   border-top-width: 1px;
   border-top-color: #f3f4f6;
-  z-index: ${Platform.OS === 'web' ? '9999' : '1000'};
-  elevation: 10;
+  z-index: 10000;
+  elevation: ${Platform.OS === 'android' ? '25' : '10'};
   ${Platform.OS === 'web' ? 'box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);' : ''}
   shadow-color: #000;
   shadow-offset: 0px -2px;
