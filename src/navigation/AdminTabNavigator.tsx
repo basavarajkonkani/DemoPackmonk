@@ -61,11 +61,12 @@ export default function AdminTabNavigator() {
         tabBarActiveTintColor: '#0F8A3C',
         tabBarInactiveTintColor: '#6B7280',
         tabBarStyle: {
+          display: 'flex',
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          height: Platform.select({ ios: 85, android: 65, default: 70 }),
-          paddingBottom: Platform.select({ ios: 24, android: 8, default: 8 }),
+          height: Platform.select({ ios: 85, android: 65, web: 70, default: 70 }),
+          paddingBottom: Platform.select({ ios: 24, android: 8, web: 8, default: 8 }),
           paddingTop: 4,
           paddingHorizontal: Platform.select({ web: 12, default: 8 }),
           shadowColor: '#000',
@@ -73,10 +74,6 @@ export default function AdminTabNavigator() {
           shadowOpacity: 0.08,
           shadowRadius: 12,
           elevation: 10,
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
         },
         tabBarLabelStyle: {
           fontSize: 10,
@@ -88,6 +85,7 @@ export default function AdminTabNavigator() {
           paddingVertical: 0,
           paddingHorizontal: 4,
         },
+        tabBarHideOnKeyboard: true,
         unmountOnBlur: false,
         lazy: false,
       })}
