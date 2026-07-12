@@ -74,6 +74,14 @@ export default function AdminTabNavigator() {
           shadowOpacity: 0.08,
           shadowRadius: 12,
           elevation: 10,
+          ...(Platform.OS === 'web' && {
+            position: 'fixed' as any,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            zIndex: 9999,
+          }),
         },
         tabBarLabelStyle: {
           fontSize: 10,

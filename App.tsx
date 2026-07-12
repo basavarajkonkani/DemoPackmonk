@@ -22,7 +22,7 @@ if (Platform.OS !== 'web') {
 }
 
 const rootStyle = Platform.OS === 'web'
-  ? { flex: 1, height: '100vh' as any, display: 'flex' as any, flexDirection: 'column' as any }
+  ? { flex: 1, minHeight: '100vh' as any, height: '100%' as any, display: 'flex' as any, flexDirection: 'column' as any }
   : { flex: 1 };
 
 // Inner component that has access to Redux store
