@@ -87,23 +87,31 @@ function TabNavigator() {
           return (
             <View 
               style={{
-                width: 44, 
-                height: 44, 
-                borderRadius: 14,
-                backgroundColor: focused ? '#0F8A3C' : '#F9FAFB',
                 alignItems: 'center', 
                 justifyContent: 'center',
-                ...(Platform.OS === 'web' && focused && {
-                  boxShadow: '0px 2px 8px rgba(15, 138, 60, 0.2)',
-                }),
+                paddingTop: 6,
               }}
             >
-              <FontAwesome5 
-                name={name as any} 
-                size={20} 
-                color={focused ? '#FFFFFF' : color} 
-                solid={focused}
-              />
+              <View
+                style={{
+                  width: 56, 
+                  height: 32, 
+                  borderRadius: 20,
+                  backgroundColor: focused ? '#0F8A3C' : 'transparent',
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  ...(Platform.OS === 'web' && focused && {
+                    boxShadow: '0px 2px 8px rgba(15, 138, 60, 0.2)',
+                  }),
+                }}
+              >
+                <FontAwesome5 
+                  name={name as any} 
+                  size={18} 
+                  color={focused ? '#FFFFFF' : color} 
+                  solid={focused}
+                />
+              </View>
             </View>
           );
         },
@@ -114,23 +122,37 @@ function TabNavigator() {
             backgroundColor: '#FFFFFF',
             borderTopWidth: 1,
             borderTopColor: '#E5E7EB',
-            height: 80,
-            paddingBottom: 12,
-            paddingTop: 8,
+            height: 70,
+            paddingBottom: 8,
+            paddingTop: 4,
+            paddingHorizontal: 12,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
+            elevation: 10,
+          } as any,
+          ios: {
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 1,
+            borderTopColor: '#E5E7EB',
+            height: 85,
+            paddingBottom: 24,
+            paddingTop: 4,
             paddingHorizontal: 8,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -2 },
             shadowOpacity: 0.08,
             shadowRadius: 12,
             elevation: 8,
-          } as any,
-          default: {
+          },
+          android: {
             backgroundColor: '#FFFFFF',
             borderTopWidth: 1,
             borderTopColor: '#E5E7EB',
-            height: 80,
-            paddingBottom: 12,
-            paddingTop: 8,
+            height: 65,
+            paddingBottom: 8,
+            paddingTop: 4,
             paddingHorizontal: 8,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -2 },
@@ -140,12 +162,13 @@ function TabNavigator() {
           },
         }),
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
           marginTop: 4,
+          marginBottom: 0,
         },
         tabBarItemStyle: {
-          paddingVertical: 2,
+          paddingVertical: 0,
           paddingHorizontal: 4,
         },
         // Force tab bar to always render
@@ -166,13 +189,16 @@ function TabNavigator() {
           tabBarBadge: cartCount > 0 ? cartCount : undefined,
           tabBarBadgeStyle: { 
             backgroundColor: '#EF4444',
-            fontSize: 11,
+            color: '#FFFFFF',
+            fontSize: 9,
             fontWeight: '700',
             minWidth: 18,
             height: 18,
             borderRadius: 9,
-            top: 4,
-            right: -4,
+            borderWidth: 1.5,
+            borderColor: '#FFFFFF',
+            top: Platform.select({ web: 10, ios: 10, android: 10 }),
+            right: Platform.select({ web: 8, ios: 8, android: 8 }),
           },
         }}
       />

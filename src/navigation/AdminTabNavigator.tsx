@@ -30,37 +30,49 @@ export default function AdminTabNavigator() {
           return (
             <View 
               style={{
-                width: 38, 
-                height: 38, 
-                borderRadius: 12,
-                backgroundColor: focused ? '#DCFCE7' : 'transparent',
                 alignItems: 'center', 
                 justifyContent: 'center',
+                paddingTop: 6,
               }}
             >
-              <FontAwesome5 
-                name={name as any} 
-                size={18} 
-                color={color} 
-                solid={focused}
-              />
+              <View
+                style={{
+                  width: 56, 
+                  height: 32, 
+                  borderRadius: 20,
+                  backgroundColor: focused ? '#0F8A3C' : 'transparent',
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  ...(Platform.OS === 'web' && focused && {
+                    boxShadow: '0px 2px 8px rgba(15, 138, 60, 0.2)',
+                  }),
+                }}
+              >
+                <FontAwesome5 
+                  name={name as any} 
+                  size={18} 
+                  color={focused ? '#FFFFFF' : color} 
+                  solid={focused}
+                />
+              </View>
             </View>
           );
         },
         tabBarActiveTintColor: '#0F8A3C',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarInactiveTintColor: '#6B7280',
         tabBarStyle: Platform.select({
           web: {
             backgroundColor: '#FFFFFF',
             borderTopWidth: 1,
-            borderTopColor: '#F3F4F6',
-            height: 72,
-            paddingBottom: 10,
-            paddingTop: 6,
+            borderTopColor: '#E5E7EB',
+            height: 70,
+            paddingBottom: 8,
+            paddingTop: 4,
+            paddingHorizontal: 12,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.06,
-            shadowRadius: 8,
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
             elevation: 10,
             position: 'fixed' as any,
             bottom: 0,
@@ -69,24 +81,44 @@ export default function AdminTabNavigator() {
             width: '100%',
             zIndex: 1000,
           },
-          default: {
+          ios: {
             backgroundColor: '#FFFFFF',
             borderTopWidth: 1,
-            borderTopColor: '#F3F4F6',
-            height: 72,
-            paddingBottom: 10,
-            paddingTop: 6,
+            borderTopColor: '#E5E7EB',
+            height: 85,
+            paddingBottom: 24,
+            paddingTop: 4,
+            paddingHorizontal: 8,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.06,
-            shadowRadius: 8,
-            elevation: 10,
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
+            elevation: 8,
+          },
+          android: {
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 1,
+            borderTopColor: '#E5E7EB',
+            height: 65,
+            paddingBottom: 8,
+            paddingTop: 4,
+            paddingHorizontal: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
+            elevation: 8,
           },
         }),
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',
-          marginTop: 0,
+          marginTop: 4,
+          marginBottom: 0,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 0,
+          paddingHorizontal: 4,
         },
         unmountOnBlur: false,
         lazy: false,
