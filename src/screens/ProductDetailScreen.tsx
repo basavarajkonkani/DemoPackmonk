@@ -45,6 +45,25 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) =>
   const [favorited, setFavorited] = useState(false);
   const [activeTab, setActiveTab] = useState<'specs' | 'reviews'>('specs');
 
+  // Calculate the bottom navigation tab bar height
+  const bottomTabBarHeight = Platform.select({
+    ios: 85, // Matches RootNavigator tab bar height
+    android: 65, // Matches RootNavigator tab bar height
+    web: 70, // Matches RootNavigator tab bar height
+    default: 70,
+  });
+
+  // Calculate the Add to Cart bar height
+  const addToCartBarHeight = Platform.select({
+    ios: 82, // Base height including safe area padding
+    android: 82, // Fixed height for Android
+    web: 82, // Fixed height for web
+    default: 82,
+  });
+
+  // Total bottom spacing needed for ScrollView
+  const totalBottomPadding = bottomTabBarHeight + addToCartBarHeight + 20;
+
   const handleQuantitySelect = (qty: number) => {
     const result = quantityValidator.validateQuantityInput(qty, DEFAULT_QUANTITY_OPTIONS);
     applyQuantityValidationResult(result, setQuantity);
@@ -148,7 +167,7 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) =>
         </NavBtn>
       </NavBar>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: totalBottomPadding }}>
 
         {/* Gallery */}
         <Gallery bgColor={cfg.bg}>
@@ -313,8 +332,8 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) =>
         </InfoSection>
       </ScrollView>
 
-      {/* Bottom CTA */}
-      <BottomBar>
+      {/* Bottom CTA - Positioned above bottom navigation */}
+      <BottomBar bottomTabBarHeight={bottomTabBarHeight}>
         <BottomLeft>
           <BottomPrice>₹{totalPrice.toLocaleString()}</BottomPrice>
           <BottomQty>{quantity} units</BottomQty>
@@ -538,24 +557,33 @@ const CustomizeBtnText = styled.Text`font-size: 13px; font-weight: 700; color: #
 const EmptyCenter = styled.View`flex: 1; align-items: center; justify-content: center;`;
 const EmptyText = styled.Text`font-size: 16px; color: #9CA3AF;`;
 
-const BottomBar = styled.View`
-  position: absolute; 
-  bottom: 0; 
+const BottomBar = styled.View<{ bottomTabBarHeight: number }>`
+  position: ${Platform.OS === 'web' ? 'fixed' : 'absolute'};
+  bottom: ${({ bottomTabBarHeight }) => 
+    Platform.select({
+      ios: `${bottomTabBarHeight}px`,
+      android: `${bottomTabBarHeight}px`,
+      web: `${bottomTabBarHeight}px`,
+      default: `${bottomTabBarHeight}px`,
+    })
+  };
   left: 0; 
   right: 0;
+  width: ${Platform.OS === 'web' ? '100%' : 'auto'};
   flex-direction: row; 
-  padding: 12px 16px ${Platform.OS === 'ios' ? 32 : 20}px;
+  padding: 12px 16px ${Platform.OS === 'ios' ? '32px' : '20px'};
   background-color: #FFFFFF; 
   border-top-width: 1px; 
   border-top-color: #F3F4F6;
   align-items: center; 
   justify-content: space-between;
+  ${Platform.OS === 'web' ? 'box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);' : ''}
   shadow-color: #000;
   shadow-offset: 0px -2px;
   shadow-opacity: 0.1;
   shadow-radius: 8px;
   elevation: 10;
-  z-index: 1000;
+  z-index: ${Platform.OS === 'web' ? '9998' : '999'};
 `;
 
 const BottomLeft = styled.View`

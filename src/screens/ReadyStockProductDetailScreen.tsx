@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ScrollView, Alert, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch } from '../store';
 import { addToCart } from '../store/cartSlice';
 import StockIndicator from '../components/StockIndicator';
@@ -35,10 +36,30 @@ interface Props {
 
 const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const dispatch = useAppDispatch();
+  const insets = useSafeAreaInsets();
   const { product } = route.params as { product: ReadyStockProduct };
 
   const [quantity, setQuantity] = useState(product.moq);
   const [showPincodeChecker, setShowPincodeChecker] = useState(false);
+
+  // Calculate the bottom navigation tab bar height
+  const bottomTabBarHeight = Platform.select({
+    ios: 85, // Matches RootNavigator tab bar height
+    android: 65, // Matches RootNavigator tab bar height
+    web: 70, // Matches RootNavigator tab bar height
+    default: 70,
+  });
+
+  // Calculate the Add to Cart bar height
+  const addToCartBarHeight = Platform.select({
+    ios: 82 + insets.bottom, // Base height + safe area
+    android: 82, // Fixed height for Android
+    web: 82, // Fixed height for web
+    default: 82,
+  });
+
+  // Total bottom spacing needed for ScrollView
+  const totalBottomPadding = bottomTabBarHeight + addToCartBarHeight + 20;
 
   const handleQuantityChange = (newQty: number) => {
     if (newQty < product.moq) {
@@ -122,7 +143,7 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
 
       <ScrollView 
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 180 : 160 }}
+        contentContainerStyle={{ paddingBottom: totalBottomPadding }}
       >
         {/* Product Image */}
         <ProductImageContainer>
@@ -301,8 +322,8 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
         </ContentSection>
       </ScrollView>
 
-      {/* Bottom Action Bar - Fixed with proper padding */}
-      <BottomActionBar>
+      {/* Bottom Action Bar - Fixed with proper padding and positioned above bottom nav */}
+      <BottomActionBar safeAreaBottom={insets.bottom} bottomTabBarHeight={bottomTabBarHeight}>
         <BottomTotalSection>
           <BottomTotalLabel>Total</BottomTotalLabel>
           <BottomTotalPrice>₹{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</BottomTotalPrice>
@@ -632,25 +653,42 @@ const PriceSummaryTotal = styled.Text`
   color: #0F8A3C;
 `;
 
-const BottomActionBar = styled.View`
-  position: absolute;
-  bottom: 0;
+const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight: number }>`
+  position: ${Platform.OS === 'web' ? 'fixed' : 'absolute'};
+  bottom: ${({ bottomTabBarHeight }) => 
+    Platform.select({
+      ios: `${bottomTabBarHeight}px`,
+      android: `${bottomTabBarHeight}px`,
+      web: `${bottomTabBarHeight}px`,
+      default: `${bottomTabBarHeight}px`,
+    })
+  };
   left: 0;
   right: 0;
+  width: ${Platform.OS === 'web' ? '100%' : 'auto'};
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   background-color: #FFFFFF;
   padding: 16px;
-  padding-bottom: ${Platform.OS === 'ios' ? '32px' : '16px'};
+  padding-bottom: ${({ safeAreaBottom }) => 
+    Platform.select({
+      ios: `${Math.max(16, safeAreaBottom)}px`,
+      android: '16px',
+      web: '16px',
+      default: '16px',
+    })
+  };
   border-top-width: 1px;
   border-top-color: #E5E7EB;
+  ${Platform.OS === 'web' ? 'box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);' : ''}
   shadow-color: #000;
   shadow-offset: 0px -2px;
   shadow-opacity: 0.1;
   shadow-radius: 8px;
-  elevation: 10;
-  z-index: 1000;
+  elevation: 20;
+  z-index: ${Platform.OS === 'web' ? '9998' : '999'};
+  min-height: 82px;
 `;
 
 const BottomTotalSection = styled.View`
