@@ -3,7 +3,8 @@
  * This ensures all screens properly reserve space for fixed bottom components.
  */
 
-import { Platform, useSafeAreaInsets } from 'react-native';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * Bottom Tab Navigator heights - MUST match RootNavigator.tsx tabBarStyle

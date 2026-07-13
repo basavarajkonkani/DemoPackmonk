@@ -70,6 +70,21 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
       return;
     }
 
+    // Determine pouchType and materialType from product properties
+    let pouchType: 'plain' | 'printed' | 'kraft' = 'plain';
+    if (product.material.toLowerCase().includes('kraft')) {
+      pouchType = 'kraft';
+    } else if (product.material.toLowerCase().includes('printed')) {
+      pouchType = 'printed';
+    }
+
+    let materialType: 'metalised' | 'non_metalised' = 'non_metalised';
+    if (product.material.toLowerCase().includes('metalised')) {
+      materialType = 'metalised';
+    }
+
+    const windowOption: 'with_window' | 'without_window' = product.hasWindow ? 'with_window' : 'without_window';
+
     const cartItem = {
       cartId: `${product.id}-${Date.now()}`,
       productId: product.id,
@@ -90,19 +105,22 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
         textSize: 12,
       },
       pouchConfig: {
+        pouchType,
+        windowOption,
+        materialType,
+        capacity: product.size as '50g' | '100g' | '200g' | '250g' | '500g' | '1kg' | '2kg',
+        artworkUri: null,
+        needsDesignAssistance: false,
+        dimensions: { width: product.dimensions.width, height: product.dimensions.height, unit: 'mm' },
         finish: product.finish,
         zip: product.hasZipper ? 'With Zipper' : 'No Zipper',
-        thickness: product.thickness,
-        size: product.size,
-        material: product.material,
-        hasWindow: product.hasWindow,
+        thickness: parseFloat(product.thickness),
       },
       quantity,
       unitPrice: product.price,
       baseUnitPrice: product.price,
       totalPrice: product.price * quantity,
       setupFee: 0,
-      isReadyStock: true,
     };
 
     dispatch(addToCart(cartItem));
@@ -466,7 +484,7 @@ const SpecsCard = styled.View`
 const SpecRow = styled.View<{ noBorder?: boolean }>`
   flex-direction: row;
   padding: 14px 16px;
-  border-bottom-width: ${({ noBorder }) => (noBorder ? '0' : '1')}px;
+  border-bottom-width: ${({ noBorder }: { noBorder?: boolean }) => (noBorder ? '0' : '1')}px;
   border-bottom-color: #F3F4F6;
 `;
 
@@ -588,16 +606,16 @@ const QuickSelectBtn = styled.TouchableOpacity<{ active: boolean }>`
   flex: 1;
   padding: 10px;
   border-radius: 10px;
-  background-color: ${({ active }) => (active ? '#0F8A3C' : '#FFFFFF')};
+  background-color: ${({ active }: { active: boolean }) => (active ? '#0F8A3C' : '#FFFFFF')};
   border-width: 1.5px;
-  border-color: ${({ active }) => (active ? '#0F8A3C' : '#E5E7EB')};
+  border-color: ${({ active }: { active: boolean }) => (active ? '#0F8A3C' : '#E5E7EB')};
   align-items: center;
 `;
 
 const QuickSelectText = styled.Text<{ active: boolean }>`
   font-size: 13px;
   font-weight: 600;
-  color: ${({ active }) => (active ? '#FFFFFF' : '#6B7280')};
+  color: ${({ active }: { active: boolean }) => (active ? '#FFFFFF' : '#6B7280')};
 `;
 
 const PriceSummaryCard = styled.View`
@@ -646,7 +664,7 @@ const PriceSummaryTotal = styled.Text`
 
 const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight: number }>`
   position: ${Platform.OS === 'web' ? 'fixed' : 'absolute'};
-  bottom: ${({ bottomTabBarHeight }) => 
+  bottom: ${({ bottomTabBarHeight }: { safeAreaBottom: number; bottomTabBarHeight: number }) => 
     Platform.select({
       ios: `${bottomTabBarHeight}px`,
       android: `${bottomTabBarHeight}px`,
@@ -662,7 +680,7 @@ const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight
   justify-content: space-between;
   background-color: #FFFFFF;
   padding: 12px 16px;
-  padding-bottom: ${({ safeAreaBottom }) => 
+  padding-bottom: ${({ safeAreaBottom }: { safeAreaBottom: number; bottomTabBarHeight: number }) => 
     Platform.select({
       ios: `${Math.max(12, safeAreaBottom)}px`,
       android: '12px',
