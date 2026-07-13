@@ -129,22 +129,23 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
   const totalPrice = product.price * quantity;
 
   return (
-    <Container>
-      {/* Header */}
-      <NavBar>
-        <NavBtn onPress={() => navigation.goBack()}>
-          <FontAwesome5 name="arrow-left" size={16} color="#111827" />
-        </NavBtn>
-        <NavTitle>Product Details</NavTitle>
-        <NavBtn onPress={() => navigation.navigate('MainTabs', { screen: 'Cart' })}>
-          <FontAwesome5 name="shopping-cart" size={16} color="#111827" />
-        </NavBtn>
-      </NavBar>
+    <ScreenContainer>
+      <InnerContainer>
+        {/* Header */}
+        <NavBar>
+          <NavBtn onPress={() => navigation.goBack()}>
+            <FontAwesome5 name="arrow-left" size={16} color="#111827" />
+          </NavBtn>
+          <NavTitle>Product Details</NavTitle>
+          <NavBtn onPress={() => navigation.navigate('MainTabs', { screen: 'Cart' })}>
+            <FontAwesome5 name="shopping-cart" size={16} color="#111827" />
+          </NavBtn>
+        </NavBar>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: totalBottomPadding }}
-      >
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: totalBottomPadding }}
+        >
         {/* Product Image */}
         <ProductImageContainer>
           <ProductImage source={product.image} resizeMode="cover" />
@@ -322,7 +323,7 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
         </ContentSection>
       </ScrollView>
 
-      {/* Bottom Action Bar - Fixed with proper padding and positioned above bottom nav */}
+      {/* Bottom Action Bar - Positioned above bottom nav, outside main flex */}
       <BottomActionBar safeAreaBottom={insets.bottom} bottomTabBarHeight={bottomTabBarHeight}>
         <BottomTotalSection>
           <BottomTotalLabel>Total</BottomTotalLabel>
@@ -334,15 +335,22 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
           <AddToCartButtonText>Add to Cart</AddToCartButtonText>
         </AddToCartButton>
       </BottomActionBar>
-    </Container>
+    </InnerContainer>
+    </ScreenContainer>
   );
 };
 
 export default ReadyStockProductDetailScreen;
 
-const Container = styled.View`
+const ScreenContainer = styled.View`
   flex: 1;
   background-color: #F8F9FA;
+`;
+
+const InnerContainer = styled.View`
+  flex: 1;
+  background-color: #F8F9FA;
+  position: relative;
 `;
 
 const NavBar = styled.View`
