@@ -8,6 +8,7 @@ import { addToCart } from '../store/cartSlice';
 import StockIndicator from '../components/StockIndicator';
 import MOQBadge from '../components/MOQBadge';
 import PincodeChecker from '../components/PincodeChecker';
+import { useBottomLayoutCalculations } from '../utils/layoutUtils';
 
 interface ReadyStockProduct {
   id: string;
@@ -37,29 +38,11 @@ interface Props {
 const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
+  const layoutCalcs = useBottomLayoutCalculations();
   const { product } = route.params as { product: ReadyStockProduct };
 
   const [quantity, setQuantity] = useState(product.moq);
   const [showPincodeChecker, setShowPincodeChecker] = useState(false);
-
-  // Calculate the bottom navigation tab bar height
-  const bottomTabBarHeight = Platform.select({
-    ios: 85, // Matches RootNavigator tab bar height
-    android: 65, // Matches RootNavigator tab bar height
-    web: 70, // Matches RootNavigator tab bar height
-    default: 70,
-  });
-
-  // Calculate the Add to Cart bar height
-  const addToCartBarHeight = Platform.select({
-    ios: 82 + insets.bottom, // Base height + safe area
-    android: 82, // Fixed height for Android
-    web: 82, // Fixed height for web
-    default: 82,
-  });
-
-  // Total bottom spacing needed for ScrollView
-  const totalBottomPadding = bottomTabBarHeight + addToCartBarHeight + 20;
 
   const handleQuantityChange = (newQty: number) => {
     if (newQty < product.moq) {
@@ -144,7 +127,7 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
 
         <ScrollView 
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: totalBottomPadding }}
+          contentContainerStyle={{ paddingBottom: layoutCalcs.scrollViewPaddingWithTabBarAndFooter }}
         >
         {/* Product Image */}
         <ProductImageContainer>
@@ -324,7 +307,7 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
       </ScrollView>
 
       {/* Bottom Action Bar - Positioned above bottom nav, outside main flex */}
-      <BottomActionBar safeAreaBottom={insets.bottom} bottomTabBarHeight={bottomTabBarHeight}>
+      <BottomActionBar safeAreaBottom={insets.bottom} bottomTabBarHeight={layoutCalcs.tabBarHeight}>
         <BottomTotalSection>
           <BottomTotalLabel>Total</BottomTotalLabel>
           <BottomTotalPrice>₹{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</BottomTotalPrice>

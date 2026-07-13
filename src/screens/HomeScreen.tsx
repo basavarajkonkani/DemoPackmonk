@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { IMAGES } from '../constants/images';
 import { AUTH_KEY } from '../constants';
+import { getScrollViewBottomPaddingWithTabBar } from '../utils/layoutUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const getResponsiveWidth = () => Math.min(SCREEN_WIDTH - 32, 900);
@@ -139,7 +140,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <Container>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Platform.OS === 'web' ? 100 : 90, alignItems: 'center' }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: getScrollViewBottomPaddingWithTabBar(), alignItems: 'center' }}>
         <ContentWrapper>
         {/* Header */}
         <HeaderRow>

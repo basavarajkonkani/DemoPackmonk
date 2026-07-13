@@ -111,7 +111,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <EmptyCTA onPress={() => navigation.navigate('Products')} activeOpacity={0.9}
             style={{ shadowColor: '#0F8A3C', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 }}>
             <FontAwesome5 name="box-open" size={15} color="#FFF" style={{ marginRight: 8 }} />
-            <EmptyCTAText>Browse Products</EmptyCTAText>
+            <EmptyCTAText>Contact</EmptyCTAText>
           </EmptyCTA>
 
           {/* Feature Cards */}
@@ -190,7 +190,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <FontAwesome5 name="box-open" size={14} color="#0F8A3C" style={{ marginRight: 8 }} />
             <ProductInfoName numberOfLines={1}>{selectedProduct.name}</ProductInfoName>
           </ProductInfoLeft>
-          <ChangeProductBtn onPress={() => dispatch(clearSelectedProduct())} activeOpacity={0.7}>
+          <ChangeProductBtn onPress={() => dispatch(clearSelectedProduct())} activeOpacity={0.8}>
             <FontAwesome5 name="exchange-alt" size={11} color="#6B7280" style={{ marginRight: 4 }} />
             <ChangeProductText>Change</ChangeProductText>
           </ChangeProductBtn>
@@ -199,7 +199,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {/* Studio Tabs */}
         <TabBar>
           {ACTIVE_TABS.map((t) => (
-            <TabItem key={t} active={activeTab === t} onPress={() => setActiveTab(t)} activeOpacity={0.7}>
+            <TabItem key={t} active={activeTab === t} onPress={() => setActiveTab(t)} activeOpacity={0.8}>
               <FontAwesome5
                 name={t === 'Design' ? 'paint-brush' : t === 'Dieline' ? 'ruler-combined' : 'cube'}
                 size={11}
@@ -218,7 +218,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <LiveDot />
               <CanvasHeaderTitle>Live 2.5D Preview</CanvasHeaderTitle>
             </CanvasHeaderLeft>
-            <AIBadge onPress={() => Alert.alert('AI Design', 'AI design generator coming soon — will auto-generate print-ready artwork!')} activeOpacity={0.7}>
+            <AIBadge onPress={() => Alert.alert('AI Design', 'AI design generator coming soon — will auto-generate print-ready artwork!')} activeOpacity={0.8}>
               <FontAwesome5 name="robot" size={10} color="#7C3AED" style={{ marginRight: 4 }} />
               <AIBadgeText>AI Generate</AIBadgeText>
             </AIBadge>
@@ -273,11 +273,11 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <SectionCardTitle>Material</SectionCardTitle>
               </SectionCardHeader>
 
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 4 }} scrollEventThrottle={16}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 4 }}>
                 {selectedProduct.materials.map((mat) => {
                   const sel = selectedMaterialId === mat.id;
                   return (
-                    <MatCard key={mat.id} active={sel} onPress={() => setSelectedMaterialId(mat.id)} activeOpacity={0.75}>
+                    <MatCard key={mat.id} active={sel} onPress={() => setSelectedMaterialId(mat.id)} activeOpacity={0.8}>
                       <MatSwatch color={
                         mat.id.includes('black') ? '#1F1F1F' :
                         mat.id.includes('white') ? '#F0F0F0' :
@@ -313,7 +313,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     hex={c.hex}
                     selected={inkColor === c.hex}
                     onPress={() => setInkColor(c.hex)}
-                    activeOpacity={0.7}
+                    activeOpacity={0.8}
                   >
                     {inkColor === c.hex && (
                       <FontAwesome5 name="check" size={9} color={c.hex === '#FFFFFF' ? '#000' : '#FFF'} />
@@ -330,7 +330,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     key={String(p.id)}
                     active={logoPreset === p.id}
                     onPress={() => setLogoPreset(p.id)}
-                    activeOpacity={0.7}
+                    activeOpacity={0.8}
                   >
                     <FontAwesome5 name={p.icon as any} size={12} color={logoPreset === p.id ? '#0F8A3C' : '#9CA3AF'} style={{ marginRight: 5 }} />
                     <LogoPresetText active={logoPreset === p.id}>{p.label}</LogoPresetText>
@@ -342,10 +342,10 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <ScaleRow>
                   <ScaleLabel>Logo Scale: {logoScale.toFixed(1)}×</ScaleLabel>
                   <ScaleBtns>
-                    <ScaleBtn onPress={() => setLogoScale(Math.max(0.5, logoScale - 0.2))} activeOpacity={0.7}>
+                    <ScaleBtn onPress={() => setLogoScale(Math.max(0.5, logoScale - 0.2))}>
                       <FontAwesome5 name="compress-alt" size={11} color="#6B7280" />
                     </ScaleBtn>
-                    <ScaleBtn onPress={() => setLogoScale(Math.min(1.8, logoScale + 0.2))} activeOpacity={0.7}>
+                    <ScaleBtn onPress={() => setLogoScale(Math.min(1.8, logoScale + 0.2))}>
                       <FontAwesome5 name="expand-alt" size={11} color="#6B7280" />
                     </ScaleBtn>
                   </ScaleBtns>
@@ -364,7 +364,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   maxLength={30}
                 />
                 {customText !== '' && (
-                  <ClearTextBtn onPress={() => setCustomText('')} activeOpacity={0.7}>
+                  <ClearTextBtn onPress={() => setCustomText('')}>
                     <FontAwesome5 name="times-circle" size={14} color="#D1D5DB" />
                   </ClearTextBtn>
                 )}
@@ -380,7 +380,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                         hex={c.hex}
                         selected={textColor === c.hex}
                         onPress={() => setTextColor(c.hex)}
-                        activeOpacity={0.7}
+                        activeOpacity={0.8}
                       >
                         {textColor === c.hex && (
                           <FontAwesome5 name="check" size={9} color={c.hex === '#FFFFFF' ? '#000' : '#FFF'} />
@@ -392,10 +392,10 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   <ScaleRow>
                     <ScaleLabel>Font Size: {textSize}pt</ScaleLabel>
                     <ScaleBtns>
-                      <ScaleBtn onPress={() => setTextSize(Math.max(10, textSize - 2))} activeOpacity={0.7}>
+                      <ScaleBtn onPress={() => setTextSize(Math.max(10, textSize - 2))}>
                         <FontAwesome5 name="minus" size={10} color="#6B7280" />
                       </ScaleBtn>
-                      <ScaleBtn onPress={() => setTextSize(Math.min(24, textSize + 2))} activeOpacity={0.7}>
+                      <ScaleBtn onPress={() => setTextSize(Math.min(24, textSize + 2))}>
                         <FontAwesome5 name="plus" size={10} color="#6B7280" />
                       </ScaleBtn>
                     </ScaleBtns>
@@ -404,7 +404,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               )}
 
               {/* Upload CTA */}
-              <UploadArtworkBtn onPress={handleUploadArtwork} activeOpacity={0.75}>
+              <UploadArtworkBtn onPress={handleUploadArtwork} activeOpacity={0.8}>
                 <FontAwesome5 name="cloud-upload-alt" size={14} color="#0F8A3C" style={{ marginRight: 8 }} />
                 <UploadArtworkText>Upload Artwork File</UploadArtworkText>
                 <UploadArtworkFormats>PDF · AI · PSD · SVG</UploadArtworkFormats>
@@ -427,7 +427,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     key={qty}
                     active={quantity === qty}
                     onPress={() => handleQuantitySelect(qty)}
-                    activeOpacity={0.75}
+                    activeOpacity={0.8}
                   >
                     <QtyOptionText active={quantity === qty}>{qty}</QtyOptionText>
                   </QtyOption>
@@ -496,7 +496,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             {/* ── Add to Cart ── */}
             <AddToCartBtn
               onPress={handleAddToCart}
-              activeOpacity={0.85}
+              activeOpacity={0.9}
               style={{ shadowColor: '#0F8A3C', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 14, elevation: 8 }}
             >
               <FontAwesome5 name="cart-plus" size={16} color="#FFF" style={{ marginRight: 10 }} />
@@ -639,10 +639,9 @@ const DimRange = styled.Text`font-size: 10px; color: #D1D5DB; margin-right: 12px
 const DimStepper = styled.View`flex-direction: row; align-items: center;`;
 const StepBtn = styled.TouchableOpacity<{ disabled?: boolean }>`
   width: 30px; height: 30px; border-radius: 9px;
-  background-color: #FFFFFF; border-width: 1px; 
-  border-color: ${({ disabled }) => disabled ? '#F3F4F6' : '#E5E7EB'};
+  background-color: #FFFFFF; border-width: 1px; border-color: #E5E7EB;
   align-items: center; justify-content: center;
-  pointer-events: ${({ disabled }) => disabled ? 'none' : 'auto'};
+  opacity: ${({ disabled }) => disabled ? 0.4 : 1};
 `;
 const StepVal = styled.Text`
   font-size: 14px; font-weight: 800; color: #111827;

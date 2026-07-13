@@ -146,7 +146,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <ProfileMetaText>GST: 29ABCDE1234F1Z5</ProfileMetaText>
               </ProfileMeta>
             </ProfileInfo>
-            <EditBtn onPress={() => Alert.alert('Edit Profile', 'Profile editing will be available once you connect to your account backend. Contact support@pacmonk.com to update your details.')} activeOpacity={0.8}>
+            <EditBtn onPress={() => Alert.alert('Edit Profile', 'Profile editing will be available once you connect to your account backend. Contact support@pacmonk.com to update your details.')}>
               <FontAwesome5 name="edit" size={14} color="#0F8A3C" />
             </EditBtn>
           </ProfileTop>
@@ -251,7 +251,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <GoalPickLabel>Set Annual Target:</GoalPickLabel>
           <GoalOptions>
             {[250, 500, 1000, 2500].map((val) => (
-              <GoalOpt key={val} active={ecoTarget === val} onPress={() => setEcoTarget(val)} activeOpacity={0.75}>
+              <GoalOpt key={val} active={ecoTarget === val} onPress={() => setEcoTarget(val)}>
                 <GoalOptText active={ecoTarget === val}>{val}kg</GoalOptText>
               </GoalOpt>
             ))}
@@ -316,7 +316,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </SupportCard>
 
         {/* Sign Out */}
-        <SignOutBtn onPress={handleSignOut} activeOpacity={0.85}>
+        <SignOutBtn onPress={handleSignOut} activeOpacity={0.8}>
           <FontAwesome5 name="sign-out-alt" size={14} color="#EF4444" style={{ marginRight: 8 }} />
           <SignOutText>Sign Out</SignOutText>
         </SignOutBtn>

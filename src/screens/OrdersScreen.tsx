@@ -5,6 +5,7 @@ import { useAppSelector } from '../store';
 import { selectOrdersList } from '../store/ordersSlice';
 import Header from '../components/Header';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { getScrollViewBottomPaddingWithTabBar } from '../utils/layoutUtils';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   pending_review: { label: 'Artwork Review', color: '#D97706', bg: '#FEF3C7' },
@@ -25,7 +26,7 @@ const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <Container>
       <Header navigation={navigation} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: Platform.OS === 'web' ? 120 : 100, alignItems: 'center' }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: getScrollViewBottomPaddingWithTabBar(), alignItems: 'center' }}>
         <ContentWrapper>
         {/* Header Row */}
         <TitleRow>

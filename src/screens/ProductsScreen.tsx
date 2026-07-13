@@ -8,6 +8,7 @@ import ProductCard from '../components/ProductCard';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { IMAGES, POUCH_TYPE_IMAGES } from '../constants/images';
 import FilterPanel, { FilterOptions } from '../components/FilterPanel';
+import { getScrollViewBottomPaddingWithTabBar } from '../utils/layoutUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -282,7 +283,7 @@ const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       {selectedCat !== 'pouch' && (
         <ProductList
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16, paddingBottom: Platform.OS === 'web' ? 120 : 100 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: getScrollViewBottomPaddingWithTabBar() }}
         >
           {filtered.length === 0 ? (
             <EmptyWrap>

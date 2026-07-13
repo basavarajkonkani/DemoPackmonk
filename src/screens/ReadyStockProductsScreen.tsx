@@ -5,6 +5,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import StockIndicator from '../components/StockIndicator';
 import MOQBadge from '../components/MOQBadge';
 import { IMAGES } from '../constants/images';
+import { getScrollViewBottomPaddingWithTabBar } from '../utils/layoutUtils';
 
 interface ReadyStockProduct {
   id: string;
@@ -227,7 +228,7 @@ const ReadyStockProductsScreen: React.FC<Props> = ({ navigation }) => {
       <ContentWrapper>
         <ScrollView 
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 110 : 90 }}
+          contentContainerStyle={{ paddingBottom: getScrollViewBottomPaddingWithTabBar() }}
         >
           {/* Info Banner */}
           <InfoBanner>

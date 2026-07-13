@@ -18,6 +18,7 @@ import {
   MATERIAL_LABELS,
   calculatePouchPrice,
 } from '../store/pouchSlice';
+import { getScrollViewBottomPaddingWithTabBarAndFooter } from '../utils/layoutUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -194,7 +195,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <Container>
       {renderTopBar(true)}
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 160, alignItems: 'center' }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: getScrollViewBottomPaddingWithTabBarAndFooter(), alignItems: 'center' }}>
         <ContentWrapper>
         {cartItems.map((item) => {
           // Check if this is a ready stock item (has isReadyStock flag)

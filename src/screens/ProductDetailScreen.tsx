@@ -3,6 +3,7 @@ import { ScrollView, View, Alert, Platform, Image } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { CommonActions, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector } from '../store';
 import { selectProduct } from '../store/productsSlice';
 import { addToCart, calculateItemPrice } from '../store/cartSlice';
@@ -15,6 +16,7 @@ import {
 import MOQBadge from '../components/MOQBadge';
 import PincodeChecker from '../components/PincodeChecker';
 import { IMAGES, PRODUCT_IMAGES, CATEGORY_IMAGES } from '../constants/images';
+import { useBottomLayoutCalculations } from '../utils/layoutUtils';
 
 const SIZE_OPTIONS = [
   { key: 'S', label: 'Small', factor: 0.7 },
@@ -36,6 +38,8 @@ interface Props {
 const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) => {
   const navigation = useNavigation<any>(); // Use the hook for better navigation handling
   const dispatch = useAppDispatch();
+  const insets = useSafeAreaInsets();
+  const layoutCalcs = useBottomLayoutCalculations();
   const { productId } = route.params;
   const products = useAppSelector((s) => s.products.items);
   const product = products.find((p) => p.id === productId);
@@ -44,25 +48,6 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) =>
   const [quantity, setQuantity] = useState(100);
   const [favorited, setFavorited] = useState(false);
   const [activeTab, setActiveTab] = useState<'specs' | 'reviews'>('specs');
-
-  // Calculate the bottom navigation tab bar height
-  const bottomTabBarHeight = Platform.select({
-    ios: 85, // Matches RootNavigator tab bar height
-    android: 65, // Matches RootNavigator tab bar height
-    web: 70, // Matches RootNavigator tab bar height
-    default: 70,
-  });
-
-  // Calculate the Add to Cart bar height
-  const addToCartBarHeight = Platform.select({
-    ios: 82, // Base height including safe area padding
-    android: 82, // Fixed height for Android
-    web: 82, // Fixed height for web
-    default: 82,
-  });
-
-  // Total bottom spacing needed for ScrollView
-  const totalBottomPadding = bottomTabBarHeight + addToCartBarHeight + 20;
 
   const handleQuantitySelect = (qty: number) => {
     const result = quantityValidator.validateQuantityInput(qty, DEFAULT_QUANTITY_OPTIONS);
@@ -167,7 +152,7 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) =>
         </NavBtn>
       </NavBar>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: totalBottomPadding }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: layoutCalcs.scrollViewPaddingWithTabBarAndFooter }}>
 
         {/* Gallery */}
         <Gallery bgColor={cfg.bg}>

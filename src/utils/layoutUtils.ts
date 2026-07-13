@@ -79,12 +79,7 @@ export const getActionBarBottomPosition = (): number => {
  * For use in screens with sticky footers
  */
 export const useBottomLayoutCalculations = () => {
-  let insets = { bottom: 0 };
-  
-  // Only use useSafeAreaInsets on native platforms
-  if (Platform.OS !== 'web') {
-    insets = useSafeAreaInsets();
-  }
+  const insets = useSafeAreaInsets();
   
   return {
     tabBarHeight: getTabBarHeight(),
