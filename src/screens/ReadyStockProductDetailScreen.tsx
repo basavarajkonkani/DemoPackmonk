@@ -781,9 +781,6 @@ const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight
   left: 0;
   right: 0;
   width: 100%;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
   background-color: #FFFFFF;
   padding: 12px 16px;
   padding-bottom: 16px;
@@ -795,45 +792,42 @@ const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight
   shadow-radius: 12px;
   elevation: 50;
   z-index: 10000;
-  gap: 12px;
+  flex-direction: row;
+  align-items: center;
 `;
 
 const BottomTotalSection = styled.View`
-  flex: 0 0 auto;
-  min-width: 90px;
-  padding-right: 8px;
-  justify-content: flex-end;
+  min-width: 85px;
+  margin-right: 12px;
 `;
 
 const BottomTotalLabel = styled.Text`
-  font-size: 12px;
+  font-size: 11px;
   color: #6B7280;
-  margin-bottom: 3px;
-  line-height: 14px;
+  margin-bottom: 2px;
+  font-weight: 500;
 `;
 
 const BottomTotalPrice = styled.Text`
   font-size: 18px;
   font-weight: 800;
   color: #0F8A3C;
-  line-height: 20px;
+  line-height: 22px;
 `;
 
 const BottomTotalQty = styled.Text`
   font-size: 10px;
   color: #9CA3AF;
   margin-top: 1px;
-  line-height: 12px;
 `;
 
 const AddToCartButton = styled.TouchableOpacity`
+  flex: 1;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   background-color: #0F8A3C;
   padding-horizontal: 20px;
-  flex: 1 1 auto;
-  min-width: 140px;
   height: 48px;
   border-radius: 12px;
   shadow-color: #0F8A3C;
@@ -847,4 +841,5 @@ const AddToCartButtonText = styled.Text`
   font-size: 15px;
   font-weight: 700;
   color: #FFFFFF;
+  margin-left: 6px;
 `;
