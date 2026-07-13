@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export type PouchType = 'plain' | 'printed' | 'kraft';
+export type PouchType = 'plain' | 'printed' | 'kraft' | 'clear-standy' | 'silver-standy' | 'silver-zipper' | 'milky-standy' | 'milky-zipper' | 'gold-standy' | 'gold-zipper' | 'flat-clear' | 'flat-silver' | 'flat-clear-silver' | 'matt-standy' | 'matt-window-standy' | 'idly-dosa' | 'kraft-window-brown' | 'kraft-window-white';
 export type WindowOption = 'with_window' | 'without_window';
 export type MaterialType = 'metalised' | 'non_metalised';
 export type CapacityOption = '50g' | '100g' | '200g' | '250g' | '500g' | '1kg' | '2kg';
@@ -20,29 +20,164 @@ const variants = (rows:(string|number)[][]):PouchVariant[] => rows.map(
   } as PouchVariant)
 );
 
-/** Magic Eco Product Catalog, Oct 2025 - price per piece in INR. */
+/** Pacmonk Product Catalog - Real Prices from Brochure - price per piece in INR. */
 export const POUCH_CATALOG:Record<PouchType,PouchProduct> = {
-  plain:{
-    name:'Clear Standy Zipper Pouch', shortName:'Plain Pouch', subtitle:'Clear • Zipper • 112 micron',
-    description:'Transparent PET + Poly pouch with bottom gusset, tear notch and resealable zipper.',
+  // Clear Standy Pouches
+  'plain':{
+    name:'Clear Standy Pouch', shortName:'Clear Pouch', subtitle:'Clear • 112 micron',
+    description:'Transparent PET + Poly pouch with tear notch.',
     material:'PET + Poly', micron:112,
     variants:variants([
-      ['50g','CSZP1',10,13.5,2.5,2.05], ['100g','CSZP2',10,17,3.5,2.45],
-      ['200g','CSZP3',10.5,21,3.5,2.90], ['250g','CSZP4',13.5,22,3.5,3.95],
-      ['500g','CSZP5',16,23,3.5,4.75], ['1kg','CSZP6',17,26.5,4,5.75],
-      ['2kg','CSZP7',20,30,5,7.70],
+      ['50g','CSP1',9.5,13.5,2.5,1.30], ['100g','CSP2',10,17,3.5,2.00],
+      ['200g','CSP3',10.5,21,3.5,2.35], ['250g','CSP4',13.5,22,3.5,3.05],
+      ['500g','CSP5',16,23,3.5,3.40], ['1kg','CSP6',17,26.5,4,4.90],
+      ['2kg','CSP7',20,30,5,6.55],
     ]),
   },
-  printed:{
-    name:'Printed Dry Fruit Pouch', shortName:'Printed Pouch', subtitle:'Multi-colour • Zipper • 112 micron',
-    description:'Multi-colour printed PET + Poly pouch with bottom gusset, tear notch and zipper.',
+  'clear-standy':{
+    name:'Clear Standy Zipper Pouch', shortName:'Clear Standy Zipper', subtitle:'Clear • Zipper • 112 micron',
+    description:'Transparent PET + Poly pouch with resealable zipper.',
     material:'PET + Poly', micron:112,
     variants:variants([
-      ['100g','PSZP1',10,17,3.5,3.80], ['250g','PSZP2',13.5,22,3.5,6.25],
-      ['500g','PSZP3',16,23,3.5,7.55], ['1kg','PSZP4',17,26.5,4,9.36],
+      ['50g','CSZ1',9.5,13.5,2.5,2.05], ['100g','CSZ2',10,17,3.5,2.45],
+      ['200g','CSZ3',10.5,21,3.5,2.90], ['250g','CSZ4',13.5,22,3.5,3.95],
+      ['500g','CSZ5',16,23,3.5,4.75], ['1kg','CSZ6',17,26.5,4,5.75],
+      ['2kg','CSZ7',20,30,5,7.70],
     ]),
   },
-  kraft:{
+
+  // Silver Standy Pouches
+  'silver-standy':{
+    name:'Silver Standy Pouch', shortName:'Silver Standy', subtitle:'Silver • No Zipper • 112 micron',
+    description:'Metallic silver PET + Poly pouch without zipper.',
+    material:'PET + Poly', micron:112,
+    variants:variants([
+      ['50g','SSP1',9.5,13.5,2.5,1.35], ['100g','SSP2',10,17,3.5,2.10],
+      ['200g','SSP3',10.5,21,3.5,2.50], ['250g','SSP4',13.5,22,3.5,3.20],
+      ['500g','SSP5',16,23,3.5,3.60], ['1kg','SSP6',17,26.5,4,5.25],
+      ['2kg','SSP7',20,30,5,6.96],
+    ]),
+  },
+  'silver-zipper':{
+    name:'Silver Standy Zipper Pouch', shortName:'Silver Zipper', subtitle:'Silver • Zipper • 112 micron',
+    description:'Metallic silver PET + Poly pouch with resealable zipper.',
+    material:'PET + Poly', micron:112,
+    variants:variants([
+      ['50g','SSZ1',9.5,13.5,2.5,2.10], ['100g','SSZ2',10,17,3.5,2.55],
+      ['200g','SSZ3',10.5,21,3.5,3.05], ['250g','SSZ4',13.5,22,3.5,4.15],
+      ['500g','SSZ5',16,23,3.5,5.00], ['1kg','SSZ6',17,26.5,4,6.05],
+      ['2kg','SSZ7',20,30,5,8.10],
+    ]),
+  },
+
+  // Milky Standy Pouches
+  'milky-standy':{
+    name:'Milky Standy Pouch', shortName:'Milky Standy', subtitle:'Milky • No Zipper • 112 micron',
+    description:'Milky white PET + Poly pouch without zipper.',
+    material:'PET + Poly', micron:112,
+    variants:variants([
+      ['100g','MSP1',10,13.5,2.5,2.10], ['250g','MSP2',10.5,21,3.5,3.25],
+      ['500g','MSP3',13.5,22,3.5,3.60], ['1kg','MSP4',16,23,3.5,5.25],
+    ]),
+  },
+  'milky-zipper':{
+    name:'Milky Standy Zipper Pouch', shortName:'Milky Zipper', subtitle:'Milky • Zipper • 112 micron',
+    description:'Milky white PET + Poly pouch with resealable zipper.',
+    material:'PET + Poly', micron:112,
+    variants:variants([
+      ['100g','MSZ1',10,13.5,2.5,2.55], ['250g','MSZ2',10.5,21,3.5,4.15],
+      ['500g','MSZ3',13.5,22,3.5,5.00], ['1kg','MSZ4',16,23,3.5,6.05],
+    ]),
+  },
+
+  // Gold Standy Pouches
+  'gold-standy':{
+    name:'Gold Standy Pouch', shortName:'Gold Standy', subtitle:'Gold • No Zipper • 112 micron',
+    description:'Metallic gold PET + Poly pouch without zipper.',
+    material:'PET + Poly', micron:112,
+    variants:variants([
+      ['100g','GSP1',10,13.5,2.5,2.45], ['250g','GSP2',10.5,21,3.5,3.85],
+      ['500g','GSP3',13.5,22,3.5,4.25], ['1kg','GSP4',16,23,3.5,6.15],
+    ]),
+  },
+  'gold-zipper':{
+    name:'Gold Standy Zipper Pouch', shortName:'Gold Zipper', subtitle:'Gold • Zipper • 112 micron',
+    description:'Metallic gold PET + Poly pouch with resealable zipper.',
+    material:'PET + Poly', micron:112,
+    variants:variants([
+      ['100g','GSZP1',10,13.5,2.5,3.15], ['250g','GSZP2',10.5,21,3.5,5.15],
+      ['500g','GSZP3',13.5,22,3.5,6.25], ['1kg','GSZP4',16,23,3.5,7.60],
+    ]),
+  },
+
+  // Flat Pouches (120+100 micron)
+  'flat-clear':{
+    name:'Flat Clear Pouch', shortName:'Flat Clear', subtitle:'Clear • 12+100 micron',
+    description:'Flat bottom clear PET + Poly pouch.',
+    material:'PET + Poly', micron:120,
+    variants:variants([
+      ['25g','FCP1',6,10,0,0.75], ['50g','FCP2',8,14,0,1.50],
+      ['100g','FCP3',8,18,0,2.20], ['250g','FCP4',9,24,0,3.15],
+      ['500g','FCP5',10,32,0,4.20], ['1kg','FCP6',11,38,0,5.25],
+      ['1kg(8x12)','FCP7',11,38,0,6.10], ['2kg','FCP8',12,42,0,7.70],
+      ['3kg','FCP9',13,48,0,12.15], ['5kg','FCP10',15,55,0,16.85],
+    ]),
+  },
+  'flat-silver':{
+    name:'Flat Silver Pouch', shortName:'Flat Silver', subtitle:'Silver • 12+100 micron',
+    description:'Flat bottom silver PET + Poly pouch.',
+    material:'PET + Poly', micron:120,
+    variants:variants([
+      ['25g','FSP1',6,10,0,0.80], ['50g','FSP2',8,14,0,1.60],
+      ['100g','FSP3',8,18,0,2.35], ['250g','FSP4',9,24,0,3.35],
+      ['500g','FSP5',10,32,0,4.45], ['1kg','FSP6',11,38,0,5.55],
+      ['1kg(8x12)','FSP7',11,38,0,6.45], ['2kg','FSP8',12,42,0,8.15],
+      ['3kg','FSP9',13,48,0,12.90], ['5kg','FSP10',15,55,0,17.85],
+    ]),
+  },
+  'flat-clear-silver':{
+    name:'Flat Clear Silver Pouch', shortName:'Flat Clear Silver', subtitle:'Clear/Silver • 12+60 micron',
+    description:'Flat bottom clear and silver two-tone PET + Poly pouch.',
+    material:'PET + Poly', micron:120,
+    variants:variants([
+      ['50g','FCSP1',8,14,0,1.15], ['100g','FCSP2',8,18,0,1.65],
+      ['250g','FCSP3',9,24,0,2.35], ['500g','FCSP4',10,32,0,3.95],
+      ['1kg','FCSP5',11,38,0,5.75],
+    ]),
+  },
+
+  // Matt Pouches
+  'matt-standy':{
+    name:'Matt Standy Zipper Pouch', shortName:'Matt Standy', subtitle:'Matt • Zipper • 112 micron',
+    description:'Matte finish PET + Poly pouch with resealable zipper in multiple colors.',
+    material:'PET + Poly', micron:112,
+    variants:variants([
+      ['100g','MSZ1',9.5,13.5,2.5,3.45], ['250g','MSZ2',10.5,21,3.5,5.60],
+      ['500g','MSZ3',13.5,22,3.5,6.85], ['1kg','MSZ4',16,23,3.5,8.30],
+    ]),
+  },
+  'matt-window-standy':{
+    name:'Matt Window Standy Zipper Pouch', shortName:'Matt Window', subtitle:'Matt • Window • Zipper • 112 micron',
+    description:'Matte finish with clear window PET + Poly pouch with resealable zipper.',
+    material:'PET + Poly', micron:112,
+    variants:variants([
+      ['100g','MWS1',9.5,13.5,2.5,3.45], ['250g','MWS2',10.5,21,3.5,5.60],
+      ['500g','MWS3',13.5,22,3.5,6.85], ['1kg','MWS4',16,23,3.5,8.30],
+    ]),
+  },
+
+  // Specialized Pouches
+  'idly-dosa':{
+    name:'Idly Dosa Batter Pouch', shortName:'Idly Dosa', subtitle:'Batter • Specialized • 72 micron',
+    description:'Specialized pouch for batter and semi-liquid products.',
+    material:'Specialized Laminate', micron:72,
+    variants:variants([
+      ['1kg','IDBP1',17,21,0,9.65],
+    ]),
+  },
+
+  // Kraft Pouches
+  'kraft':{
     name:'Kraft Standy Pouch (Brown)', shortName:'Kraft Pouch', subtitle:'Brown kraft • Zipper • 140 micron',
     description:'Brown Kraft Paper + Poly pouch with bottom gusset, tear notch and zipper.',
     material:'Kraft Paper + Poly', micron:140,
@@ -50,6 +185,37 @@ export const POUCH_CATALOG:Record<PouchType,PouchProduct> = {
       ['100g','KSP1',11,18.5,3,4.75], ['200g','KSP2',13,21,4,6.16],
       ['250g','KSP3',15,21,4,6.83], ['500g','KSP4',15,24,4,7.50],
       ['1kg','KSP5',18,26,4,9.50],
+    ]),
+  },
+  'kraft-window-brown':{
+    name:'Kraft Window Standy Pouch (Brown)', shortName:'Kraft Window Brown', subtitle:'Brown kraft • Window • 135 micron',
+    description:'Brown Kraft Paper + Poly pouch with window and zipper.',
+    material:'Kraft Paper + Poly', micron:135,
+    variants:variants([
+      ['50g','KWBP1',10,16,3,4.25], ['100g','KWBP2',10.5,19,3,5.42],
+      ['250g','KWBP3',15,21,4,5.75], ['500g','KWBP4',15,24,4,7.16],
+      ['1kg','KWBP5',18,26,4,8.83], ['2kg','KWBP6',20,32,4,11.58],
+      ['3kg','KWBP7',22,40,4,22.66],
+    ]),
+  },
+  'kraft-window-white':{
+    name:'Kraft Window Standy Pouch (White)', shortName:'Kraft Window White', subtitle:'White kraft • Window • 135 micron',
+    description:'White Kraft Paper + Poly pouch with window and zipper.',
+    material:'Kraft Paper + Poly', micron:135,
+    variants:variants([
+      ['100g','KWWP1',10.5,19,3,6.41], ['250g','KWWP2',15,21,4,7.50],
+      ['500g','KWWP3',15,24,4,8.50], ['1kg','KWWP4',18,26,4,10.80],
+    ]),
+  },
+
+  // Printed Pouch (keeping original for compatibility)
+  printed:{
+    name:'Printed Dry Fruit Pouch', shortName:'Printed Pouch', subtitle:'Multi-colour • Zipper • 112 micron',
+    description:'Multi-colour printed PET + Poly pouch with bottom gusset, tear notch and zipper.',
+    material:'PET + Poly', micron:112,
+    variants:variants([
+      ['100g','PSZP1',10,17,3.5,3.80], ['250g','PSZP2',13.5,22,3.5,6.25],
+      ['500g','PSZP3',16,23,3.5,7.55], ['1kg','PSZP4',17,26.5,4,9.36],
     ]),
   },
 };
@@ -90,6 +256,25 @@ export const DELIVERY_TIMELINE='12 - 15 Days';
 export const calculatePouchPrice=(config:PouchConfig):number=>{
   const v=getPouchVariant(config); return v?Number((v.pricePerPiece*Math.max(config.quantity,1)).toFixed(2)):0;
 };
-export const POUCH_TYPE_LABELS:Record<PouchType,string>={plain:POUCH_CATALOG.plain.name,printed:POUCH_CATALOG.printed.name,kraft:POUCH_CATALOG.kraft.name};
+export const POUCH_TYPE_LABELS:Record<PouchType,string>={
+  plain:POUCH_CATALOG.plain.name,
+  printed:POUCH_CATALOG.printed.name,
+  kraft:POUCH_CATALOG.kraft.name,
+  'clear-standy':POUCH_CATALOG['clear-standy'].name,
+  'silver-standy':POUCH_CATALOG['silver-standy'].name,
+  'silver-zipper':POUCH_CATALOG['silver-zipper'].name,
+  'milky-standy':POUCH_CATALOG['milky-standy'].name,
+  'milky-zipper':POUCH_CATALOG['milky-zipper'].name,
+  'gold-standy':POUCH_CATALOG['gold-standy'].name,
+  'gold-zipper':POUCH_CATALOG['gold-zipper'].name,
+  'flat-clear':POUCH_CATALOG['flat-clear'].name,
+  'flat-silver':POUCH_CATALOG['flat-silver'].name,
+  'flat-clear-silver':POUCH_CATALOG['flat-clear-silver'].name,
+  'matt-standy':POUCH_CATALOG['matt-standy'].name,
+  'matt-window-standy':POUCH_CATALOG['matt-window-standy'].name,
+  'idly-dosa':POUCH_CATALOG['idly-dosa'].name,
+  'kraft-window-brown':POUCH_CATALOG['kraft-window-brown'].name,
+  'kraft-window-white':POUCH_CATALOG['kraft-window-white'].name,
+};
 export const WINDOW_LABELS:Record<WindowOption,string>={with_window:'With Window',without_window:'Without Window'};
 export const MATERIAL_LABELS:Record<MaterialType,string>={metalised:'Metalised',non_metalised:'Non-Metalised'};

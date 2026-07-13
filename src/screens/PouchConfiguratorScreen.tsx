@@ -54,6 +54,7 @@ import {
   showQuantityValidationAlert,
 } from '../utils/quantityValidator';
 import { IMAGES, POUCH_TYPE_IMAGES } from '../constants/images';
+import { getPouchPriceDisplay } from '../utils/priceUtils';
 
 const TOTAL_STEPS = 3;
 
@@ -226,64 +227,73 @@ const PouchConfiguratorScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   );
 
   // ── Step 1: Select Pouch Type ─────────────────────────────────────────
-  const renderStep1 = () => (
-    <StepContent>
-      <StepHeading>Select Pouch Type</StepHeading>
-      <StepSubText>Step 1 of 5</StepSubText>
-      <StepDesc>Choose the type of pouch you need</StepDesc>
+  const renderStep1 = () => {
+    const plainPrice = getPouchPriceDisplay('plain');
+    const printedPrice = getPouchPriceDisplay('printed');
+    const kraftPrice = getPouchPriceDisplay('kraft');
 
-      <OptionRow
-        active={config.pouchType === 'plain'}
-        onPress={() => dispatch(setPouchType('plain'))}
-        activeOpacity={0.85}
-      >
-        <OptionImgBox bgColor="#F3F4F6">
-          <Image source={POUCH_TYPE_IMAGES.plain} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
-        </OptionImgBox>
-        <OptionTextWrap>
-          <OptionName active={config.pouchType === 'plain'}>{POUCH_CATALOG.plain.name}</OptionName>
-          <OptionHint>{POUCH_CATALOG.plain.subtitle}</OptionHint>
-        </OptionTextWrap>
-        <ArrowIcon>
-          <FontAwesome5 name="chevron-right" size={13} color="#D1D5DB" />
-        </ArrowIcon>
-      </OptionRow>
+    return (
+      <StepContent>
+        <StepHeading>Select Pouch Type</StepHeading>
+        <StepSubText>Step 1 of 5</StepSubText>
+        <StepDesc>Choose the type of pouch you need</StepDesc>
 
-      <OptionRow
-        active={config.pouchType === 'printed'}
-        onPress={() => dispatch(setPouchType('printed'))}
-        activeOpacity={0.85}
-      >
-        <OptionImgBox bgColor="#DCFCE7">
-          <Image source={POUCH_TYPE_IMAGES.printed} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
-        </OptionImgBox>
-        <OptionTextWrap>
-          <OptionName active={config.pouchType === 'printed'}>{POUCH_CATALOG.printed.name}</OptionName>
-          <OptionHint>{POUCH_CATALOG.printed.subtitle}</OptionHint>
-        </OptionTextWrap>
-        <ArrowIcon>
-          <FontAwesome5 name="chevron-right" size={13} color="#D1D5DB" />
-        </ArrowIcon>
-      </OptionRow>
+        <OptionRow
+          active={config.pouchType === 'plain'}
+          onPress={() => dispatch(setPouchType('plain'))}
+          activeOpacity={0.85}
+        >
+          <OptionImgBox bgColor="#F3F4F6">
+            <Image source={POUCH_TYPE_IMAGES.plain} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
+          </OptionImgBox>
+          <OptionTextWrap>
+            <OptionName active={config.pouchType === 'plain'}>{POUCH_CATALOG.plain.name}</OptionName>
+            <OptionHint>{POUCH_CATALOG.plain.subtitle}</OptionHint>
+            <PriceHint>From {plainPrice.displayText}</PriceHint>
+          </OptionTextWrap>
+          <ArrowIcon>
+            <FontAwesome5 name="chevron-right" size={13} color="#D1D5DB" />
+          </ArrowIcon>
+        </OptionRow>
 
-      <OptionRow
-        active={config.pouchType === 'kraft'}
-        onPress={() => dispatch(setPouchType('kraft'))}
-        activeOpacity={0.85}
-      >
-        <OptionImgBox bgColor="#FEF3C7">
-          <Image source={POUCH_TYPE_IMAGES.kraft} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
-        </OptionImgBox>
-        <OptionTextWrap>
-          <OptionName active={config.pouchType === 'kraft'}>{POUCH_CATALOG.kraft.name}</OptionName>
-          <OptionHint>{POUCH_CATALOG.kraft.subtitle}</OptionHint>
-        </OptionTextWrap>
-        <ArrowIcon>
-          <FontAwesome5 name="chevron-right" size={13} color="#D1D5DB" />
-        </ArrowIcon>
-      </OptionRow>
-    </StepContent>
-  );
+        <OptionRow
+          active={config.pouchType === 'printed'}
+          onPress={() => dispatch(setPouchType('printed'))}
+          activeOpacity={0.85}
+        >
+          <OptionImgBox bgColor="#DCFCE7">
+            <Image source={POUCH_TYPE_IMAGES.printed} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
+          </OptionImgBox>
+          <OptionTextWrap>
+            <OptionName active={config.pouchType === 'printed'}>{POUCH_CATALOG.printed.name}</OptionName>
+            <OptionHint>{POUCH_CATALOG.printed.subtitle}</OptionHint>
+            <PriceHint>From {printedPrice.displayText}</PriceHint>
+          </OptionTextWrap>
+          <ArrowIcon>
+            <FontAwesome5 name="chevron-right" size={13} color="#D1D5DB" />
+          </ArrowIcon>
+        </OptionRow>
+
+        <OptionRow
+          active={config.pouchType === 'kraft'}
+          onPress={() => dispatch(setPouchType('kraft'))}
+          activeOpacity={0.85}
+        >
+          <OptionImgBox bgColor="#FEF3C7">
+            <Image source={POUCH_TYPE_IMAGES.kraft} style={{ width: 60, height: 60, borderRadius: 12 }} resizeMode="contain" />
+          </OptionImgBox>
+          <OptionTextWrap>
+            <OptionName active={config.pouchType === 'kraft'}>{POUCH_CATALOG.kraft.name}</OptionName>
+            <OptionHint>{POUCH_CATALOG.kraft.subtitle}</OptionHint>
+            <PriceHint>From {kraftPrice.displayText}</PriceHint>
+          </OptionTextWrap>
+          <ArrowIcon>
+            <FontAwesome5 name="chevron-right" size={13} color="#D1D5DB" />
+          </ArrowIcon>
+        </OptionRow>
+      </StepContent>
+    );
+  };
 
   // ── Step 2: Window Option ─────────────────────────────────────────────
   const renderStep2 = () => {
@@ -759,6 +769,7 @@ const OptionName = styled.Text<{ active: boolean }>`
   margin-bottom: 3px;
 `;
 const OptionHint = styled.Text`font-size: 12px; color: #9CA3AF;`;
+const PriceHint = styled.Text`font-size: 11px; color: #0F8A3C; font-weight: 600; margin-top: 4px;`;
 const ArrowIcon = styled.View`width: 28px; align-items: center;`;
 
 /* Info Banner */

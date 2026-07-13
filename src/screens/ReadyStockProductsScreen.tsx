@@ -49,7 +49,7 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     hasWindow: false,
     thickness: '120μ',
     price: 5.50,
-    moq: 500,
+    moq: 100,
     stockCount: 3500,
     inStock: true,
     image: IMAGES.goldStandyPouch,
@@ -77,7 +77,7 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     hasWindow: false,
     thickness: '130μ',
     price: 6.75,
-    moq: 500,
+    moq: 100,
     stockCount: 2800,
     inStock: true,
     image: IMAGES.goldStandyZipperPouch,
@@ -105,7 +105,7 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     hasWindow: false,
     thickness: '120μ',
     price: 4.80,
-    moq: 500,
+    moq: 100,
     stockCount: 4200,
     inStock: true,
     image: IMAGES.silverStandyPouch,
@@ -133,7 +133,7 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     hasWindow: false,
     thickness: '130μ',
     price: 5.95,
-    moq: 500,
+    moq: 100,
     stockCount: 3700,
     inStock: true,
     image: IMAGES.silverStandyZipperPouch,
@@ -161,7 +161,7 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     hasWindow: false,
     thickness: '100μ',
     price: 4.20,
-    moq: 500,
+    moq: 100,
     stockCount: 3200,
     inStock: true,
     image: IMAGES.milkyStandyPouch,
@@ -189,7 +189,7 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     hasWindow: false,
     thickness: '110μ',
     price: 5.40,
-    moq: 500,
+    moq: 100,
     stockCount: 2900,
     inStock: true,
     image: IMAGES.milkyStandyZipperPouch,
@@ -217,7 +217,7 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     hasWindow: false,
     thickness: '120μ',
     price: 4.50,
-    moq: 500,
+    moq: 100,
     stockCount: 4500,
     inStock: true,
     image: IMAGES.kraftStandyPouchBrown,
@@ -245,7 +245,7 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     hasWindow: true,
     thickness: '120μ',
     price: 5.80,
-    moq: 500,
+    moq: 100,
     stockCount: 3100,
     inStock: true,
     image: IMAGES.kraftWindowStandyPouchBrown,
@@ -273,7 +273,7 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     hasWindow: true,
     thickness: '120μ',
     price: 6.20,
-    moq: 500,
+    moq: 100,
     stockCount: 2500,
     inStock: true,
     image: IMAGES.kraftWindowStandyPouchWhite,
@@ -330,6 +330,11 @@ const ReadyStockProductsScreen: React.FC<Props> = ({ navigation }) => {
           {/* Product List */}
           <SectionTitle>Available Products</SectionTitle>
           {READY_STOCK_PRODUCTS.map(product => {
+            // Calculate lowest price from size options
+            const lowestPrice = product.sizeOptions && product.sizeOptions.length > 0
+              ? Math.min(...product.sizeOptions.map(s => s.price))
+              : product.price;
+            
             return (
               <ProductCard
                 key={product.id}
@@ -342,7 +347,7 @@ const ReadyStockProductsScreen: React.FC<Props> = ({ navigation }) => {
 
                 <ProductHeader>
                   <ProductName>{product.name}</ProductName>
-                  <ProductPrice>₹{product.price.toFixed(2)}/pc</ProductPrice>
+                  <ProductPrice>₹{lowestPrice.toFixed(2)}/pc</ProductPrice>
                 </ProductHeader>
 
                 <ProductDescription>{product.description}</ProductDescription>

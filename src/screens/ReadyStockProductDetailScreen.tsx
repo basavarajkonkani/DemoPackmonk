@@ -61,6 +61,15 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
     { id: 'default', dimensions: '', capacity: product.size, price: product.price };
   const currentPrice = selectedSize.price;
 
+  // Calculate lowest price from all size options
+  const getLowestPrice = () => {
+    if (!product.sizeOptions || product.sizeOptions.length === 0) {
+      return product.price;
+    }
+    return Math.min(...product.sizeOptions.map(s => s.price));
+  };
+  const lowestPrice = getLowestPrice();
+
   const handleQuantityChange = (newQty: number) => {
     // Allow any value to be set while typing, but validate on final submission
     if (isNaN(newQty) || newQty <= 0) {
@@ -76,11 +85,8 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
       setQuantity(product.moq);
       return;
     }
-    if (quantity > product.stockCount) {
-      Alert.alert('Stock Limit', `Only ${product.stockCount} units available in stock.`);
-      setQuantity(product.stockCount);
-      return;
-    }
+    // Don't restrict by stock count on blur - allow manual entry
+    // Stock validation happens at checkout
   };
 
   const handleAddToCart = () => {
@@ -97,7 +103,23 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
       return;
     }
 
-    // Determine pouchType and materialType from product properties
+    // Warn if quantity exceeds current stock (but allow the order - it can be backordered)
+    if (quantity > product.stockCount) {
+      Alert.alert(
+        'Quantity Notice',
+        `Only ${product.stockCount} units are currently in stock. Your order will be fulfilled with available stock and the remaining quantity will be backordered.`,
+        [
+          { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+          { text: 'Proceed', onPress: () => addItemToCart() }
+        ]
+      );
+      return;
+    }
+
+    addItemToCart();
+  };
+
+  const addItemToCart = () => {
     let pouchType: 'plain' | 'printed' | 'kraft' = 'plain';
     if (product.material.toLowerCase().includes('kraft')) {
       pouchType = 'kraft';
@@ -191,8 +213,8 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
           <ProductHeader>
             <ProductName>{product.name}</ProductName>
             <PriceRow>
-              <PriceLabel>Price Per Piece</PriceLabel>
-              <PriceValue>₹{product.price.toFixed(2)}</PriceValue>
+              <PriceLabel>{product.sizeOptions && product.sizeOptions.length > 0 ? 'Starting From' : 'Price Per Piece'}</PriceLabel>
+              <PriceValue>₹{lowestPrice.toFixed(2)}</PriceValue>
             </PriceRow>
           </ProductHeader>
 
@@ -301,13 +323,7 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
             <QuantityBtn 
               onPress={() => {
                 const newQty = Math.max(product.moq, quantity - 100);
-                if (newQty >= product.moq && newQty <= product.stockCount) {
-                  setQuantity(newQty);
-                } else if (newQty < product.moq) {
-                  Alert.alert('Below MOQ', `Minimum order quantity is ${product.moq} units.`);
-                } else {
-                  Alert.alert('Stock Limit', `Only ${product.stockCount} units available in stock.`);
-                }
+                setQuantity(newQty);
               }}
               activeOpacity={0.8}
             >
@@ -330,11 +346,7 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
             <QuantityBtn 
               onPress={() => {
                 const newQty = quantity + 100;
-                if (newQty >= product.moq && newQty <= product.stockCount) {
-                  setQuantity(newQty);
-                } else if (newQty > product.stockCount) {
-                  Alert.alert('Stock Limit', `Only ${product.stockCount} units available in stock.`);
-                }
+                setQuantity(newQty);
               }}
               activeOpacity={0.8}
             >
@@ -344,16 +356,13 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
 
           {/* Quick Select */}
           <QuickSelectRow>
-            {[500, 1000, 2000, 5000].map(qty => (
+            {[100, 500, 1000, 2000, 5000].map(qty => (
               <QuickSelectBtn
                 key={qty}
                 onPress={() => {
-                  if (qty >= product.moq && qty <= product.stockCount) {
-                    setQuantity(qty);
-                  } else if (qty < product.moq) {
-                    Alert.alert('Below MOQ', `Minimum order quantity is ${product.moq} units.`);
-                  } else {
-                    Alert.alert('Stock Limit', `Only ${product.stockCount} units available in stock.`);
+                  setQuantity(qty);
+                  if (quantityInputRef.current) {
+                    quantityInputRef.current.blur();
                   }
                 }}
                 active={quantity === qty}
