@@ -775,7 +775,7 @@ const PriceSummaryTotal = styled.Text`
   color: #0F8A3C;
 `;
 
-const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight: number }>`
+const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight: number | string }>`
   position: absolute;
   bottom: ${({ bottomTabBarHeight }) => `${bottomTabBarHeight}px`};
   left: 0;
@@ -785,8 +785,8 @@ const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight
   align-items: center;
   justify-content: space-between;
   background-color: #FFFFFF;
-  padding: 14px 16px;
-  padding-bottom: 18px;
+  padding: 12px 16px;
+  padding-bottom: 16px;
   border-top-width: 1px;
   border-top-color: #E5E7EB;
   shadow-color: #000;
@@ -799,28 +799,31 @@ const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight
 `;
 
 const BottomTotalSection = styled.View`
-  flex: 0;
-  min-width: 80px;
+  flex: 0 0 auto;
+  min-width: 90px;
   padding-right: 8px;
+  justify-content: flex-end;
 `;
 
 const BottomTotalLabel = styled.Text`
   font-size: 12px;
   color: #6B7280;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
+  line-height: 14px;
 `;
 
 const BottomTotalPrice = styled.Text`
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: #0F8A3C;
-  line-height: 24px;
+  line-height: 20px;
 `;
 
 const BottomTotalQty = styled.Text`
-  font-size: 11px;
+  font-size: 10px;
   color: #9CA3AF;
-  margin-top: 2px;
+  margin-top: 1px;
+  line-height: 12px;
 `;
 
 const AddToCartButton = styled.TouchableOpacity`
@@ -828,8 +831,8 @@ const AddToCartButton = styled.TouchableOpacity`
   align-items: center;
   justify-content: center;
   background-color: #0F8A3C;
-  padding-horizontal: 16px;
-  flex: 1;
+  padding-horizontal: 20px;
+  flex: 1 1 auto;
   min-width: 140px;
   height: 48px;
   border-radius: 12px;
