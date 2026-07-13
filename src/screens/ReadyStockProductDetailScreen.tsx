@@ -172,7 +172,7 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
 
         <ScrollView 
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={{ paddingBottom: layoutCalcs.scrollViewPaddingWithTabBarAndFooter }}
           keyboardShouldPersistTaps="handled"
         >
         {/* Product Image */}
@@ -776,27 +776,31 @@ const PriceSummaryTotal = styled.Text`
 `;
 
 const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight: number }>`
+  position: absolute;
+  bottom: ${({ bottomTabBarHeight }) => `${bottomTabBarHeight}px`};
+  left: 0;
+  right: 0;
+  width: 100%;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   background-color: #FFFFFF;
-  padding: 12px 16px;
-  padding-bottom: ${({ safeAreaBottom }: { safeAreaBottom: number; bottomTabBarHeight: number }) => 
-    Math.max(12, safeAreaBottom)
-  }px;
+  padding: 14px 16px;
+  padding-bottom: 18px;
   border-top-width: 1px;
   border-top-color: #E5E7EB;
   shadow-color: #000;
-  shadow-offset: 0px -2px;
-  shadow-opacity: 0.1;
-  shadow-radius: 8px;
-  elevation: 25;
+  shadow-offset: 0px -4px;
+  shadow-opacity: 0.15;
+  shadow-radius: 12px;
+  elevation: 50;
+  z-index: 10000;
   gap: 12px;
 `;
 
 const BottomTotalSection = styled.View`
   flex: 0;
-  min-width: 100px;
+  min-width: 80px;
   padding-right: 8px;
 `;
 
@@ -824,11 +828,11 @@ const AddToCartButton = styled.TouchableOpacity`
   align-items: center;
   justify-content: center;
   background-color: #0F8A3C;
-  padding-horizontal: 20px;
-  min-width: 160px;
+  padding-horizontal: 16px;
+  flex: 1;
+  min-width: 140px;
   height: 48px;
   border-radius: 12px;
-  flex-shrink: 1;
   shadow-color: #0F8A3C;
   shadow-offset: 0px 4px;
   shadow-opacity: 0.3;

@@ -344,6 +344,9 @@ const Container = styled.View`
   flex: 1; 
   background-color: #FFFFFF;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 `;
 
 const NavBar = styled.View`
@@ -553,7 +556,8 @@ const BottomBar = styled.View<{ bottomTabBarHeight: number }>`
   right: 0;
   width: 100%;
   flex-direction: row; 
-  padding: 12px 16px;
+  padding: 14px 16px;
+  padding-bottom: 18px;
   background-color: #FFFFFF; 
   border-top-width: 1px; 
   border-top-color: #F3F4F6;
@@ -561,9 +565,9 @@ const BottomBar = styled.View<{ bottomTabBarHeight: number }>`
   justify-content: space-between;
   gap: 12px;
   shadow-color: #000;
-  shadow-offset: 0px -2px;
-  shadow-opacity: 0.1;
-  shadow-radius: 8px;
+  shadow-offset: 0px -4px;
+  shadow-opacity: 0.15;
+  shadow-radius: 12px;
   elevation: 50;
   z-index: 10000;
 `;
@@ -571,7 +575,7 @@ const BottomBar = styled.View<{ bottomTabBarHeight: number }>`
 const BottomLeft = styled.View`
   flex-direction: column;
   flex: 0;
-  min-width: 100px;
+  min-width: 80px;
 `;
 
 const BottomPrice = styled.Text`
@@ -589,7 +593,9 @@ const BottomQty = styled.Text`
 const BottomRight = styled.View`
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 1;
 `;
 
 const SampleBtnSmall = styled.TouchableOpacity`
@@ -610,9 +616,9 @@ const AddToCartBtn = styled.TouchableOpacity`
   height: 48px;
   background-color: #0F8A3C;
   border-radius: 12px;
-  padding-horizontal: 20px;
-  min-width: 160px;
-  flex-shrink: 1;
+  padding-horizontal: 16px;
+  flex: 1;
+  min-width: 140px;
   shadow-color: #0F8A3C;
   shadow-offset: 0px 4px;
   shadow-opacity: 0.3;
