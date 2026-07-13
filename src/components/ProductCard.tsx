@@ -4,6 +4,7 @@ import styled from 'styled-components/native';
 import { PackagingProduct } from '../store/productsSlice';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { IMAGES, PRODUCT_IMAGES, CATEGORY_IMAGES } from '../constants/images';
+import { getLowestPackagingPrice } from '../utils/priceUtils';
 
 interface ProductCardProps {
   product: PackagingProduct;
@@ -26,6 +27,7 @@ const getCategoryConfig = (product: PackagingProduct) => {
 const ProductCard: React.FC<ProductCardProps> = ({ product, onPress }) => {
   const cfg = getCategoryConfig(product);
   const isEco = product.ecoFriendlyRating >= 4;
+  const lowestPrice = getLowestPackagingPrice(product);
 
   return (
     <Card style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 3 }}>
@@ -68,7 +70,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onPress }) => {
         <Footer>
           <PriceSection>
             <PriceFrom>Starting at</PriceFrom>
-            <PriceVal>₹{product.basePrice.toFixed(2)}<PriceUnit>/unit</PriceUnit></PriceVal>
+            <PriceVal>₹{lowestPrice.toFixed(2)}<PriceUnit>/unit</PriceUnit></PriceVal>
           </PriceSection>
           <ConfigBtn onPress={onPress} activeOpacity={0.85}>
             <ConfigBtnText>Configure</ConfigBtnText>
