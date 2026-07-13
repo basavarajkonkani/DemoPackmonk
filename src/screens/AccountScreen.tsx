@@ -9,6 +9,7 @@ import { selectOrdersList, selectTotalBusinessSpending } from '../store/ordersSl
 import { logout } from '../store/authSlice';
 import { SUPPORT_EMAIL, SUPPORT_PHONE, WHATSAPP_NUMBER, AUTH_KEY, ONBOARDING_KEY } from '../constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getScrollViewBottomPaddingWithTabBar } from '../utils/layoutUtils';
 
 const NOTIFS = [
   { label: 'Quote Approved', desc: 'When your quote is approved' },
@@ -116,7 +117,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
     <Container>
       <Header navigation={navigation} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Platform.OS === 'web' ? 120 : 100 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: getScrollViewBottomPaddingWithTabBar() }}>
 
         {/* Profile Card */}
         <ProfileCard style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.07, shadowRadius: 12, elevation: 4 }}>
@@ -145,7 +146,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <ProfileMetaText>GST: 29ABCDE1234F1Z5</ProfileMetaText>
               </ProfileMeta>
             </ProfileInfo>
-            <EditBtn onPress={() => Alert.alert('Edit Profile', 'Profile editing will be available once you connect to your account backend. Contact support@pacmonk.com to update your details.')}>
+            <EditBtn onPress={() => Alert.alert('Edit Profile', 'Profile editing will be available once you connect to your account backend. Contact support@pacmonk.com to update your details.')} activeOpacity={0.8}>
               <FontAwesome5 name="edit" size={14} color="#0F8A3C" />
             </EditBtn>
           </ProfileTop>
@@ -250,7 +251,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <GoalPickLabel>Set Annual Target:</GoalPickLabel>
           <GoalOptions>
             {[250, 500, 1000, 2500].map((val) => (
-              <GoalOpt key={val} active={ecoTarget === val} onPress={() => setEcoTarget(val)}>
+              <GoalOpt key={val} active={ecoTarget === val} onPress={() => setEcoTarget(val)} activeOpacity={0.75}>
                 <GoalOptText active={ecoTarget === val}>{val}kg</GoalOptText>
               </GoalOpt>
             ))}
@@ -315,7 +316,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </SupportCard>
 
         {/* Sign Out */}
-        <SignOutBtn onPress={handleSignOut} activeOpacity={0.8}>
+        <SignOutBtn onPress={handleSignOut} activeOpacity={0.85}>
           <FontAwesome5 name="sign-out-alt" size={14} color="#EF4444" style={{ marginRight: 8 }} />
           <SignOutText>Sign Out</SignOutText>
         </SignOutBtn>
