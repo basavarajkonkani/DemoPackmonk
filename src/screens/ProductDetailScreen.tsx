@@ -318,7 +318,7 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) =>
       </ScrollView>
 
       {/* Bottom CTA - Positioned above bottom navigation */}
-      <BottomBar bottomTabBarHeight={bottomTabBarHeight}>
+      <BottomBar bottomTabBarHeight={layoutCalcs.tabBarHeight}>
         <BottomLeft>
           <BottomPrice>₹{totalPrice.toLocaleString()}</BottomPrice>
           <BottomQty>{quantity} units</BottomQty>
@@ -340,7 +340,11 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) =>
 
 export default ProductDetailScreen;
 
-const Container = styled.View`flex: 1; background-color: #FFFFFF;`;
+const Container = styled.View`
+  flex: 1; 
+  background-color: #FFFFFF;
+  position: relative;
+`;
 
 const NavBar = styled.View`
   height: 56px; flex-direction: row; align-items: center; justify-content: space-between;
@@ -543,32 +547,24 @@ const EmptyCenter = styled.View`flex: 1; align-items: center; justify-content: c
 const EmptyText = styled.Text`font-size: 16px; color: #9CA3AF;`;
 
 const BottomBar = styled.View<{ bottomTabBarHeight: number }>`
-  position: ${Platform.OS === 'web' ? 'fixed' : 'absolute'};
-  bottom: ${({ bottomTabBarHeight }) => 
-    Platform.select({
-      ios: `${bottomTabBarHeight}px`,
-      android: `${bottomTabBarHeight}px`,
-      web: `${bottomTabBarHeight}px`,
-      default: `${bottomTabBarHeight}px`,
-    })
-  };
+  position: absolute;
+  bottom: ${({ bottomTabBarHeight }) => `${bottomTabBarHeight}px`};
   left: 0; 
   right: 0;
   width: 100%;
   flex-direction: row; 
-  padding: 12px 16px ${Platform.OS === 'ios' ? '16px' : '12px'};
+  padding: 12px 16px;
   background-color: #FFFFFF; 
   border-top-width: 1px; 
   border-top-color: #F3F4F6;
   align-items: center; 
   justify-content: space-between;
   gap: 12px;
-  ${Platform.OS === 'web' ? 'box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);' : ''}
   shadow-color: #000;
   shadow-offset: 0px -2px;
   shadow-opacity: 0.1;
   shadow-radius: 8px;
-  elevation: ${Platform.OS === 'android' ? '25' : '10'};
+  elevation: 50;
   z-index: 10000;
 `;
 
