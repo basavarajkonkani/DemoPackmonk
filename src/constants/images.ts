@@ -55,9 +55,19 @@ export const POUCH_TYPE_IMAGES = {
   'kraft-brown': IMAGES.kraftStandyPouchBrown,
   'kraft-window-brown': IMAGES.kraftWindowStandyPouchBrown,
   'kraft-window-white': IMAGES.kraftWindowStandyPouchWhite,
-  gold: IMAGES.goldStandyPouch,
-  silver: IMAGES.silverStandyPouch,
-  milky: IMAGES.milkyStandyPouch,
+  'clear-standy': IMAGES.silverStandyPouch,
+  'silver-standy': IMAGES.silverStandyPouch,
+  'silver-zipper': IMAGES.silverStandyZipperPouch,
+  'milky-standy': IMAGES.milkyStandyPouch,
+  'milky-zipper': IMAGES.milkyStandyZipperPouch,
+  'gold-standy': IMAGES.goldStandyPouch,
+  'gold-zipper': IMAGES.goldStandyZipperPouch,
+  'flat-clear': IMAGES.plainPouch,
+  'flat-silver': IMAGES.silverStandyPouch,
+  'flat-clear-silver': IMAGES.plainPouchWindow,
+  'matt-standy': IMAGES.silverStandyPouch,
+  'matt-window-standy': IMAGES.kraftWindowStandyPouchBrown,
+  'idly-dosa': IMAGES.batterPouch,
 } as const;
 
 /** Category-specific product images */

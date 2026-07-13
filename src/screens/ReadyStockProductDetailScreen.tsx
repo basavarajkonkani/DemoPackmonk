@@ -5,6 +5,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch } from '../store';
 import { addToCart } from '../store/cartSlice';
+import { type PouchType } from '../store/pouchSlice';
 import StockIndicator from '../components/StockIndicator';
 import MOQBadge from '../components/MOQBadge';
 import PincodeChecker from '../components/PincodeChecker';
@@ -120,15 +121,36 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
   };
 
   const addItemToCart = () => {
-    let pouchType: 'plain' | 'printed' | 'kraft' = 'plain';
-    if (product.material.toLowerCase().includes('kraft')) {
+    let pouchType: PouchType = 'plain';
+    const materialLower = product.material.toLowerCase();
+    const productNameLower = product.name.toLowerCase();
+    
+    // Determine pouch type based on material/product name
+    if (materialLower.includes('kraft') && materialLower.includes('window')) {
+      if (materialLower.includes('brown')) {
+        pouchType = 'kraft-window-brown';
+      } else if (materialLower.includes('white')) {
+        pouchType = 'kraft-window-white';
+      } else {
+        pouchType = 'kraft-window-brown';
+      }
+    } else if (materialLower.includes('kraft')) {
       pouchType = 'kraft';
-    } else if (product.material.toLowerCase().includes('printed')) {
+    } else if (materialLower.includes('gold')) {
+      // Check if it's a zipper pouch
+      pouchType = (productNameLower.includes('zipper') || product.hasZipper) ? 'gold-zipper' : 'gold-standy';
+    } else if (materialLower.includes('silver')) {
+      // Check if it's a zipper pouch
+      pouchType = (productNameLower.includes('zipper') || product.hasZipper) ? 'silver-zipper' : 'silver-standy';
+    } else if (materialLower.includes('milky')) {
+      // Check if it's a zipper pouch
+      pouchType = (productNameLower.includes('zipper') || product.hasZipper) ? 'milky-zipper' : 'milky-standy';
+    } else if (materialLower.includes('printed')) {
       pouchType = 'printed';
     }
 
     let materialType: 'metalised' | 'non_metalised' = 'non_metalised';
-    if (product.material.toLowerCase().includes('metalised')) {
+    if (materialLower.includes('metalised')) {
       materialType = 'metalised';
     }
 
@@ -786,7 +808,7 @@ const PriceSummaryTotal = styled.Text`
 
 const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight: number | string }>`
   position: absolute;
-  bottom: ${({ bottomTabBarHeight }) => `${bottomTabBarHeight}px`};
+  bottom: ${(props: { safeAreaBottom: number; bottomTabBarHeight: number | string }) => (typeof props.bottomTabBarHeight === 'number' ? `${props.bottomTabBarHeight}px` : props.bottomTabBarHeight)};
   left: 0;
   right: 0;
   width: 100%;
