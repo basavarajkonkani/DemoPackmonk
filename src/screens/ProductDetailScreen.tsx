@@ -571,12 +571,13 @@ const BottomBar = styled.View<{ bottomTabBarHeight: number }>`
   right: 0;
   width: 100%;
   flex-direction: row; 
-  padding: 12px 16px ${Platform.OS === 'ios' ? '32px' : '20px'};
+  padding: 12px 16px ${Platform.OS === 'ios' ? '16px' : '12px'};
   background-color: #FFFFFF; 
   border-top-width: 1px; 
   border-top-color: #F3F4F6;
   align-items: center; 
   justify-content: space-between;
+  gap: 12px;
   ${Platform.OS === 'web' ? 'box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);' : ''}
   shadow-color: #000;
   shadow-offset: 0px -2px;
@@ -588,6 +589,8 @@ const BottomBar = styled.View<{ bottomTabBarHeight: number }>`
 
 const BottomLeft = styled.View`
   flex-direction: column;
+  flex: 0;
+  min-width: 100px;
 `;
 
 const BottomPrice = styled.Text`
@@ -597,7 +600,7 @@ const BottomPrice = styled.Text`
 `;
 
 const BottomQty = styled.Text`
-  font-size: 12px;
+  font-size: 11px;
   color: #6B7280;
   margin-top: 2px;
 `;
@@ -605,12 +608,13 @@ const BottomQty = styled.Text`
 const BottomRight = styled.View`
   flex-direction: row;
   align-items: center;
+  gap: 8px;
 `;
 
 const SampleBtnSmall = styled.TouchableOpacity`
   width: 44px;
-  height: 50px;
-  border-radius: 14px;
+  height: 48px;
+  border-radius: 12px;
   align-items: center;
   justify-content: center;
   border-width: 1.5px;
@@ -622,12 +626,17 @@ const AddToCartBtn = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 50px;
+  height: 48px;
   background-color: #0F8A3C;
-  border-radius: 14px;
-  padding-horizontal: 24px;
-  box-shadow: 0px 4px 10px rgba(15, 138, 60, 0.3);
-  z-index: 10;
+  border-radius: 12px;
+  padding-horizontal: 20px;
+  min-width: 160px;
+  flex-shrink: 1;
+  shadow-color: #0F8A3C;
+  shadow-offset: 0px 4px;
+  shadow-opacity: 0.3;
+  shadow-radius: 8px;
+  elevation: 5;
 `;
 
 const AddToCartBtnText = styled.Text`
