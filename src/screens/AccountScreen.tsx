@@ -71,10 +71,6 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handleMenu = (label: string, screen: string | null) => {
     if (screen) {
       navigation.navigate(screen);
-    } else if (label === 'Order History') {
-      navigation.navigate('Orders');
-    } else if (label === 'Notifications') {
-      navigation.navigate('Notifications');
     } else {
       Alert.alert(label, `${label} settings are coming in the next update.`);
     }

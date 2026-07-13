@@ -3,7 +3,6 @@ import { ScrollView, View, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import { useAppSelector } from '../store';
 import { selectOrdersList } from '../store/ordersSlice';
-import Header from '../components/Header';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { getScrollViewBottomPaddingWithTabBar } from '../utils/layoutUtils';
 
@@ -24,7 +23,13 @@ const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <Container>
-      <Header navigation={navigation} />
+      <BackHeader>
+        <BackButton onPress={() => navigation.goBack()}>
+          <FontAwesome5 name="arrow-left" size={20} color="#1F2937" />
+        </BackButton>
+        <HeaderTitle>Order History</HeaderTitle>
+        <Placeholder />
+      </BackHeader>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: getScrollViewBottomPaddingWithTabBar(), alignItems: 'center' }}>
         <ContentWrapper>
@@ -342,3 +347,12 @@ const TrackingRow = styled.View`
 `;
 const TrackingLabel = styled.Text`font-size: 9px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px;`;
 const TrackingNum = styled.Text`font-size: 13px; font-weight: 700; color: #111827;`;
+
+const BackHeader = styled.View`
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background-color: #FFFFFF;
+  border-bottom-width: 1px; border-bottom-color: #E5E7EB;
+`;
+const BackButton = styled.TouchableOpacity`width: 40px; height: 40px; align-items: center; justify-content: center;`;
+const HeaderTitle = styled.Text`font-size: 18px; font-weight: 700; color: #1F2937; flex: 1; text-align: center;`;
+const Placeholder = styled.View`width: 40px;`;

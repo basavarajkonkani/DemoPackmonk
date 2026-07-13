@@ -232,6 +232,7 @@ export default function RootNavigator({ initialRoute = 'Onboarding' }: RootNavig
       
       {/* User Dashboard Screens */}
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="Orders" component={OrdersScreen} />
       <Stack.Screen name="Wallet" component={WalletScreen} />
       <Stack.Screen name="GSTDetails" component={GSTDetailsScreen} />
       <Stack.Screen name="Invoices" component={InvoicesScreen} />

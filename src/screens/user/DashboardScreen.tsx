@@ -2,7 +2,6 @@ import React from 'react';
 import { ScrollView, View, TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import Header from '../../components/Header';
 
 interface DashboardScreenProps {
   navigation: any;
@@ -20,7 +19,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   return (
     <Container>
-      <Header navigation={navigation} />
+      <BackHeader>
+        <BackButton onPress={() => navigation.goBack()}>
+          <FontAwesome5 name="arrow-left" size={20} color="#1F2937" />
+        </BackButton>
+        <HeaderTitle>Dashboard</HeaderTitle>
+        <Placeholder />
+      </BackHeader>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Welcome Banner */}
         <WelcomeBanner>
@@ -128,7 +133,6 @@ export default DashboardScreen;
 
 const Container = styled.View`flex: 1; background-color: #F8F9FA;`;
 const WelcomeBanner = styled.View`
-  background: linear-gradient(135deg, #0F8A3C 0%, #22C55E 100%);
   padding: 24px 20px; margin: 12px 16px; border-radius: 16px;
   background-color: #0F8A3C;
 `;
@@ -209,3 +213,12 @@ const WalletButtonText = styled.Text<{ secondary?: boolean }>`
   font-size: 13px; font-weight: 700;
   color: ${({ secondary }) => secondary ? '#111827' : '#FFF'};
 `;
+
+const BackHeader = styled.View`
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background-color: #FFFFFF;
+  border-bottom-width: 1px; border-bottom-color: #E5E7EB;
+`;
+const BackButton = styled.TouchableOpacity`width: 40px; height: 40px; align-items: center; justify-content: center;`;
+const HeaderTitle = styled.Text`font-size: 18px; font-weight: 700; color: #1F2937; flex: 1; text-align: center;`;
+const Placeholder = styled.View`width: 40px;`;
