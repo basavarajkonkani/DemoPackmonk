@@ -56,7 +56,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <StatIcon bgColor="#FEE2E2">
               <FontAwesome5 name="dollar-sign" size={18} color="#EF4444" />
             </StatIcon>
-            <StatValue>$8.4k</StatValue>
+            <StatValue>₹8.4k</StatValue>
             <StatLabel>Total Value</StatLabel>
           </StatCard>
         </StatsGrid>
@@ -93,7 +93,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 <OrderDate>Dec {20 + item}, 2024</OrderDate>
               </OrderDetail>
               <OrderFooter>
-                <OrderPrice>$1,250</OrderPrice>
+                <OrderPrice>₹1,250</OrderPrice>
                 <TrackButton onPress={() => navigation.navigate('ProductionTimeline', { orderId: `10${item}234` })}>
                   <TrackButtonText>Track</TrackButtonText>
                 </TrackButton>
@@ -108,7 +108,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             <WalletTitle>Wallet Balance</WalletTitle>
             <FontAwesome5 name="wallet" size={20} color="#0F8A3C" />
           </WalletHeader>
-          <WalletBalance>$2,450.00</WalletBalance>
+          <WalletBalance>₹2,450.00</WalletBalance>
           <WalletActions>
             <WalletButton onPress={() => navigation.navigate('Wallet')}>
               <FontAwesome5 name="plus" size={12} color="#FFF" style={{ marginRight: 6 }} />

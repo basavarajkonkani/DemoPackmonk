@@ -22,7 +22,7 @@ const OrderProofApprovalScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const colorOptions = [
     { id: 'full-color', label: 'Full Color (CMYK)', price: 'Included' },
-    { id: 'pantone', label: '+ Pantone Colors', price: '+$0.10/unit' },
+    { id: 'pantone', label: '+ Pantone Colors', price: '+₹0.10/unit' },
   ];
 
   const handleApprove = () => {

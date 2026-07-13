@@ -20,7 +20,7 @@ const WalletScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handleAddFunds = () => {
     const amountToAdd = selectedAmount || parseInt(amount);
     if (amountToAdd && amountToAdd > 0) {
-      Alert.alert('Add Funds', `Add $${amountToAdd} to your wallet?`, [
+      Alert.alert('Add Funds', `Add ₹${amountToAdd} to your wallet?`, [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Confirm', onPress: () => {
           Alert.alert('Success', 'Funds added successfully!');
@@ -47,16 +47,16 @@ const WalletScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {/* Balance Card */}
         <BalanceCard>
           <BalanceLabel>Available Balance</BalanceLabel>
-          <BalanceAmount>$2,450.00</BalanceAmount>
+          <BalanceAmount>₹2,450.00</BalanceAmount>
           <BalanceRow>
             <BalanceItem>
               <BalanceItemLabel>Total Added</BalanceItemLabel>
-              <BalanceItemValue>$5,200</BalanceItemValue>
+              <BalanceItemValue>₹5,200</BalanceItemValue>
             </BalanceItem>
             <BalanceDivider />
             <BalanceItem>
               <BalanceItemLabel>Total Spent</BalanceItemLabel>
-              <BalanceItemValue>$2,750</BalanceItemValue>
+              <BalanceItemValue>₹2,750</BalanceItemValue>
             </BalanceItem>
           </BalanceRow>
         </BalanceCard>
@@ -75,7 +75,7 @@ const WalletScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   setAmount('');
                 }}
               >
-                <QuickAmountText active={selectedAmount === amt}>${amt}</QuickAmountText>
+                <QuickAmountText active={selectedAmount === amt}>₹{amt}</QuickAmountText>
               </QuickAmountButton>
             ))}
           </QuickAmountsRow>
@@ -115,7 +115,7 @@ const WalletScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <TransactionDate>{txn.date}</TransactionDate>
               </TransactionInfo>
               <TransactionAmount type={txn.type}>
-                {txn.type === 'credit' ? '+' : '-'}${txn.amount}
+                {txn.type === 'credit' ? '+' : '-'}₹{txn.amount}
               </TransactionAmount>
             </TransactionCard>
           ))}

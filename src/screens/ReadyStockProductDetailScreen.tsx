@@ -10,6 +10,13 @@ import MOQBadge from '../components/MOQBadge';
 import PincodeChecker from '../components/PincodeChecker';
 import { useBottomLayoutCalculations } from '../utils/layoutUtils';
 
+interface SizeOption {
+  id: string;
+  dimensions: string;
+  capacity: string;
+  price: number;
+}
+
 interface ReadyStockProduct {
   id: string;
   name: string;
@@ -28,6 +35,7 @@ interface ReadyStockProduct {
   inStock: boolean;
   image: any;
   ecoRating: number;
+  sizeOptions?: SizeOption[];
 }
 
 interface Props {
@@ -40,20 +48,39 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
   const insets = useSafeAreaInsets();
   const layoutCalcs = useBottomLayoutCalculations();
   const { product } = route.params as { product: ReadyStockProduct };
+  const quantityInputRef = React.useRef<any>(null);
 
   const [quantity, setQuantity] = useState(product.moq);
   const [showPincodeChecker, setShowPincodeChecker] = useState(false);
+  const [selectedSizeId, setSelectedSizeId] = useState<string>(
+    product.sizeOptions?.[0]?.id || 'default'
+  );
+
+  // Get the current selected size option and its price
+  const selectedSize = product.sizeOptions?.find(s => s.id === selectedSizeId) || 
+    { id: 'default', dimensions: '', capacity: product.size, price: product.price };
+  const currentPrice = selectedSize.price;
 
   const handleQuantityChange = (newQty: number) => {
-    if (newQty < product.moq) {
-      Alert.alert('Below MOQ', `Minimum order quantity is ${product.moq} units.`);
-      return;
-    }
-    if (newQty > product.stockCount) {
-      Alert.alert('Stock Limit', `Only ${product.stockCount} units available in stock.`);
-      return;
+    // Allow any value to be set while typing, but validate on final submission
+    if (isNaN(newQty) || newQty <= 0) {
+      return; // Don't update if invalid
     }
     setQuantity(newQty);
+  };
+
+  const handleQuantityBlur = () => {
+    // Validate when user leaves the field
+    if (quantity < product.moq) {
+      Alert.alert('Below MOQ', `Minimum order quantity is ${product.moq} units.`);
+      setQuantity(product.moq);
+      return;
+    }
+    if (quantity > product.stockCount) {
+      Alert.alert('Stock Limit', `Only ${product.stockCount} units available in stock.`);
+      setQuantity(product.stockCount);
+      return;
+    }
   };
 
   const handleAddToCart = () => {
@@ -108,7 +135,7 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
         pouchType,
         windowOption,
         materialType,
-        capacity: product.size as '50g' | '100g' | '200g' | '250g' | '500g' | '1kg' | '2kg',
+        capacity: selectedSize.capacity as '50g' | '100g' | '200g' | '250g' | '500g' | '1kg' | '2kg',
         artworkUri: null,
         needsDesignAssistance: false,
         dimensions: { width: product.dimensions.width, height: product.dimensions.height, unit: 'mm' },
@@ -117,9 +144,9 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
         thickness: parseFloat(product.thickness),
       },
       quantity,
-      unitPrice: product.price,
-      baseUnitPrice: product.price,
-      totalPrice: product.price * quantity,
+      unitPrice: currentPrice,
+      baseUnitPrice: currentPrice,
+      totalPrice: currentPrice * quantity,
       setupFee: 0,
     };
 
@@ -127,7 +154,7 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
     navigation.navigate('MainTabs', { screen: 'Cart' });
   };
 
-  const totalPrice = product.price * quantity;
+  const totalPrice = currentPrice * quantity;
 
   return (
     <ScreenContainer>
@@ -145,7 +172,8 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
 
         <ScrollView 
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: layoutCalcs.scrollViewPaddingWithTabBarAndFooter }}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          keyboardShouldPersistTaps="handled"
         >
         {/* Product Image */}
         <ProductImageContainer>
@@ -182,53 +210,55 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
 
           <Divider />
 
+          {/* Size Selection */}
+          {product.sizeOptions && product.sizeOptions.length > 0 && (
+            <>
+              <SectionTitle>Select Size</SectionTitle>
+              <SizeOptionsContainer>
+                {product.sizeOptions.map((sizeOption) => (
+                  <SizeOptionCard
+                    key={sizeOption.id}
+                    active={selectedSizeId === sizeOption.id}
+                    onPress={() => setSelectedSizeId(sizeOption.id)}
+                    activeOpacity={0.7}
+                  >
+                    <SizeOptionLeft>
+                      <SizeOptionDimensions>{sizeOption.dimensions}</SizeOptionDimensions>
+                      <SizeOptionCapacity>{sizeOption.capacity}</SizeOptionCapacity>
+                    </SizeOptionLeft>
+                    <SizeOptionPrice>₹{sizeOption.price.toFixed(2)}</SizeOptionPrice>
+                    <SizeOptionRadio>
+                      <SizeOptionRadioOuter active={selectedSizeId === sizeOption.id}>
+                        {selectedSizeId === sizeOption.id && (
+                          <SizeOptionRadioInner />
+                        )}
+                      </SizeOptionRadioOuter>
+                    </SizeOptionRadio>
+                  </SizeOptionCard>
+                ))}
+              </SizeOptionsContainer>
+              <Divider />
+            </>
+          )}
+
           {/* Specifications */}
           <SectionTitle>Specifications</SectionTitle>
           <SpecsCard>
+            <SpecRow>
+              <SpecLabel>Micron</SpecLabel>
+              <SpecValue>112</SpecValue>
+            </SpecRow>
             <SpecRow>
               <SpecLabel>Material</SpecLabel>
               <SpecValue>{product.material}</SpecValue>
             </SpecRow>
             <SpecRow>
-              <SpecLabel>Thickness</SpecLabel>
-              <SpecValue>{product.thickness}</SpecValue>
-            </SpecRow>
-            <SpecRow>
-              <SpecLabel>Capacity</SpecLabel>
-              <SpecValue>{product.size}</SpecValue>
-            </SpecRow>
-            <SpecRow>
-              <SpecLabel>Dimensions</SpecLabel>
-              <SpecValue>
-                {product.dimensions.length} × {product.dimensions.width} × {product.dimensions.height} mm
-              </SpecValue>
-            </SpecRow>
-            <SpecRow>
-              <SpecLabel>Finish</SpecLabel>
-              <SpecValue>{product.finish}</SpecValue>
+              <SpecLabel>Sealing</SpecLabel>
+              <SpecValue>Heat sealable</SpecValue>
             </SpecRow>
             <SpecRow noBorder>
-              <SpecLabel>Features</SpecLabel>
-              <FeaturesColumn>
-                {product.hasZipper && (
-                  <FeatureItem>
-                    <FontAwesome5 name="check-circle" size={12} color="#0F8A3C" />
-                    <FeatureText>Resealable Zipper</FeatureText>
-                  </FeatureItem>
-                )}
-                {product.hasWindow && (
-                  <FeatureItem>
-                    <FontAwesome5 name="check-circle" size={12} color="#0F8A3C" />
-                    <FeatureText>Transparent Window</FeatureText>
-                  </FeatureItem>
-                )}
-                {product.ecoRating >= 4 && (
-                  <FeatureItem>
-                    <FontAwesome5 name="check-circle" size={12} color="#059669" />
-                    <FeatureText>Eco-Friendly Material</FeatureText>
-                  </FeatureItem>
-                )}
-              </FeaturesColumn>
+              <SpecLabel>Heat Resistance</SpecLabel>
+              <SpecValue>100°C</SpecValue>
             </SpecRow>
           </SpecsCard>
 
@@ -265,26 +295,47 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
           <Divider />
 
           {/* Quantity Selection */}
-          <SectionTitle>Select Quantity</SectionTitle>
-          <QuantityHint>Minimum order: {product.moq} units</QuantityHint>
+          <SectionTitle>Quantity (pieces)</SectionTitle>
 
           <QuantityControls>
             <QuantityBtn 
-              onPress={() => handleQuantityChange(Math.max(product.moq, quantity - 100))}
+              onPress={() => {
+                const newQty = Math.max(product.moq, quantity - 100);
+                if (newQty >= product.moq && newQty <= product.stockCount) {
+                  setQuantity(newQty);
+                } else if (newQty < product.moq) {
+                  Alert.alert('Below MOQ', `Minimum order quantity is ${product.moq} units.`);
+                } else {
+                  Alert.alert('Stock Limit', `Only ${product.stockCount} units available in stock.`);
+                }
+              }}
               activeOpacity={0.8}
             >
               <FontAwesome5 name="minus" size={14} color="#FFFFFF" />
             </QuantityBtn>
             <QuantityInput
+              ref={quantityInputRef}
               value={quantity.toString()}
               onChangeText={(text: string) => {
-                const num = parseInt(text) || product.moq;
+                const num = parseInt(text);
                 handleQuantityChange(num);
               }}
+              onBlur={handleQuantityBlur}
               keyboardType="number-pad"
+              placeholder={product.moq.toString()}
+              placeholderTextColor="#9CA3AF"
+              editable={true}
+              selectTextOnFocus={true}
             />
             <QuantityBtn 
-              onPress={() => handleQuantityChange(quantity + 100)}
+              onPress={() => {
+                const newQty = quantity + 100;
+                if (newQty >= product.moq && newQty <= product.stockCount) {
+                  setQuantity(newQty);
+                } else if (newQty > product.stockCount) {
+                  Alert.alert('Stock Limit', `Only ${product.stockCount} units available in stock.`);
+                }
+              }}
               activeOpacity={0.8}
             >
               <FontAwesome5 name="plus" size={14} color="#FFFFFF" />
@@ -296,7 +347,15 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
             {[500, 1000, 2000, 5000].map(qty => (
               <QuickSelectBtn
                 key={qty}
-                onPress={() => handleQuantityChange(qty)}
+                onPress={() => {
+                  if (qty >= product.moq && qty <= product.stockCount) {
+                    setQuantity(qty);
+                  } else if (qty < product.moq) {
+                    Alert.alert('Below MOQ', `Minimum order quantity is ${product.moq} units.`);
+                  } else {
+                    Alert.alert('Stock Limit', `Only ${product.stockCount} units available in stock.`);
+                  }
+                }}
                 active={quantity === qty}
                 activeOpacity={0.8}
               >
@@ -308,17 +367,8 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
           {/* Price Summary */}
           <PriceSummaryCard>
             <PriceSummaryRow>
-              <PriceSummaryLabel>Quantity</PriceSummaryLabel>
-              <PriceSummaryValue>{quantity} units</PriceSummaryValue>
-            </PriceSummaryRow>
-            <PriceSummaryRow>
-              <PriceSummaryLabel>Unit Price</PriceSummaryLabel>
-              <PriceSummaryValue>₹{product.price.toFixed(2)}</PriceSummaryValue>
-            </PriceSummaryRow>
-            <PriceSummaryDivider />
-            <PriceSummaryRow>
-              <PriceSummaryTotalLabel>Total Amount</PriceSummaryTotalLabel>
-              <PriceSummaryTotal>₹{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</PriceSummaryTotal>
+              <PriceSummaryLabel>Subtotal</PriceSummaryLabel>
+              <PriceSummaryValue>₹{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</PriceSummaryValue>
             </PriceSummaryRow>
           </PriceSummaryCard>
         </ContentSection>
@@ -352,6 +402,8 @@ const InnerContainer = styled.View`
   flex: 1;
   background-color: #F8F9FA;
   position: relative;
+  display: flex;
+  flex-direction: column;
 `;
 
 const NavBar = styled.View`
@@ -444,6 +496,66 @@ const PriceValue = styled.Text`
   font-size: 22px;
   font-weight: 800;
   color: #0F8A3C;
+`;
+
+const SizeOptionsContainer = styled.View`
+  gap: 10px;
+  margin-bottom: 12px;
+`;
+
+const SizeOptionCard = styled.TouchableOpacity<{ active: boolean }>`
+  flex-direction: row;
+  align-items: center;
+  padding: 14px 16px;
+  background-color: ${({ active }: { active: boolean }) => (active ? '#F0F9FF' : '#FFFFFF')};
+  border-radius: 12px;
+  border-width: 1.5px;
+  border-color: ${({ active }: { active: boolean }) => (active ? '#0F8A3C' : '#E5E7EB')};
+`;
+
+const SizeOptionLeft = styled.View`
+  flex: 1;
+`;
+
+const SizeOptionDimensions = styled.Text`
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 2px;
+`;
+
+const SizeOptionCapacity = styled.Text`
+  font-size: 12px;
+  color: #6B7280;
+`;
+
+const SizeOptionPrice = styled.Text`
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F8A3C;
+  margin-right: 12px;
+`;
+
+const SizeOptionRadio = styled.View`
+  align-items: center;
+  justify-content: center;
+`;
+
+const SizeOptionRadioOuter = styled.View<{ active: boolean }>`
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  border-width: 2px;
+  border-color: ${({ active }: { active: boolean }) => (active ? '#0F8A3C' : '#D1D5DB')};
+  align-items: center;
+  justify-content: center;
+`;
+
+const SizeOptionRadioInner = styled.View`
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #0F8A3C;
 `;
 
 const ProductDescription = styled.Text`
@@ -588,12 +700,13 @@ const QuantityInput = styled.TextInput`
   height: 44px;
   border-radius: 12px;
   border-width: 1.5px;
-  border-color: #E5E7EB;
+  border-color: #0F8A3C;
   background-color: #FFFFFF;
   text-align: center;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: #111827;
+  padding: 0px;
 `;
 
 const QuickSelectRow = styled.View`
@@ -663,40 +776,21 @@ const PriceSummaryTotal = styled.Text`
 `;
 
 const BottomActionBar = styled.View<{ safeAreaBottom: number; bottomTabBarHeight: number }>`
-  position: ${Platform.OS === 'web' ? 'fixed' : 'absolute'};
-  bottom: ${({ bottomTabBarHeight }: { safeAreaBottom: number; bottomTabBarHeight: number }) => 
-    Platform.select({
-      ios: `${bottomTabBarHeight}px`,
-      android: `${bottomTabBarHeight}px`,
-      web: `${bottomTabBarHeight}px`,
-      default: `${bottomTabBarHeight}px`,
-    })
-  };
-  left: 0;
-  right: 0;
-  width: 100%;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   background-color: #FFFFFF;
   padding: 12px 16px;
   padding-bottom: ${({ safeAreaBottom }: { safeAreaBottom: number; bottomTabBarHeight: number }) => 
-    Platform.select({
-      ios: `${Math.max(12, safeAreaBottom)}px`,
-      android: '12px',
-      web: '12px',
-      default: '12px',
-    })
-  };
+    Math.max(12, safeAreaBottom)
+  }px;
   border-top-width: 1px;
   border-top-color: #E5E7EB;
-  ${Platform.OS === 'web' ? 'box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);' : ''}
   shadow-color: #000;
   shadow-offset: 0px -2px;
   shadow-opacity: 0.1;
   shadow-radius: 8px;
-  elevation: ${Platform.OS === 'android' ? '25' : '20'};
-  z-index: 10000;
+  elevation: 25;
   gap: 12px;
 `;
 

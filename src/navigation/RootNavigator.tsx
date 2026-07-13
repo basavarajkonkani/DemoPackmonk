@@ -77,8 +77,6 @@ function TabNavigator() {
           const icons: Record<string, string> = {
             Home: 'home',
             Products: 'box',
-            Orders: 'clipboard-list',
-            DesignStudio: 'palette',
             Account: 'user',
             Cart: 'shopping-cart',
           };
@@ -158,8 +156,6 @@ function TabNavigator() {
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Home' }} />
       <Tab.Screen name="Products" component={ReadyStockProductsScreen} options={{ tabBarLabel: 'Stock Pouches' }} />
-      <Tab.Screen name="Orders" component={OrdersScreen} options={{ tabBarLabel: 'Orders' }} />
-      <Tab.Screen name="DesignStudio" component={DesignStudioScreen} options={{ tabBarLabel: 'Studio' }} />
       <Tab.Screen name="Account" component={AccountScreen} options={{ tabBarLabel: 'Account' }} />
       <Tab.Screen
         name="Cart"

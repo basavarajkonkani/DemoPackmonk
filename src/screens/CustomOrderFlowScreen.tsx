@@ -38,9 +38,9 @@ const CustomOrderFlowScreen: React.FC<Props> = ({ navigation }) => {
   ];
 
   const effects = [
-    { id: 'spot_uv', name: 'Spot UV', desc: 'Glossy highlights', price: '+$0.15/unit', icon: 'star' },
-    { id: 'metallic', name: 'Metallic Print', desc: 'Foil effect', price: '+$0.25/unit', icon: 'gem' },
-    { id: 'emboss', name: 'Embossing', desc: 'Raised texture', price: '+$0.20/unit', icon: 'layer-group' },
+    { id: 'spot_uv', name: 'Spot UV', desc: 'Glossy highlights', price: '+₹0.15/unit', icon: 'star' },
+    { id: 'metallic', name: 'Metallic Print', desc: 'Foil effect', price: '+₹0.25/unit', icon: 'gem' },
+    { id: 'emboss', name: 'Embossing', desc: 'Raised texture', price: '+₹0.20/unit', icon: 'layer-group' },
   ];
 
   const handleNext = () => {

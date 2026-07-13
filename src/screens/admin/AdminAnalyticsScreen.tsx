@@ -60,7 +60,7 @@ const AdminAnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             <MetricIcon bgColor="#DCFCE7">
               <FontAwesome5 name="dollar-sign" size={18} color="#0F8A3C" />
             </MetricIcon>
-            <MetricValue>$145,250</MetricValue>
+            <MetricValue>₹145,250</MetricValue>
             <MetricLabel>Revenue</MetricLabel>
             <MetricChange positive>+12.5%</MetricChange>
           </MetricCard>
@@ -78,7 +78,7 @@ const AdminAnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             <MetricIcon bgColor="#FEF3C7">
               <FontAwesome5 name="receipt" size={18} color="#D97706" />
             </MetricIcon>
-            <MetricValue>$172</MetricValue>
+            <MetricValue>₹172</MetricValue>
             <MetricLabel>Avg Order</MetricLabel>
             <MetricChange>+3.1%</MetricChange>
           </MetricCard>
@@ -104,7 +104,7 @@ const AdminAnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               <DataInfo>
                 <DataName>{product.name}</DataName>
                 <DataMeta>
-                  {product.sold} units • ${(product.revenue / 1000).toFixed(1)}k revenue
+                  {product.sold} units • ₹{(product.revenue / 1000).toFixed(1)}k revenue
                 </DataMeta>
               </DataInfo>
               <TrendIcon>
@@ -125,7 +125,7 @@ const AdminAnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               <DataInfo>
                 <DataName>{product.name}</DataName>
                 <DataMeta>
-                  {product.sold} units • ${(product.revenue / 1000).toFixed(1)}k revenue
+                  {product.sold} units • ₹{(product.revenue / 1000).toFixed(1)}k revenue
                 </DataMeta>
               </DataInfo>
               <TrendIcon>
@@ -146,10 +146,10 @@ const AdminAnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               <DataInfo>
                 <DataName>{customer.name}</DataName>
                 <DataMeta>
-                  {customer.orders} orders • ${(customer.lifetime / 1000).toFixed(0)}k lifetime
+                  {customer.orders} orders • ₹{(customer.lifetime / 1000).toFixed(0)}k lifetime
                 </DataMeta>
               </DataInfo>
-              <CustomerValue>${(customer.lifetime / 1000).toFixed(0)}k</CustomerValue>
+              <CustomerValue>₹{(customer.lifetime / 1000).toFixed(0)}k</CustomerValue>
             </DataRow>
           ))}
         </DataCard>
@@ -167,7 +167,7 @@ const AdminAnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               </CityInfo>
               <CityStats>
                 <CityOrders>{city.orders} orders</CityOrders>
-                <CityRevenue>${(city.revenue / 1000).toFixed(0)}k</CityRevenue>
+                <CityRevenue>₹{(city.revenue / 1000).toFixed(0)}k</CityRevenue>
               </CityStats>
             </CityRow>
           ))}

@@ -4,7 +4,7 @@
  */
 export const IMAGES = {
   // Logo & Branding
-  logo: require('../../assets/logo (1).png'),
+  logo: require('../../assets/logo (2).png'),
   pacmonkLogo: require('../../assets/Pacmonk.png'),
   
   // Banners

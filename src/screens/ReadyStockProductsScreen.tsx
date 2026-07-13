@@ -7,6 +7,13 @@ import MOQBadge from '../components/MOQBadge';
 import { IMAGES } from '../constants/images';
 import { getScrollViewBottomPaddingWithTabBar } from '../utils/layoutUtils';
 
+interface SizeOption {
+  id: string;
+  dimensions: string;
+  capacity: string;
+  price: number;
+}
+
 interface ReadyStockProduct {
   id: string;
   name: string;
@@ -25,6 +32,7 @@ interface ReadyStockProduct {
   inStock: boolean;
   image: any; // Changed from images array to single image
   ecoRating: number;
+  sizeOptions?: SizeOption[];
 }
 
 const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
@@ -46,6 +54,15 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     inStock: true,
     image: IMAGES.goldStandyPouch,
     ecoRating: 3,
+    sizeOptions: [
+      { id: 'size1', dimensions: '8.5 × 13.5 × 2.5 cm', capacity: 'CSP1 - 50 g', price: 1.30 },
+      { id: 'size2', dimensions: '10.5 × 17 × 3 cm', capacity: 'CSP2 - 100 g', price: 2.00 },
+      { id: 'size3', dimensions: '10.5 × 20.5 × 3.5 cm', capacity: 'CSP3 - 200 g', price: 2.35 },
+      { id: 'size4', dimensions: '13.5 × 20.5 × 3.5 cm', capacity: 'CSP4 - 250 g', price: 3.05 },
+      { id: 'size5', dimensions: '15 × 20.5 × 3.5 cm', capacity: 'CSP5 - 500 g', price: 3.40 },
+      { id: 'size6', dimensions: '18 × 25 × 4 cm', capacity: 'CSP6 - 1000 g', price: 4.90 },
+      { id: 'size7', dimensions: '20 × 30 × 5 cm', capacity: 'CSP7 - 2000 g', price: 6.55 },
+    ],
   },
   {
     id: 'rs002',
@@ -65,6 +82,15 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     inStock: true,
     image: IMAGES.goldStandyZipperPouch,
     ecoRating: 3,
+    sizeOptions: [
+      { id: 'size1', dimensions: '8.5 × 13.5 × 2.5 cm', capacity: 'CSP1 - 50 g', price: 1.50 },
+      { id: 'size2', dimensions: '10.5 × 17 × 3 cm', capacity: 'CSP2 - 100 g', price: 2.25 },
+      { id: 'size3', dimensions: '10.5 × 20.5 × 3.5 cm', capacity: 'CSP3 - 200 g', price: 2.65 },
+      { id: 'size4', dimensions: '13.5 × 20.5 × 3.5 cm', capacity: 'CSP4 - 250 g', price: 3.40 },
+      { id: 'size5', dimensions: '15 × 20.5 × 3.5 cm', capacity: 'CSP5 - 500 g', price: 3.85 },
+      { id: 'size6', dimensions: '18 × 25 × 4 cm', capacity: 'CSP6 - 1000 g', price: 5.50 },
+      { id: 'size7', dimensions: '20 × 30 × 5 cm', capacity: 'CSP7 - 2000 g', price: 7.35 },
+    ],
   },
   {
     id: 'rs003',
@@ -84,6 +110,15 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     inStock: true,
     image: IMAGES.silverStandyPouch,
     ecoRating: 3,
+    sizeOptions: [
+      { id: 'size1', dimensions: '8.5 × 13.5 × 2.5 cm', capacity: 'CSP1 - 50 g', price: 1.10 },
+      { id: 'size2', dimensions: '10.5 × 17 × 3 cm', capacity: 'CSP2 - 100 g', price: 1.75 },
+      { id: 'size3', dimensions: '10.5 × 20.5 × 3.5 cm', capacity: 'CSP3 - 200 g', price: 2.10 },
+      { id: 'size4', dimensions: '13.5 × 20.5 × 3.5 cm', capacity: 'CSP4 - 250 g', price: 2.75 },
+      { id: 'size5', dimensions: '15 × 20.5 × 3.5 cm', capacity: 'CSP5 - 500 g', price: 3.10 },
+      { id: 'size6', dimensions: '18 × 25 × 4 cm', capacity: 'CSP6 - 1000 g', price: 4.40 },
+      { id: 'size7', dimensions: '20 × 30 × 5 cm', capacity: 'CSP7 - 2000 g', price: 5.90 },
+    ],
   },
   {
     id: 'rs004',
@@ -103,6 +138,15 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     inStock: true,
     image: IMAGES.silverStandyZipperPouch,
     ecoRating: 3,
+    sizeOptions: [
+      { id: 'size1', dimensions: '8.5 × 13.5 × 2.5 cm', capacity: 'CSP1 - 50 g', price: 1.30 },
+      { id: 'size2', dimensions: '10.5 × 17 × 3 cm', capacity: 'CSP2 - 100 g', price: 2.00 },
+      { id: 'size3', dimensions: '10.5 × 20.5 × 3.5 cm', capacity: 'CSP3 - 200 g', price: 2.35 },
+      { id: 'size4', dimensions: '13.5 × 20.5 × 3.5 cm', capacity: 'CSP4 - 250 g', price: 3.05 },
+      { id: 'size5', dimensions: '15 × 20.5 × 3.5 cm', capacity: 'CSP5 - 500 g', price: 3.40 },
+      { id: 'size6', dimensions: '18 × 25 × 4 cm', capacity: 'CSP6 - 1000 g', price: 4.90 },
+      { id: 'size7', dimensions: '20 × 30 × 5 cm', capacity: 'CSP7 - 2000 g', price: 6.55 },
+    ],
   },
   {
     id: 'rs005',
@@ -122,6 +166,15 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     inStock: true,
     image: IMAGES.milkyStandyPouch,
     ecoRating: 4,
+    sizeOptions: [
+      { id: 'size1', dimensions: '8.5 × 13.5 × 2.5 cm', capacity: 'CSP1 - 50 g', price: 0.95 },
+      { id: 'size2', dimensions: '10.5 × 17 × 3 cm', capacity: 'CSP2 - 100 g', price: 1.55 },
+      { id: 'size3', dimensions: '10.5 × 20.5 × 3.5 cm', capacity: 'CSP3 - 200 g', price: 1.90 },
+      { id: 'size4', dimensions: '13.5 × 20.5 × 3.5 cm', capacity: 'CSP4 - 250 g', price: 2.50 },
+      { id: 'size5', dimensions: '15 × 20.5 × 3.5 cm', capacity: 'CSP5 - 500 g', price: 2.85 },
+      { id: 'size6', dimensions: '18 × 25 × 4 cm', capacity: 'CSP6 - 1000 g', price: 4.00 },
+      { id: 'size7', dimensions: '20 × 30 × 5 cm', capacity: 'CSP7 - 2000 g', price: 5.40 },
+    ],
   },
   {
     id: 'rs006',
@@ -141,6 +194,15 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     inStock: true,
     image: IMAGES.milkyStandyZipperPouch,
     ecoRating: 4,
+    sizeOptions: [
+      { id: 'size1', dimensions: '8.5 × 13.5 × 2.5 cm', capacity: 'CSP1 - 50 g', price: 1.15 },
+      { id: 'size2', dimensions: '10.5 × 17 × 3 cm', capacity: 'CSP2 - 100 g', price: 1.80 },
+      { id: 'size3', dimensions: '10.5 × 20.5 × 3.5 cm', capacity: 'CSP3 - 200 g', price: 2.15 },
+      { id: 'size4', dimensions: '13.5 × 20.5 × 3.5 cm', capacity: 'CSP4 - 250 g', price: 2.80 },
+      { id: 'size5', dimensions: '15 × 20.5 × 3.5 cm', capacity: 'CSP5 - 500 g', price: 3.15 },
+      { id: 'size6', dimensions: '18 × 25 × 4 cm', capacity: 'CSP6 - 1000 g', price: 4.50 },
+      { id: 'size7', dimensions: '20 × 30 × 5 cm', capacity: 'CSP7 - 2000 g', price: 6.10 },
+    ],
   },
   {
     id: 'rs007',
@@ -160,6 +222,15 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     inStock: true,
     image: IMAGES.kraftStandyPouchBrown,
     ecoRating: 5,
+    sizeOptions: [
+      { id: 'size1', dimensions: '8.5 × 13.5 × 2.5 cm', capacity: 'CSP1 - 50 g', price: 1.00 },
+      { id: 'size2', dimensions: '10.5 × 17 × 3 cm', capacity: 'CSP2 - 100 g', price: 1.65 },
+      { id: 'size3', dimensions: '10.5 × 20.5 × 3.5 cm', capacity: 'CSP3 - 200 g', price: 2.00 },
+      { id: 'size4', dimensions: '13.5 × 20.5 × 3.5 cm', capacity: 'CSP4 - 250 g', price: 2.65 },
+      { id: 'size5', dimensions: '15 × 20.5 × 3.5 cm', capacity: 'CSP5 - 500 g', price: 3.00 },
+      { id: 'size6', dimensions: '18 × 25 × 4 cm', capacity: 'CSP6 - 1000 g', price: 4.25 },
+      { id: 'size7', dimensions: '20 × 30 × 5 cm', capacity: 'CSP7 - 2000 g', price: 5.70 },
+    ],
   },
   {
     id: 'rs008',
@@ -179,6 +250,15 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     inStock: true,
     image: IMAGES.kraftWindowStandyPouchBrown,
     ecoRating: 5,
+    sizeOptions: [
+      { id: 'size1', dimensions: '8.5 × 13.5 × 2.5 cm', capacity: 'CSP1 - 50 g', price: 1.20 },
+      { id: 'size2', dimensions: '10.5 × 17 × 3 cm', capacity: 'CSP2 - 100 g', price: 1.90 },
+      { id: 'size3', dimensions: '10.5 × 20.5 × 3.5 cm', capacity: 'CSP3 - 200 g', price: 2.25 },
+      { id: 'size4', dimensions: '13.5 × 20.5 × 3.5 cm', capacity: 'CSP4 - 250 g', price: 2.95 },
+      { id: 'size5', dimensions: '15 × 20.5 × 3.5 cm', capacity: 'CSP5 - 500 g', price: 3.30 },
+      { id: 'size6', dimensions: '18 × 25 × 4 cm', capacity: 'CSP6 - 1000 g', price: 4.70 },
+      { id: 'size7', dimensions: '20 × 30 × 5 cm', capacity: 'CSP7 - 2000 g', price: 6.30 },
+    ],
   },
   {
     id: 'rs009',
@@ -198,6 +278,15 @@ const READY_STOCK_PRODUCTS: ReadyStockProduct[] = [
     inStock: true,
     image: IMAGES.kraftWindowStandyPouchWhite,
     ecoRating: 5,
+    sizeOptions: [
+      { id: 'size1', dimensions: '8.5 × 13.5 × 2.5 cm', capacity: 'CSP1 - 50 g', price: 1.30 },
+      { id: 'size2', dimensions: '10.5 × 17 × 3 cm', capacity: 'CSP2 - 100 g', price: 2.00 },
+      { id: 'size3', dimensions: '10.5 × 20.5 × 3.5 cm', capacity: 'CSP3 - 200 g', price: 2.35 },
+      { id: 'size4', dimensions: '13.5 × 20.5 × 3.5 cm', capacity: 'CSP4 - 250 g', price: 3.05 },
+      { id: 'size5', dimensions: '15 × 20.5 × 3.5 cm', capacity: 'CSP5 - 500 g', price: 3.40 },
+      { id: 'size6', dimensions: '18 × 25 × 4 cm', capacity: 'CSP6 - 1000 g', price: 4.90 },
+      { id: 'size7', dimensions: '20 × 30 × 5 cm', capacity: 'CSP7 - 2000 g', price: 6.55 },
+    ],
   },
 ];
 
