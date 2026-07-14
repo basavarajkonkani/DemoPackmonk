@@ -55,7 +55,7 @@ export const POUCH_TYPE_IMAGES = {
   'kraft-brown': IMAGES.kraftStandyPouchBrown,
   'kraft-window-brown': IMAGES.kraftWindowStandyPouchBrown,
   'kraft-window-white': IMAGES.kraftWindowStandyPouchWhite,
-  'clear-standy': IMAGES.silverStandyPouch,
+  'clear-standy': IMAGES.plainPouchWindow,
   'silver-standy': IMAGES.silverStandyPouch,
   'silver-zipper': IMAGES.silverStandyZipperPouch,
   'milky-standy': IMAGES.milkyStandyPouch,

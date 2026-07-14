@@ -136,6 +136,9 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
       }
     } else if (materialLower.includes('kraft')) {
       pouchType = 'kraft';
+    } else if (materialLower.includes('clear') || materialLower.includes('transparent') || materialLower.includes('pet')) {
+      // Check if it's a zipper pouch
+      pouchType = (productNameLower.includes('zipper') || product.hasZipper) ? 'clear-standy' : 'plain';
     } else if (materialLower.includes('gold')) {
       // Check if it's a zipper pouch
       pouchType = (productNameLower.includes('zipper') || product.hasZipper) ? 'gold-zipper' : 'gold-standy';
