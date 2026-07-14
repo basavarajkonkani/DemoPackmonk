@@ -246,6 +246,8 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          scrollEnabled
+          nestedScrollEnabled={true}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 4 }}
         >
           {CATEGORIES.map((cat) => (
@@ -273,6 +275,8 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          scrollEnabled
+          nestedScrollEnabled={true}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
         >
           {FEATURED.map((product) => (
