@@ -32,6 +32,7 @@ const AppContent: React.FC = () => {
   const [initialRoute, setInitialRoute] = useState<'Onboarding' | 'MainTabs' | null>(null);
   const [webFontsReady, setWebFontsReady] = useState(Platform.OS !== 'web');
   const [isReady, setIsReady] = useState(false);
+  const navigationRef = useRef<any>(null);
   
   // Use the useFonts hook for proper font loading
   const [fontsLoaded, fontError] = useFonts({
@@ -63,16 +64,19 @@ const AppContent: React.FC = () => {
   // This prevents the immediate redirect on app start
   useEffect(() => {
     // Only react to auth changes after we've set the initial route
-    if (!isReady) return;
+    if (!isReady || !navigationRef.current) return;
     
-    console.log('Auth state check - isAuthenticated:', isAuthenticated, 'initialRoute:', initialRoute);
+    console.log('Auth state check - isAuthenticated:', isAuthenticated);
     
     // Add a small delay to prevent race condition
     const timer = setTimeout(() => {
-      // If logged out, redirect to Onboarding regardless of current route
+      // If logged out, navigate to Onboarding using navigation ref
       if (!isAuthenticated) {
-        console.log('Auth state changed to unauthenticated - switching to Onboarding');
-        setInitialRoute('Onboarding');
+        console.log('Auth state changed to unauthenticated - navigating to Onboarding');
+        navigationRef.current?.reset({
+          index: 0,
+          routes: [{ name: 'Onboarding' }],
+        });
       }
     }, 50);
 
@@ -121,9 +125,9 @@ const AppContent: React.FC = () => {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer onReady={onLayoutRootView}>
+      <NavigationContainer ref={navigationRef} onReady={onLayoutRootView}>
         <StatusBar style="dark" backgroundColor="#FFFFFF" translucent={false} />
-        <RootNavigator key={initialRoute} initialRoute={initialRoute} />
+        <RootNavigator initialRoute={initialRoute} />
       </NavigationContainer>
     </SafeAreaProvider>
   );
