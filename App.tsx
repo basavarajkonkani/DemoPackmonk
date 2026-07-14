@@ -65,16 +65,19 @@ const AppContent: React.FC = () => {
     // Only react to auth changes after we've set the initial route
     if (!isReady) return;
     
+    console.log('Auth state check - isAuthenticated:', isAuthenticated, 'initialRoute:', initialRoute);
+    
     // Add a small delay to prevent race condition
     const timer = setTimeout(() => {
-      if (!isAuthenticated && initialRoute === 'MainTabs') {
+      // If logged out, redirect to Onboarding regardless of current route
+      if (!isAuthenticated) {
         console.log('Auth state changed to unauthenticated - switching to Onboarding');
         setInitialRoute('Onboarding');
       }
-    }, 100);
+    }, 50);
 
     return () => clearTimeout(timer);
-  }, [isAuthenticated, isReady, initialRoute]);
+  }, [isAuthenticated, isReady]);
 
   // For web, wait for FontAwesome to load from CDN
   useEffect(() => {

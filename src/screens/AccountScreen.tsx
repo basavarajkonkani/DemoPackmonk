@@ -95,10 +95,17 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               console.log('AsyncStorage cleared successfully');
               
               // Step 2: Dispatch logout action to clear Redux state
-              // This will trigger the App component to redirect to Onboarding
               console.log('Dispatching logout action...');
               dispatch(logout());
-              console.log('Sign out complete - App will handle navigation');
+              
+              // Step 3: Force reset navigation to Onboarding
+              setTimeout(() => {
+                console.log('Resetting navigation to Onboarding');
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Onboarding' }],
+                });
+              }, 100);
               
             } catch (error) {
               console.error('Error during sign out:', error);
