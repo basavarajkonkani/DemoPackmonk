@@ -113,7 +113,12 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
     <Container>
       <Header navigation={navigation} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: getScrollViewBottomPaddingWithTabBar() }}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        scrollEnabled={true}
+        nestedScrollEnabled={true}
+        contentContainerStyle={{ paddingBottom: getScrollViewBottomPaddingWithTabBar() + 20 }}
+      >
 
         {/* Profile Card */}
         <ProfileCard style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.07, shadowRadius: 12, elevation: 4 }}>
@@ -500,8 +505,8 @@ const SupportDivider = styled.View`height: 1px; background-color: #F9FAFB; margi
 
 const SignOutBtn = styled.TouchableOpacity`
   flex-direction: row; align-items: center; justify-content: center;
-  margin: 20px 16px 0; height: 50px; background-color: #FEF2F2;
+  margin: 20px 16px 12px; height: 50px; background-color: #FEF2F2;
   border-radius: 16px; border-width: 1px; border-color: #FECACA;
 `;
 const SignOutText = styled.Text`font-size: 15px; font-weight: 700; color: #EF4444;`;
-const AppVersion = styled.Text`text-align: center; font-size: 11px; color: #D1D5DB; margin-top: 16px;`;
+const AppVersion = styled.Text`text-align: center; font-size: 11px; color: #D1D5DB; margin-top: 16px; margin-bottom: 16px;`;
