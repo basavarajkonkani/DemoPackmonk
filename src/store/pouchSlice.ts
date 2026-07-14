@@ -52,9 +52,9 @@ export const POUCH_CATALOG:Record<PouchType,PouchProduct> = {
     description:'Metallic silver PET + Poly pouch without zipper.',
     material:'PET + Poly', micron:112,
     variants:variants([
-      ['50g','SSP1',9.5,13.5,2.5,1.35], ['100g','SSP2',10,17,3.5,2.10],
-      ['200g','SSP3',10.5,21,3.5,2.50], ['250g','SSP4',13.5,22,3.5,3.20],
-      ['500g','SSP5',16,23,3.5,3.60], ['1kg','SSP6',17,26.5,4,5.25],
+      ['50g','SSP1',8.5,13.5,2.5,1.35], ['100g','SSP2',10.5,17,3,2.10],
+      ['200g','SSP3',10.5,20.5,3.5,2.50], ['250g','SSP4',13.5,20.5,3.5,3.20],
+      ['500g','SSP5',15,20.5,3.5,3.60], ['1kg','SSP6',18,25,4,5.25],
       ['2kg','SSP7',20,30,5,6.96],
     ]),
   },
@@ -63,10 +63,10 @@ export const POUCH_CATALOG:Record<PouchType,PouchProduct> = {
     description:'Metallic silver PET + Poly pouch with resealable zipper.',
     material:'PET + Poly', micron:112,
     variants:variants([
-      ['50g','SSZ1',9.5,13.5,2.5,2.10], ['100g','SSZ2',10,17,3.5,2.55],
-      ['200g','SSZ3',10.5,21,3.5,3.05], ['250g','SSZ4',13.5,22,3.5,4.15],
-      ['500g','SSZ5',16,23,3.5,5.00], ['1kg','SSZ6',17,26.5,4,6.05],
-      ['2kg','SSZ7',20,30,5,8.10],
+      ['50g','SZSZP1',10,13.5,2.5,2.10], ['100g','SZSZP2',10,17,3.5,2.55],
+      ['200g','SZSZP3',10.5,21,3.5,3.05], ['250g','SZSZP4',13.5,22,3.5,4.15],
+      ['500g','SZSZP5',16,23,3.5,5.00], ['1kg','SZSZP6',17,26.5,4,6.05],
+      ['2kg','SZSZP7',20,30,5,8.10],
     ]),
   },
 
@@ -76,8 +76,8 @@ export const POUCH_CATALOG:Record<PouchType,PouchProduct> = {
     description:'Milky white PET + Poly pouch without zipper.',
     material:'PET + Poly', micron:112,
     variants:variants([
-      ['100g','MSP1',10,13.5,2.5,2.10], ['250g','MSP2',10.5,21,3.5,3.25],
-      ['500g','MSP3',13.5,22,3.5,3.60], ['1kg','MSP4',16,23,3.5,5.25],
+      ['100g','MSP1',10.5,17,3,2.1], ['250g','MSP2',13.5,20.5,3.5,3.25],
+      ['500g','MSP3',15,20.5,3.5,3.60], ['1kg','MSP4',18,25,4,5.25],
     ]),
   },
   'milky-zipper':{
@@ -85,8 +85,8 @@ export const POUCH_CATALOG:Record<PouchType,PouchProduct> = {
     description:'Milky white PET + Poly pouch with resealable zipper.',
     material:'PET + Poly', micron:112,
     variants:variants([
-      ['100g','MSZ1',10,13.5,2.5,2.55], ['250g','MSZ2',10.5,21,3.5,4.15],
-      ['500g','MSZ3',13.5,22,3.5,5.00], ['1kg','MSZ4',16,23,3.5,6.05],
+      ['100g','MSZP1',10,17,3.5,2.55], ['250g','MSZP2',13.5,22,3.5,4.15],
+      ['500g','MSZP3',16,23,3.5,5.00], ['1kg','MSZP4',17,26.5,4,6.05],
     ]),
   },
 
@@ -96,8 +96,8 @@ export const POUCH_CATALOG:Record<PouchType,PouchProduct> = {
     description:'Metallic gold PET + Poly pouch without zipper.',
     material:'PET + Poly', micron:112,
     variants:variants([
-      ['100g','GSP1',10,13.5,2.5,2.45], ['250g','GSP2',10.5,21,3.5,3.85],
-      ['500g','GSP3',13.5,22,3.5,4.25], ['1kg','GSP4',16,23,3.5,6.15],
+      ['100g','GSP1',10.5,17,3,2.45], ['250g','GSP2',13.5,20.5,3.5,3.85],
+      ['500g','GSP3',15,20.5,3.5,4.25], ['1kg','GSP4',18,25,4,6.15],
     ]),
   },
   'gold-zipper':{
@@ -105,8 +105,8 @@ export const POUCH_CATALOG:Record<PouchType,PouchProduct> = {
     description:'Metallic gold PET + Poly pouch with resealable zipper.',
     material:'PET + Poly', micron:112,
     variants:variants([
-      ['100g','GSZP1',10,13.5,2.5,3.15], ['250g','GSZP2',10.5,21,3.5,5.15],
-      ['500g','GSZP3',13.5,22,3.5,6.25], ['1kg','GSZP4',16,23,3.5,7.60],
+      ['100g','GSZP1',10.5,17,3,3.15], ['250g','GSZP2',13.5,22,3.5,5.15],
+      ['500g','GSZP3',16,23,3.5,6.25], ['1kg','GSZP4',17,26.5,4,7.60],
     ]),
   },
 
@@ -192,10 +192,10 @@ export const POUCH_CATALOG:Record<PouchType,PouchProduct> = {
     description:'Brown Kraft Paper + Poly pouch with window and zipper.',
     material:'Kraft Paper + Poly', micron:135,
     variants:variants([
-      ['50g','KWBP1',10,16,3,4.25], ['100g','KWBP2',10.5,19,3,5.42],
-      ['250g','KWBP3',15,21,4,5.75], ['500g','KWBP4',15,24,4,7.16],
-      ['1kg','KWBP5',18,26,4,8.83], ['2kg','KWBP6',20,32,4,11.58],
-      ['3kg','KWBP7',22,40,4,22.66],
+      ['50g','KWSP1',10,15,3,4.25], ['100g','KWSP2',12,20,4,5.42],
+      ['250g','KWSP3',14,20,4,5.75], ['500g','KWSP4',16,22,4,7.16],
+      ['1kg','KWSP5',18,26,4,8.83], ['2kg','KWSP6',20,30,5,11.58],
+      ['3kg','KWSP7',30,40,6,22.66],
     ]),
   },
   'kraft-window-white':{
@@ -203,8 +203,8 @@ export const POUCH_CATALOG:Record<PouchType,PouchProduct> = {
     description:'White Kraft Paper + Poly pouch with window and zipper.',
     material:'Kraft Paper + Poly', micron:135,
     variants:variants([
-      ['100g','KWWP1',10.5,19,3,6.41], ['250g','KWWP2',15,21,4,7.50],
-      ['500g','KWWP3',15,24,4,8.50], ['1kg','KWWP4',18,26,4,10.80],
+      ['100g','KWSP1',12,20,4,6.41], ['250g','KWSP2',14,20,4,7.50],
+      ['500g','KWSP3',15,22,4,8.50], ['1kg','KWSP4',18,26,4,10.80],
     ]),
   },
 
