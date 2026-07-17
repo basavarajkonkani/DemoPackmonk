@@ -1,0 +1,21 @@
+# ============================================
+# BUYER APP DEPLOYMENT
+# Use this file when deploying buyer app to Netlify
+# ============================================
+
+[build]
+  command   = "npm install && npm run build"
+  publish   = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback — all routes serve index.html
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# Environment variables (set these in Netlify UI)
+# VITE_API_URL=https://your-api.com
+# VITE_ADMIN_URL=https://your-admin-site.netlify.app
