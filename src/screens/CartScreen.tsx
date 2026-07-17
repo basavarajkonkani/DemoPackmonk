@@ -199,7 +199,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={{ 
           padding: 16, 
-          paddingBottom: getScrollViewBottomPaddingWithTabBarAndFooter() + 12,
+          paddingBottom: 140,
           alignItems: 'center' 
         }} 
         style={{ flex: 1 }}
@@ -466,10 +466,11 @@ const GrandVal = styled.Text`font-size: 24px; font-weight: 800; color: #111827; 
 /* Checkout bar */
 const CheckoutBar = styled.View`
   position: absolute;
-  bottom: ${Platform.select({ ios: '85px', android: '65px', default: '70px' })};
+  bottom: 0;
   left: 0;
   right: 0;
-  padding: 12px 16px ${Platform.OS === 'ios' ? '12px' : '12px'};
+  padding: 12px 16px;
+  padding-bottom: ${Platform.select({ ios: '36px', android: '20px', default: '20px' })};
   background-color: #FFFFFF;
   border-top-width: 1px;
   border-top-color: #E5E7EB;
