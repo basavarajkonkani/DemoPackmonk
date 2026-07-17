@@ -40,36 +40,26 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [editCompany, setEditCompany] = useState(company);
   const [editStreet, setEditStreet] = useState(street);
   const [editGst, setEditGst] = useState(gstNumber);
+  const [verifiedPhone, setVerifiedPhone] = useState<string | null>(null);
+  const [phoneVerified, setPhoneVerified] = useState(false);
 
-  // Check authentication on screen focus
+  // Check if mobile verification is needed on screen focus
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      if (!isAuthenticated) {
-        // Show login/signup modal or navigate to auth screen
-        Alert.alert(
-          'Authentication Required',
-          'You need to log in or sign up to proceed with checkout.',
-          [
-            {
-              text: 'Sign In',
-              onPress: () => navigation.navigate('SignIn', { returnScreen: 'Checkout' }),
-            },
-            {
-              text: 'Sign Up',
-              onPress: () => navigation.navigate('SignUp', { returnScreen: 'Checkout' }),
-            },
-            {
-              text: 'Continue Browsing',
-              onPress: () => navigation.goBack(),
-              style: 'cancel',
-            },
-          ]
-        );
+      // Check route params for verification result
+      const params = navigation.getState().routes[navigation.getState().routes.length - 1].params;
+      
+      if (params?.phoneVerified && params?.verifiedPhone) {
+        setVerifiedPhone(params.verifiedPhone);
+        setPhoneVerified(true);
+      } else if (!phoneVerified) {
+        // If not verified, redirect to mobile verification
+        navigation.replace('MobileVerification');
       }
     });
 
     return unsubscribe;
-  }, [isAuthenticated, navigation]);
+  }, [navigation, phoneVerified]);
 
   const handlePlaceOrder = () => {
     if (!company.trim()) { Alert.alert('Missing', 'Enter company / address name.'); return; }
@@ -123,6 +113,23 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <NavTitle>Checkout</NavTitle>
         <View style={{ width: 36 }} />
       </NavBar>
+
+      {/* Mobile Verification Status */}
+      {phoneVerified && verifiedPhone && (
+        <VerificationStatusBar>
+          <VerificationStatusContent>
+            <FontAwesome5 name="check-circle" size={16} color="#10B981" style={{ marginRight: 8 }} />
+            <VerificationStatusText>Phone verified: {verifiedPhone}</VerificationStatusText>
+            <ChangePhoneBtn onPress={() => {
+              setPhoneVerified(false);
+              setVerifiedPhone(null);
+              navigation.replace('MobileVerification');
+            }}>
+              <ChangePhoneText>Change</ChangePhoneText>
+            </ChangePhoneBtn>
+          </VerificationStatusContent>
+        </VerificationStatusBar>
+      )}
 
       {/* Address Edit Modal */}
       <Modal visible={showAddressModal} animationType="slide" transparent>
@@ -333,6 +340,39 @@ const NavBtn = styled.TouchableOpacity`
   border-width: 1px; border-color: #E5E7EB;
 `;
 const NavTitle = styled.Text`font-size: 17px; font-weight: 700; color: #111827;`;
+
+const VerificationStatusBar = styled.View`
+  background-color: #ECFDF5;
+  border-bottom-width: 1px;
+  border-bottom-color: #D1FAE5;
+  padding: 12px 16px;
+`;
+
+const VerificationStatusContent = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const VerificationStatusText = styled.Text`
+  font-size: 13px;
+  font-weight: 500;
+  color: #065F46;
+  flex: 1;
+  margin-left: 8px;
+`;
+
+const ChangePhoneBtn = styled.TouchableOpacity`
+  padding: 6px 12px;
+  background-color: #D1FAE5;
+  border-radius: 6px;
+`;
+
+const ChangePhoneText = styled.Text`
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+`;
 
 const SectionCard = styled.View`
   background-color: #FFFFFF; border-radius: 14px; padding: 16px;

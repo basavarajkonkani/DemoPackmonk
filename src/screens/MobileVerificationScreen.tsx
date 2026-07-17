@@ -75,8 +75,10 @@ const MobileVerificationScreen: React.FC<MobileVerificationScreenProps> = ({ nav
       const cleanPhone = phone.replace(/\s+/g, '').replace(/^\+91/, '');
       const formattedPhone = `+91 ${cleanPhone.substring(0, 5)} ${cleanPhone.substring(5)}`;
 
-      // Store phone in a way that checkout screen can access it
-      // You can use Redux or pass via navigation params
+      // Navigate back to Checkout with verified phone details
+      navigation.goBack();
+      
+      // Pass the verified phone to Checkout screen
       navigation.navigate('Checkout', { 
         verifiedPhone: formattedPhone,
         phoneVerified: true 
