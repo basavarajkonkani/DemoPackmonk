@@ -319,11 +319,11 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
       {/* Checkout Bar */}
       <CheckoutBar>
-        <ContinueShoppingLink onPress={() => navigation.navigate('PreCheckoutInfo')} activeOpacity={0.8}>
+        <ContinueShoppingLink onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })} activeOpacity={0.8}>
           <FontAwesome5 name="arrow-left" size={12} color="#0F8A3C" style={{ marginRight: 6 }} />
           <ContinueShoppingText>Continue Shopping</ContinueShoppingText>
         </ContinueShoppingLink>
-        <CheckoutBtn onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })} activeOpacity={0.9}>
+        <CheckoutBtn onPress={() => navigation.navigate('Checkout')} activeOpacity={0.9}>
           <CheckoutLabel>Proceed to Checkout</CheckoutLabel>
         </CheckoutBtn>
       </CheckoutBar>
