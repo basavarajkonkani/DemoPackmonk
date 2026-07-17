@@ -1,0 +1,122 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Order, OrderNote } from '../../types';
+import { mockOrders } from '../../data/mockData';
+
+interface OrdersState {
+  items: Order[];
+  selectedOrder: Order | null;
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: OrdersState = {
+  items: mockOrders,
+  selectedOrder: null,
+  loading: false,
+  error: null,
+};
+
+const ordersSlice = createSlice({
+  name: 'orders',
+  initialState,
+  reducers: {
+    setOrders: (state, action: PayloadAction<Order[]>) => {
+      state.items = action.payload;
+      state.error = null;
+    },
+    updateOrder: (state, action: PayloadAction<Order>) => {
+      const index = state.items.findIndex((o) => o.id === action.payload.id);
+      if (index !== -1) {
+        state.items[index] = action.payload;
+        if (state.selectedOrder?.id === action.payload.id) {
+          state.selectedOrder = action.payload;
+        }
+      }
+    },
+    updateOrderStatus: (state, action: PayloadAction<{ orderId: string; status: any }>) => {
+      const order = state.items.find((o) => o.id === action.payload.orderId);
+      if (order) {
+        order.status = action.payload.status;
+        order.updatedAt = new Date().toISOString();
+        if (state.selectedOrder?.id === action.payload.orderId) {
+          state.selectedOrder = order;
+        }
+      }
+    },
+    updateProductionStage: (state, action: PayloadAction<{ orderId: string; stage: any }>) => {
+      const order = state.items.find((o) => o.id === action.payload.orderId);
+      if (order) {
+        order.productionStage = action.payload.stage;
+        order.updatedAt = new Date().toISOString();
+        if (state.selectedOrder?.id === action.payload.orderId) {
+          state.selectedOrder = order;
+        }
+      }
+    },
+    addOrderNote: (state, action: PayloadAction<{ orderId: string; note: OrderNote }>) => {
+      const order = state.items.find((o) => o.id === action.payload.orderId);
+      if (order) {
+        if (!order.notes) {
+          order.notes = [];
+        }
+        order.notes.push(action.payload.note);
+        order.updatedAt = new Date().toISOString();
+        if (state.selectedOrder?.id === action.payload.orderId) {
+          state.selectedOrder = order;
+        }
+      }
+    },
+    approveArtwork: (state, action: PayloadAction<{ orderId: string; artworkId: string }>) => {
+      const order = state.items.find((o) => o.id === action.payload.orderId);
+      if (order && order.artworks) {
+        const artwork = order.artworks.find((a) => a.id === action.payload.artworkId);
+        if (artwork) {
+          artwork.status = 'approved';
+          order.productionStage = 'artwork_approved';
+          order.updatedAt = new Date().toISOString();
+          if (state.selectedOrder?.id === action.payload.orderId) {
+            state.selectedOrder = order;
+          }
+        }
+      }
+    },
+    rejectArtwork: (state, action: PayloadAction<{ orderId: string; artworkId: string; feedback: string }>) => {
+      const order = state.items.find((o) => o.id === action.payload.orderId);
+      if (order && order.artworks) {
+        const artwork = order.artworks.find((a) => a.id === action.payload.artworkId);
+        if (artwork) {
+          artwork.status = 'rejected';
+          artwork.feedback = action.payload.feedback;
+          order.updatedAt = new Date().toISOString();
+          if (state.selectedOrder?.id === action.payload.orderId) {
+            state.selectedOrder = order;
+          }
+        }
+      }
+    },
+    selectOrder: (state, action: PayloadAction<Order | null>) => {
+      state.selectedOrder = action.payload;
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
+    },
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
+  },
+});
+
+export const { 
+  setOrders, 
+  updateOrder, 
+  updateOrderStatus,
+  updateProductionStage,
+  addOrderNote,
+  approveArtwork,
+  rejectArtwork,
+  selectOrder, 
+  setLoading, 
+  setError 
+} = ordersSlice.actions;
+
+export default ordersSlice.reducer;

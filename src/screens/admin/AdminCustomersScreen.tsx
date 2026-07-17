@@ -1,60 +1,19 @@
 import React, { useState } from 'react';
-import { ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { ScrollView, TextInput, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useAppDispatch, useAppSelector } from '../../store';
+import { updateCustomerCredit } from '../../store/adminSlice';
 
 const AdminCustomersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
+  const customers = useAppSelector((state) => state.admin.customers);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'approved' | 'pending'>('all');
 
-  const customers = [
-    {
-      id: '1',
-      name: 'ABC Traders',
-      email: 'contact@abctraders.com',
-      phone: '+91 98765 43210',
-      gst: '29ABCDE1234F1Z5',
-      businessName: 'ABC Trading Co.',
-      creditLimit: 50000,
-      creditUsed: 12000,
-      creditStatus: 'approved' as const,
-      lifetimeValue: 125000,
-      totalOrders: 45,
-      registeredAt: '2023-06-15',
-    },
-    {
-      id: '2',
-      name: 'XYZ Foods',
-      email: 'info@xyzfoods.com',
-      phone: '+91 98765 43211',
-      gst: '27XYZAB5678P1Q2',
-      businessName: 'XYZ Foods Ltd',
-      creditLimit: 30000,
-      creditUsed: 8500,
-      creditStatus: 'approved' as const,
-      lifetimeValue: 98000,
-      totalOrders: 38,
-      registeredAt: '2023-08-20',
-    },
-    {
-      id: '3',
-      name: 'Modern Spices',
-      email: 'sales@modernspices.com',
-      phone: '+91 98765 43212',
-      gst: null,
-      businessName: 'Modern Spices',
-      creditLimit: 0,
-      creditUsed: 0,
-      creditStatus: 'pending' as const,
-      lifetimeValue: 15000,
-      totalOrders: 12,
-      registeredAt: '2024-01-05',
-    },
-  ];
-
-  const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = 
+  const filteredCustomers = customers.filter((customer) => {
+    const matchesSearch =
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.businessName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -68,9 +27,21 @@ const AdminCustomersScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
       `Set credit limit for ${customer.name}`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Approve', onPress: (limit?: string) => {
-          Alert.alert('Success', `Credit limit of $${limit} approved for ${customer.name}`);
-        }},
+        {
+          text: 'Approve',
+          onPress: (limit?: string) => {
+            if (limit && !isNaN(parseFloat(limit))) {
+              dispatch(
+                updateCustomerCredit({
+                  id: customer.id,
+                  creditLimit: parseFloat(limit),
+                  creditStatus: 'approved',
+                })
+              );
+              Alert.alert('Success', `Credit limit of ₹${limit} approved`);
+            }
+          },
+        },
       ],
       'plain-text',
       '50000',

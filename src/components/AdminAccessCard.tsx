@@ -71,7 +71,6 @@ const Card = styled.TouchableOpacity`
 `;
 
 const CardBackground = styled.View`
-  background: linear-gradient(135deg, #0F8A3C 0%, #15A34A 100%);
   background-color: #0F8A3C;
   padding: 24px;
   position: relative;
