@@ -53,10 +53,9 @@ const AdminAnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
         ))}
       </PeriodSelector>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Key Metrics */}
-        <MetricsSection>
-          <MetricsGrid>
+        <MetricsGrid>
           <MetricCard>
             <MetricIcon bgColor="#DCFCE7">
               <FontAwesome5 name="dollar-sign" size={18} color="#0F8A3C" />
@@ -93,7 +92,6 @@ const AdminAnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             <MetricChange positive>+5.4%</MetricChange>
           </MetricCard>
         </MetricsGrid>
-        </MetricsSection>
 
         {/* Top Products */}
         <SectionTitle>Most Sold Products</SectionTitle>
@@ -205,265 +203,101 @@ const AdminAnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 export default AdminAnalyticsScreen;
 
 const Header = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 12px;
-  background-color: #FFFFFF;
-  border-bottom-width: 1px;
-  border-bottom-color: #E5E7EB;
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background-color: #FFFFFF;
+  border-bottom-width: 1px; border-bottom-color: #E5E7EB;
 `;
-
-const BackButton = styled.TouchableOpacity`
-  width: 40px;
-  height: 40px;
-  align-items: center;
-  justify-content: center;
-`;
-
-const HeaderTitle = styled.Text`
-  font-size: 16px;
-  font-weight: 700;
-  color: #1F2937;
-`;
-
+const BackButton = styled.TouchableOpacity`width: 40px; height: 40px; align-items: center; justify-content: center;`;
+const HeaderTitle = styled.Text`font-size: 18px; font-weight: 700; color: #1F2937;`;
 const ExportButton = styled.TouchableOpacity`
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background-color: #DCFCE7;
-  align-items: center;
-  justify-content: center;
+  width: 40px; height: 40px; border-radius: 12px;
+  background-color: #DCFCE7; align-items: center; justify-content: center;
 `;
 
 const PeriodSelector = styled.View`
-  flex-direction: row;
-  background-color: #FFFFFF;
-  padding: 4px;
-  margin: 8px 12px;
-  border-radius: 10px;
-  border-width: 1px;
-  border-color: #E5E7EB;
+  flex-direction: row; background-color: #FFFFFF;
+  padding: 4px; margin: 16px; border-radius: 12px;
+  border-width: 1px; border-color: #E5E7EB;
 `;
-
 const PeriodButton = styled.TouchableOpacity<{ active: boolean }>`
-  flex: 1;
-  padding: 8px 4px;
-  border-radius: 8px;
+  flex: 1; padding: 10px; border-radius: 8px;
   background-color: ${({ active }) => active ? '#0F8A3C' : 'transparent'};
 `;
-
 const PeriodButtonText = styled.Text<{ active: boolean }>`
-  font-size: 11px;
-  font-weight: 700;
-  text-align: center;
+  font-size: 13px; font-weight: 700; text-align: center;
   color: ${({ active }) => active ? '#FFFFFF' : '#6B7280'};
 `;
 
 const MetricsGrid = styled.View`
-  flex-direction: row;
-  flex-wrap: wrap;
-  padding: 0 0px;
-  margin: -3px;
+  flex-direction: row; flex-wrap: wrap; padding: 0 12px;
 `;
-
 const MetricCard = styled.View`
-  width: 48%;
-  background-color: #FFFFFF;
-  border-radius: 12px;
-  padding: 10px;
-  margin: 3px;
-  border-width: 1px;
-  border-color: #E5E7EB;
-  shadow-color: rgba(0, 0, 0, 0.04);
-  shadow-offset: 0px 1px;
-  shadow-opacity: 1;
-  shadow-radius: 2;
-  elevation: 1;
+  width: 48%; background-color: #FFFFFF; border-radius: 12px;
+  padding: 16px; margin: 4px; border-width: 1px; border-color: #F3F4F6;
 `;
-
 const MetricIcon = styled.View<{ bgColor: string }>`
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
+  width: 40px; height: 40px; border-radius: 12px;
   background-color: ${({ bgColor }) => bgColor};
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 6px;
+  align-items: center; justify-content: center; margin-bottom: 12px;
 `;
-
-const MetricValue = styled.Text`
-  font-size: 18px;
-  font-weight: 900;
-  color: #111827;
-  margin-bottom: 2px;
-`;
-
-const MetricLabel = styled.Text`
-  font-size: 10px;
-  color: #4b5563;
-  margin-bottom: 4px;
-  font-weight: 700;
-  text-transform: uppercase;
-`;
-
+const MetricValue = styled.Text`font-size: 22px; font-weight: 800; color: #111827; margin-bottom: 4px;`;
+const MetricLabel = styled.Text`font-size: 11px; color: #9CA3AF; margin-bottom: 8px;`;
 const MetricChange = styled.Text<{ positive?: boolean }>`
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 11px; font-weight: 700;
   color: ${({ positive }) => positive ? '#0F8A3C' : '#6B7280'};
 `;
 
 const SectionTitle = styled.Text`
-  font-size: 15px;
-  font-weight: 800;
-  color: #111827;
-  padding: 10px 8px 8px;
-  letter-spacing: 0.3px;
+  font-size: 16px; font-weight: 700; color: #111827;
+  padding: 16px 16px 12px; text-transform: uppercase; letter-spacing: 0.5px;
 `;
 
 const DataCard = styled.View`
-  background-color: #FFFFFF;
-  border-radius: 12px;
-  padding: 8px;
-  margin: 0 8px 6px;
-  border-width: 1px;
-  border-color: #E5E7EB;
-  shadow-color: rgba(0, 0, 0, 0.04);
-  shadow-offset: 0px 1px;
-  shadow-opacity: 1;
-  shadow-radius: 2;
-  elevation: 1;
+  background-color: #FFFFFF; border-radius: 16px; padding: 12px;
+  margin: 0 16px 16px; border-width: 1px; border-color: #F3F4F6;
 `;
-
 const DataRow = styled.View`
-  flex-direction: row;
-  align-items: center;
-  padding: 8px;
-  border-bottom-width: 1px;
-  border-bottom-color: #F9FAFB;
+  flex-direction: row; align-items: center; padding: 12px;
+  border-bottom-width: 1px; border-bottom-color: #F9FAFB;
 `;
-
 const RankBadge = styled.View<{ warn?: boolean }>`
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  margin-right: 8px;
-  background-color: ${({ warn }) => warn ? '#FEE2E2' : '#D1FAE5'};
-  align-items: center;
-  justify-content: center;
+  width: 32px; height: 32px; border-radius: 10px; margin-right: 12px;
+  background-color: ${({ warn }) => warn ? '#FEE2E2' : '#DCFCE7'};
+  align-items: center; justify-content: center;
 `;
-
 const RankText = styled.Text<{ warn?: boolean }>`
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 13px; font-weight: 800;
   color: ${({ warn }) => warn ? '#EF4444' : '#0F8A3C'};
 `;
-
-const DataInfo = styled.View`
-  flex: 1;
-`;
-
-const DataName = styled.Text`
-  font-size: 12px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 2px;
-`;
-
-const DataMeta = styled.Text`
-  font-size: 10px;
-  color: #9CA3AF;
-`;
-
+const DataInfo = styled.View`flex: 1;`;
+const DataName = styled.Text`font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 4px;`;
+const DataMeta = styled.Text`font-size: 11px; color: #9CA3AF;`;
 const TrendIcon = styled.View``;
-
-const CustomerValue = styled.Text`
-  font-size: 12px;
-  font-weight: 700;
-  color: #0F8A3C;
-`;
+const CustomerValue = styled.Text`font-size: 14px; font-weight: 700; color: #0F8A3C;`;
 
 const CityRow = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px;
-  border-bottom-width: 1px;
-  border-bottom-color: #F9FAFB;
+  flex-direction: row; justify-content: space-between; align-items: center;
+  padding: 12px; border-bottom-width: 1px; border-bottom-color: #F9FAFB;
 `;
-
-const CityInfo = styled.View`
-  flex-direction: row;
-  align-items: center;
-`;
-
+const CityInfo = styled.View`flex-direction: row; align-items: center;`;
 const CityIcon = styled.View`
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background-color: #F3F4F6;
-  align-items: center;
-  justify-content: center;
-  margin-right: 8px;
+  width: 32px; height: 32px; border-radius: 10px;
+  background-color: #F3F4F6; align-items: center; justify-content: center; margin-right: 12px;
 `;
-
-const CityName = styled.Text`
-  font-size: 12px;
-  font-weight: 600;
-  color: #111827;
-`;
-
-const CityStats = styled.View`
-  align-items: flex-end;
-`;
-
-const CityOrders = styled.Text`
-  font-size: 10px;
-  color: #6B7280;
-  margin-bottom: 1px;
-`;
-
-const CityRevenue = styled.Text`
-  font-size: 12px;
-  font-weight: 700;
-  color: #0F8A3C;
-`;
+const CityName = styled.Text`font-size: 14px; font-weight: 600; color: #111827;`;
+const CityStats = styled.View`align-items: flex-end;`;
+const CityOrders = styled.Text`font-size: 12px; color: #6B7280; margin-bottom: 2px;`;
+const CityRevenue = styled.Text`font-size: 14px; font-weight: 700; color: #0F8A3C;`;
 
 const ConversionCard = styled.View`
-  background-color: #FFFFFF;
-  border-radius: 12px;
-  padding: 10px;
-  margin: 0 8px 6px;
-  border-width: 1px;
-  border-color: #E5E7EB;
-  shadow-color: rgba(0, 0, 0, 0.04);
-  shadow-offset: 0px 1px;
-  shadow-opacity: 1;
-  shadow-radius: 2;
-  elevation: 1;
+  background-color: #FFFFFF; border-radius: 16px; padding: 16px;
+  margin: 0 16px 12px; border-width: 1px; border-color: #F3F4F6;
 `;
-
 const ConversionRow = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  margin-bottom: 6px;
+  flex-direction: row; justify-content: space-between; margin-bottom: 8px;
 `;
-
-const ConversionLabel = styled.Text`
-  font-size: 11px;
-  color: #6B7280;
-  font-weight: 600;
-`;
-
-const ConversionValue = styled.Text`
-  font-size: 13px;
-  font-weight: 700;
-  color: #111827;
-`;
-
-const MetricsSection = styled.View`
-  padding: 8px;
-`;
+const ConversionLabel = styled.Text`font-size: 13px; color: #6B7280;`;
+const ConversionValue = styled.Text`font-size: 15px; font-weight: 700; color: #111827;`;
 const ProgressBar = styled.View`
   height: 8px; background-color: #F3F4F6; border-radius: 4px; overflow: hidden;
 `;

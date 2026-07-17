@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, Alert, Switch, Linking } from 'react-native';
+import { ScrollView, View, Alert, Switch, Linking, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import { CommonActions } from '@react-navigation/native';
 import Header from '../components/Header';
@@ -7,7 +7,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppSelector, useAppDispatch } from '../store';
 import { selectOrdersList, selectTotalBusinessSpending } from '../store/ordersSlice';
 import { logout } from '../store/authSlice';
-import { SUPPORT_EMAIL, WHATSAPP_NUMBER, AUTH_KEY, ONBOARDING_KEY } from '../constants';
+import { SUPPORT_EMAIL, SUPPORT_PHONE, WHATSAPP_NUMBER, AUTH_KEY, ONBOARDING_KEY } from '../constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getScrollViewBottomPaddingWithTabBar } from '../utils/layoutUtils';
 
@@ -23,54 +23,17 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const [ecoTarget, setEcoTarget] = useState(500);
   const [notifToggles, setNotifToggles] = useState([true, true, true, true, true]);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
-  const handleSignOut = () => {
-    console.log('=== SIGN OUT INITIATED ===');
-    setShowLogoutConfirm(true);
-  };
-
-  const confirmLogout = async () => {
-    console.log('=== LOGOUT CONFIRMED ===');
-    setShowLogoutConfirm(false);
-    
-    try {
-      // Dispatch logout FIRST
-      console.log('>>> Dispatching logout');
-      dispatch(logout());
-      
-      // Clear storage async in background
-      AsyncStorage.multiRemove([AUTH_KEY, ONBOARDING_KEY]).catch(e => 
-        console.error('Storage clear error:', e)
-      );
-      
-      // Navigate IMMEDIATELY using CommonActions
-      console.log('>>> Executing navigation reset');
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: 'MainTabs' }],
-        })
-      );
-      
-      console.log('=== LOGOUT COMPLETE ===');
-    } catch (error) {
-      console.error('Logout error:', error);
-      Alert.alert('Error', 'Failed to sign out');
-    }
-  };
-
-  const cancelLogout = () => {
-    console.log('Logout cancelled');
-    setShowLogoutConfirm(false);
-  };
+  const [showNotifs, setShowNotifs] = useState(false);
 
   const orders = useAppSelector(selectOrdersList);
   const totalSpent = useAppSelector(selectTotalBusinessSpending);
   const authUser = useAppSelector((state) => state.auth.user);
+  
+  // Get user role from auth state, default to 'user'
+  const userRole = authUser?.role || 'user';
 
-  // Menu items for buyer app only (Admin removed)
-  const MENU_ITEMS = [
+  // Role-based menu items
+  const USER_MENU_ITEMS = [
     { icon: 'tachometer-alt', label: 'Dashboard', badge: null, color: '#DBEAFE', iconColor: '#3B82F6', screen: 'Dashboard' },
     { icon: 'clipboard-list', label: 'Order History', badge: null, color: '#DCFCE7', iconColor: '#0F8A3C', screen: 'Orders' },
     { icon: 'file-invoice-dollar', label: 'Invoices & Billing', badge: '2', color: '#FEF3C7', iconColor: '#D97706', screen: 'Invoices' },
@@ -84,6 +47,23 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     { icon: 'bell', label: 'Notifications', badge: '5', color: '#FEE2E2', iconColor: '#EF4444', screen: 'Notifications' },
   ];
 
+  const ADMIN_MENU_ITEMS = [
+    { icon: 'tachometer-alt', label: 'Admin Dashboard', badge: null, color: '#DBEAFE', iconColor: '#3B82F6', screen: 'AdminDashboard' },
+    { icon: 'warehouse', label: 'Inventory', badge: '15', color: '#E0E7FF', iconColor: '#6366F1', screen: 'AdminInventory' },
+    { icon: 'dollar-sign', label: 'Price Management', badge: null, color: '#FEF3C7', iconColor: '#D97706', screen: 'AdminPricing' },
+    { icon: 'box', label: 'Manage Products', badge: null, color: '#DCFCE7', iconColor: '#10B981', screen: 'AdminProducts' },
+    { icon: 'clipboard-list', label: 'Orders', badge: '12', color: '#DCFCE7', iconColor: '#10B981', screen: 'AdminOrders' },
+    { icon: 'users', label: 'Customers', badge: null, color: '#FCE7F3', iconColor: '#EC4899', screen: 'AdminCustomers' },
+    { icon: 'image', label: 'Artwork Review', badge: '3', color: '#FEF3C7', iconColor: '#F59E0B', screen: 'AdminArtwork' },
+    { icon: 'chart-line', label: 'Analytics', badge: null, color: '#FEE2E2', iconColor: '#EF4444', screen: 'AdminAnalytics' },
+    { icon: 'tags', label: 'Promotions', badge: null, color: '#FCE7F3', iconColor: '#EC4899', screen: 'AdminPromotions' },
+    { icon: 'images', label: 'Banners', badge: null, color: '#E0E7FF', iconColor: '#8B5CF6', screen: 'AdminBanners' },
+    { icon: 'headset', label: 'Support Tickets', badge: '8', color: '#DBEAFE', iconColor: '#3B82F6', screen: 'AdminSupport' },
+    { icon: 'bell', label: 'Notifications', badge: '5', color: '#FEE2E2', iconColor: '#EF4444', screen: 'Notifications' },
+  ];
+
+  const MENU_ITEMS = userRole === 'admin' ? ADMIN_MENU_ITEMS : USER_MENU_ITEMS;
+
   // CO2 savings: 0.3kg per order as a rough estimate based on eco packaging
   const co2Saved = Math.round(orders.length * 0.3 * 100 + 240); // 240 = baseline from past orders
   const ecoGoalPct = Math.min(100, Math.round((co2Saved / ecoTarget) * 100));
@@ -94,6 +74,40 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     } else {
       Alert.alert(label, `${label} settings are coming in the next update.`);
     }
+  };
+
+  const handleSignOut = () => {
+    console.log('Sign Out button clicked');
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            console.log('Sign out confirmed - starting sign out process');
+            try {
+              // Step 1: Clear AsyncStorage
+              console.log('Clearing AsyncStorage...');
+              await AsyncStorage.multiRemove([AUTH_KEY, ONBOARDING_KEY]);
+              console.log('AsyncStorage cleared successfully');
+              
+              // Step 2: Dispatch logout action to clear Redux state
+              // This will trigger the App component's navigation effect to redirect
+              console.log('Dispatching logout action...');
+              dispatch(logout());
+              console.log('Logout dispatched - App will handle navigation');
+              
+            } catch (error) {
+              console.error('Error during sign out:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -107,7 +121,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       >
 
         {/* Profile Card */}
-        <ProfileCard>
+        <ProfileCard style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.07, shadowRadius: 12, elevation: 4 }}>
           <ProfileAccentBar />
           <ProfileTop>
             <AvatarWrap>
@@ -143,8 +157,6 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </ClientIDRow>
         </ProfileCard>
 
-
-
         {/* Stats */}
         <StatsRow>
           {[
@@ -154,6 +166,11 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           ].map((s, i) => (
             <StatCard
               key={s.lab}
+              style={{
+                shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
+                marginRight: i === 2 ? 0 : 8,
+              }}
             >
               <StatIcon bgColor={s.color}>
                 <FontAwesome5 name={s.icon as any} size={14} color={s.ic} />
@@ -165,7 +182,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </StatsRow>
 
         {/* Menu */}
-        <MenuCard>
+        <MenuCard style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
           {MENU_ITEMS.map((item, idx) => (
             <React.Fragment key={item.label}>
               <MenuItem onPress={() => handleMenu(item.label, item.screen)} activeOpacity={0.7}>
@@ -188,7 +205,7 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </MenuCard>
 
         {/* Notifications */}
-        {false && (
+        {showNotifs && (
           <NotifCard>
             <NotifCardTitle>Notification Preferences</NotifCardTitle>
             {NOTIFS.map((n, i) => (
@@ -308,23 +325,6 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <AppVersion>PacMonk v1.0.0 · Enterprise Edition</AppVersion>
       </ScrollView>
 
-      {/* Logout Confirmation Modal */}
-      {showLogoutConfirm && (
-        <ConfirmOverlay onPress={cancelLogout}>
-          <ConfirmModal onPress={(e: any) => e.stopPropagation()}>
-            <ConfirmTitle>Sign Out?</ConfirmTitle>
-            <ConfirmMessage>Are you sure you want to sign out?</ConfirmMessage>
-            <ConfirmButtonRow>
-              <ConfirmCancelBtn onPress={cancelLogout}>
-                <ConfirmBtnText>Cancel</ConfirmBtnText>
-              </ConfirmCancelBtn>
-              <ConfirmDeleteBtn onPress={confirmLogout}>
-                <ConfirmBtnDeleteText>Sign Out</ConfirmBtnDeleteText>
-              </ConfirmDeleteBtn>
-            </ConfirmButtonRow>
-          </ConfirmModal>
-        </ConfirmOverlay>
-      )}
     </Container>
   );
 };
@@ -397,7 +397,7 @@ const StatCard = styled.View`
 `;
 const StatIcon = styled.View<{ bgColor: string }>`
   width: 32px; height: 32px; border-radius: 10px;
-  background-color: ${({ bgColor }: { bgColor: string }) => bgColor};
+  background-color: ${({ bgColor }) => bgColor};
   align-items: center; justify-content: center; margin-bottom: 8px;
 `;
 const StatVal = styled.Text`font-size: 18px; font-weight: 800; color: #111827;`;
@@ -410,7 +410,7 @@ const MenuCard = styled.View`
 const MenuItem = styled.TouchableOpacity`flex-direction: row; align-items: center; padding: 15px 16px;`;
 const MenuIconBox = styled.View<{ bgColor: string }>`
   width: 36px; height: 36px; border-radius: 11px;
-  background-color: ${({ bgColor }: { bgColor: string }) => bgColor};
+  background-color: ${({ bgColor }) => bgColor};
   align-items: center; justify-content: center; margin-right: 14px;
 `;
 const MenuLabel = styled.Text`flex: 1; font-size: 14px; font-weight: 500; color: #111827;`;
@@ -455,7 +455,7 @@ const ProgressBg = styled.View`
   height: 8px; border-radius: 4px; background-color: #F3F4F6; overflow: hidden; margin-bottom: 8px;
 `;
 const ProgressFill = styled.View<{ pct: number }>`
-  height: 100%; width: ${({ pct }: { pct: number }) => pct}%; background-color: #0F8A3C; border-radius: 4px;
+  height: 100%; width: ${({ pct }) => pct}%; background-color: #0F8A3C; border-radius: 4px;
 `;
 const GoalSubRow = styled.View`flex-direction: row; justify-content: space-between;`;
 const GoalProgress = styled.Text`font-size: 11px; color: #0F8A3C; font-weight: 700;`;
@@ -466,12 +466,12 @@ const GoalOptions = styled.View`flex-direction: row; justify-content: space-betw
 const GoalOpt = styled.TouchableOpacity<{ active: boolean }>`
   flex: 1; border-radius: 10px; padding-vertical: 8px; align-items: center; margin-horizontal: 3px;
   border-width: 1.5px;
-  border-color: ${({ active }: { active: boolean }) => active ? '#0F8A3C' : '#E5E7EB'};
-  background-color: ${({ active }: { active: boolean }) => active ? '#DCFCE7' : '#FAFAFA'};
+  border-color: ${({ active }) => active ? '#0F8A3C' : '#E5E7EB'};
+  background-color: ${({ active }) => active ? '#DCFCE7' : '#FAFAFA'};
 `;
 const GoalOptText = styled.Text<{ active: boolean }>`
   font-size: 12px; font-weight: 700;
-  color: ${({ active }: { active: boolean }) => active ? '#0F8A3C' : '#9CA3AF'};
+  color: ${({ active }) => active ? '#0F8A3C' : '#9CA3AF'};
 `;
 
 const AddressCard = styled.View`
@@ -485,8 +485,8 @@ const AddressTag = styled.Text`
 `;
 const AddressLine = styled.Text<{ bold?: boolean }>`
   font-size: 13px;
-  color: ${({ bold }: { bold?: boolean }) => bold ? '#111827' : '#6B7280'};
-  font-weight: ${({ bold }: { bold?: boolean }) => bold ? '700' : '400'};
+  color: ${({ bold }) => bold ? '#111827' : '#6B7280'};
+  font-weight: ${({ bold }) => bold ? '700' : '400'};
   margin-bottom: 2px;
 `;
 
@@ -497,7 +497,7 @@ const SupportCard = styled.View`
 const SupportRow = styled.TouchableOpacity`flex-direction: row; align-items: center; padding: 14px 16px;`;
 const SupportIconWrap = styled.View<{ bgColor: string }>`
   width: 32px; height: 32px; border-radius: 10px;
-  background-color: ${({ bgColor }: { bgColor: string }) => bgColor};
+  background-color: ${({ bgColor }) => bgColor};
   align-items: center; justify-content: center; margin-right: 12px;
 `;
 const SupportLabel = styled.Text`flex: 1; font-size: 13px; font-weight: 500; color: #111827;`;
@@ -510,75 +510,3 @@ const SignOutBtn = styled.TouchableOpacity`
 `;
 const SignOutText = styled.Text`font-size: 15px; font-weight: 700; color: #EF4444;`;
 const AppVersion = styled.Text`text-align: center; font-size: 11px; color: #D1D5DB; margin-top: 16px; margin-bottom: 16px;`;
-
-/* Logout Confirmation Modal */
-const ConfirmOverlay = styled.TouchableOpacity`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-`;
-
-const ConfirmModal = styled.View`
-  background-color: #FFFFFF;
-  border-radius: 16px;
-  padding: 24px;
-  width: 90%;
-  max-width: 320px;
-  elevation: 20;
-`;
-
-const ConfirmTitle = styled.Text`
-  font-size: 16px;
-  font-weight: 800;
-  color: #111827;
-  margin-bottom: 8px;
-  text-align: center;
-`;
-
-const ConfirmMessage = styled.Text`
-  font-size: 14px;
-  color: #6B7280;
-  text-align: center;
-  margin-bottom: 24px;
-`;
-
-const ConfirmButtonRow = styled.View`
-  flex-direction: row;
-  gap: 12px;
-`;
-
-const ConfirmCancelBtn = styled.TouchableOpacity`
-  flex: 1;
-  padding-vertical: 12px;
-  padding-horizontal: 16px;
-  background-color: #F3F4F6;
-  border-radius: 10px;
-  align-items: center;
-`;
-
-const ConfirmDeleteBtn = styled.TouchableOpacity`
-  flex: 1;
-  padding-vertical: 12px;
-  padding-horizontal: 16px;
-  background-color: #EF4444;
-  border-radius: 10px;
-  align-items: center;
-`;
-
-const ConfirmBtnText = styled.Text`
-  font-size: 14px;
-  font-weight: 600;
-  color: #6B7280;
-`;
-
-const ConfirmBtnDeleteText = styled.Text`
-  font-size: 14px;
-  font-weight: 600;
-  color: #FFFFFF;
-`;

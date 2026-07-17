@@ -9,8 +9,6 @@ import {
 import styled from 'styled-components/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useAppDispatch } from '../store';
-import { login } from '../store/authSlice';
 import { AUTH_KEY, ONBOARDING_KEY } from '../constants';
 import { IMAGES } from '../constants/images';
 
@@ -19,7 +17,6 @@ interface Props {
 }
 
 const SignUpScreen: React.FC<Props> = ({ navigation }) => {
-  const dispatch = useAppDispatch();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
@@ -28,9 +25,6 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
   const [gstNumber, setGstNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
-
-  // Get the return screen from route params
-  const returnScreen = navigation.getParam('returnScreen') || 'MainTabs';
 
   // Countdown timer for resend OTP
   React.useEffect(() => {
@@ -105,28 +99,9 @@ const SignUpScreen: React.FC<Props> = ({ navigation }) => {
         isActive: true,
       };
       
-      // Save to AsyncStorage
       await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(user));
       await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
-      
-      // Dispatch to Redux
-      console.log('Dispatching login action with user:', user);
-      dispatch(login(user));
-      
-      // Small delay to ensure Redux state is updated before navigation
-      setTimeout(() => {
-        console.log(`Navigating to: ${returnScreen}`);
-        // If returning to checkout, use replace to avoid stack issues
-        if (returnScreen === 'Checkout') {
-          // Use replace instead of navigate to avoid navigation stack confusion
-          navigation.replace('Checkout');
-        } else {
-          navigation.reset({ 
-            index: 0, 
-            routes: [{ name: 'MainTabs' }] 
-          });
-        }
-      }, 100);
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch {
       Alert.alert('Error', 'Invalid OTP or could not create account. Please try again.');
     } finally {

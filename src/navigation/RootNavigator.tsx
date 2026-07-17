@@ -5,13 +5,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppSelector } from '../store';
 
-// App Selection
-import AppSelectionScreen from '../screens/AppSelectionScreen';
-
-// Buyer App Screens
 import HomeScreen from '../screens/HomeScreen';
+import ProductsScreen from '../screens/ProductsScreen';
 import OrdersScreen from '../screens/OrdersScreen';
+import DesignStudioScreen from '../screens/DesignStudioScreen';
 import AccountScreen from '../screens/AccountScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
@@ -21,7 +20,6 @@ import ShipmentTrackingScreen from '../screens/ShipmentTrackingScreen';
 import CartScreen from '../screens/CartScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
 import PreCheckoutInfoScreen from '../screens/PreCheckoutInfoScreen';
-import MobileVerificationScreen from '../screens/MobileVerificationScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import PouchConfiguratorScreen from '../screens/PouchConfiguratorScreen';
 import StreamlinedPouchConfiguratorScreen from '../screens/StreamlinedPouchConfiguratorScreen';
@@ -29,6 +27,15 @@ import OrderPlacedScreen from '../screens/OrderPlacedScreen';
 import CustomOrderFlowScreen from '../screens/CustomOrderFlowScreen';
 import OrderProofApprovalScreen from '../screens/OrderProofApprovalScreen';
 import ProductionTimelineScreen from '../screens/ProductionTimelineScreen';
+
+// Admin Screens
+import AdminTabNavigator from '../navigation/AdminTabNavigator';
+import AdminProductsScreen from '../screens/admin/AdminProductsScreen';
+import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
+import AdminArtworkScreen from '../screens/admin/AdminArtworkScreen';
+import AdminPromotionsScreen from '../screens/admin/AdminPromotionsScreen';
+import AdminSupportScreen from '../screens/admin/AdminSupportScreen';
+import AdminSettingsScreen from '../screens/admin/AdminSettingsScreen';
 
 // User Screens
 import ManageAddressesScreen from '../screens/user/ManageAddressesScreen';
@@ -45,6 +52,13 @@ import InvoicesScreen from '../screens/InvoicesScreen';
 import SavedDesignsScreen from '../screens/SavedDesignsScreen';
 import WishlistScreen from '../screens/WishlistScreen';
 
+// Additional Admin Screens
+import AdminInventoryScreen from '../screens/admin/AdminInventoryScreen';
+import AdminPricingScreen from '../screens/admin/AdminPricingScreen';
+import AdminAnalyticsScreen from '../screens/admin/AdminAnalyticsScreen';
+import AdminCustomersScreen from '../screens/admin/AdminCustomersScreen';
+import AdminBannersScreen from '../screens/admin/AdminBannersScreen';
+
 // Ready Stock Products
 import ReadyStockProductsScreen from '../screens/ReadyStockProductsScreen';
 import ReadyStockProductDetailScreen from '../screens/ReadyStockProductDetailScreen';
@@ -52,7 +66,7 @@ import ReadyStockProductDetailScreen from '../screens/ReadyStockProductDetailScr
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-function BuyerTabNavigator() {
+function TabNavigator() {
   const cartCount = useAppSelector((state) => state.cart.items.length);
 
   return (
@@ -169,34 +183,24 @@ function BuyerTabNavigator() {
 }
 
 interface RootNavigatorProps {
-  initialRoute?: 'AppSelection' | 'MainTabs' | 'AdminTabs';
+  initialRoute?: 'Onboarding' | 'MainTabs';
 }
 
-export default function RootNavigator({ initialRoute = 'MainTabs' }: RootNavigatorProps) {
+export default function RootNavigator({ initialRoute = 'Onboarding' }: RootNavigatorProps) {
   return (
     <Stack.Navigator
       initialRouteName={initialRoute}
       screenOptions={{ headerShown: false }}
     >
-      {/* App Selection - Entry Point */}
-      <Stack.Screen name="AppSelection" component={AppSelectionScreen} />
-
-      {/* ============================================
-          BUYER APP STACK
-          ============================================ */}
-      <Stack.Screen name="MainTabs" component={BuyerTabNavigator} options={{ animationEnabled: false }} />
-      
-      {/* Auth Screens - Only shown when checkout triggers login requirement */}
+      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
-      
-      {/* Buyer Screens */}
+      <Stack.Screen name="MainTabs" component={TabNavigator} />
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="RequestQuote" component={RequestQuoteScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="AIRecommendations" component={AIRecommendationsScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="ShipmentTracking" component={ShipmentTrackingScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Cart" component={CartScreen} options={{ presentation: 'card' }} />
-      <Stack.Screen name="MobileVerification" component={MobileVerificationScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="PreCheckoutInfo" component={PreCheckoutInfoScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ presentation: 'card' }} />
@@ -206,6 +210,20 @@ export default function RootNavigator({ initialRoute = 'MainTabs' }: RootNavigat
       <Stack.Screen name="ReadyStockProductDetail" component={ReadyStockProductDetailScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="CustomOrderFlow" component={CustomOrderFlowScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="OrderPlaced" component={OrderPlacedScreen} options={{ presentation: 'card', gestureEnabled: false }} />
+      
+      {/* Admin Tab Navigator - Main Admin Panel */}
+      <Stack.Screen name="AdminTabs" component={AdminTabNavigator} />
+      
+      {/* Individual Admin Screens (accessed from Dashboard) */}
+      <Stack.Screen name="AdminProducts" component={AdminProductsScreen} />
+      <Stack.Screen name="AdminUsers" component={AdminUsersScreen} />
+      <Stack.Screen name="AdminArtwork" component={AdminArtworkScreen} />
+      <Stack.Screen name="AdminPromotions" component={AdminPromotionsScreen} />
+      <Stack.Screen name="AdminSupport" component={AdminSupportScreen} />
+      <Stack.Screen name="AdminInventory" component={AdminInventoryScreen} />
+      <Stack.Screen name="AdminPricing" component={AdminPricingScreen} />
+      <Stack.Screen name="AdminBanners" component={AdminBannersScreen} />
+      <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
       
       {/* User Screens */}
       <Stack.Screen name="ManageAddresses" component={ManageAddressesScreen} />

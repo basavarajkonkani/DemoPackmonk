@@ -10,7 +10,7 @@ import styled from 'styled-components/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch } from '../store';
-import { login, loginAsAdmin } from '../store/authSlice';
+import { login } from '../store/authSlice';
 import { AUTH_KEY, ONBOARDING_KEY } from '../constants';
 import { IMAGES } from '../constants/images';
 
@@ -25,9 +25,6 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
-
-  // Get the return screen from route params
-  const returnScreen = navigation.getParam('returnScreen') || 'MainTabs';
 
   // Countdown timer for resend OTP
   React.useEffect(() => {
@@ -91,18 +88,26 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
       const cleanPhone = phone.replace(/\s+/g, '').replace(/^\+91/, '');
       const formattedPhone = `+91 ${cleanPhone.substring(0, 5)} ${cleanPhone.substring(5)}`;
 
-      // Regular user login only - admin login is handled separately via AdminLoginScreen
-      const user = { 
-        id: Date.now().toString(),
-        name: 'User', 
-        email: '',
-        phone: formattedPhone,
-        role: 'user' as const,
-        companyName: '',
-        gstNumber: '',
-        createdAt: new Date().toISOString(),
-        isActive: true
-      };
+      const existing = await AsyncStorage.getItem(AUTH_KEY);
+      let user;
+      
+      if (existing) {
+        user = JSON.parse(existing);
+        user.phone = formattedPhone;
+      } else {
+        // Create new user with phone number
+        user = { 
+          id: Date.now().toString(),
+          name: 'User', 
+          email: '', // Email not required
+          phone: formattedPhone,
+          role: 'user' as const,
+          companyName: '',
+          gstNumber: '',
+          createdAt: new Date().toISOString(),
+          isActive: true
+        };
+      }
       
       // Save to AsyncStorage
       await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(user));
@@ -112,20 +117,8 @@ const SignInScreen: React.FC<Props> = ({ navigation }) => {
       console.log('Dispatching login action with user:', user);
       dispatch(login(user));
       
-      // Small delay to ensure Redux state is updated before navigation
-      setTimeout(() => {
-        console.log(`Navigating to: ${returnScreen}`);
-        // If returning to checkout, use replace to avoid stack issues
-        if (returnScreen === 'Checkout') {
-          // Use replace instead of navigate to avoid navigation stack confusion
-          navigation.replace('Checkout');
-        } else {
-          navigation.reset({ 
-            index: 0, 
-            routes: [{ name: 'MainTabs' }] 
-          });
-        }
-      }, 100);
+      // Navigate to main app
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
       console.error('OTP verification error:', error);
       Alert.alert('Error', 'Invalid OTP. Please try again.');

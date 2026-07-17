@@ -78,7 +78,7 @@ const AdminSettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <Placeholder />
       </Header>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Configuration Sections */}
         {configItems.map((section) => (
           <Section key={section.title}>
@@ -205,173 +205,91 @@ const AdminSettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 export default AdminSettingsScreen;
 
 const Header = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 12px;
-  background-color: #FFFFFF;
-  border-bottom-width: 1px;
-  border-bottom-color: #E5E7EB;
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background-color: #FFFFFF;
+  border-bottom-width: 1px; border-bottom-color: #E5E7EB;
 `;
+const BackButton = styled.TouchableOpacity`width: 40px; height: 40px; align-items: center; justify-content: center;`;
+const HeaderTitle = styled.Text`font-size: 18px; font-weight: 700; color: #1F2937;`;
+const Placeholder = styled.View`width: 40px;`;
 
-const BackButton = styled.TouchableOpacity`
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  background-color: #f3f4f6;
-  align-items: center;
-  justify-content: center;
-`;
-
-const HeaderTitle = styled.Text`
-  font-size: 16px;
-  font-weight: 700;
-  color: #1F2937;
-`;
-
-const Placeholder = styled.View`
-  width: 40px;
-`;
-
-const Section = styled.View`
-  padding: 8px 12px;
-  background-color: #F8F9FA;
-  border-top-width: 1px;
-  border-top-color: #f0f0f0;
-`;
-
+const Section = styled.View`padding: 16px;`;
 const SectionTitle = styled.Text<{ danger?: boolean }>`
-  font-size: 15px;
-  font-weight: 800;
-  color: ${({ danger }) => danger ? '#EF4444' : '#111827'};
-  letter-spacing: 0.3px;
-  margin-bottom: 8px;
+  font-size: 14px; font-weight: 700; color: ${({ danger }) => danger ? '#EF4444' : '#6B7280'};
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
 `;
 
 const SettingsCard = styled.View`
-  background-color: #FFFFFF;
-  border-radius: 12px;
-  border-width: 1px;
-  border-color: #E5E7EB;
-  shadow-color: rgba(0, 0, 0, 0.04);
-  shadow-offset: 0px 1px;
-  shadow-opacity: 1;
-  shadow-radius: 2;
-  elevation: 1;
+  background-color: #FFFFFF; border-radius: 16px;
+  border-width: 1px; border-color: #F3F4F6;
 `;
 
 const SettingRow = styled.View<{ last?: boolean }>`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border-bottom-width: ${({ last }) => last ? 0 : 1}px;
-  border-bottom-color: #E5E7EB;
+  flex-direction: row; justify-content: space-between; align-items: center;
+  padding: 16px; border-bottom-width: ${({ last }) => last ? 0 : 1}px;
+  border-bottom-color: #F3F4F6;
 `;
 
 const SettingLeft = styled.View`
-  flex-direction: row;
-  align-items: center;
-  flex: 1;
+  flex-direction: row; align-items: center; flex: 1;
 `;
 
 const SettingIcon = styled.View`
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background-color: #F3F4F6;
-  align-items: center;
-  justify-content: center;
-  margin-right: 10px;
+  width: 32px; height: 32px; border-radius: 10px;
+  background-color: #F3F4F6; align-items: center; justify-content: center;
+  margin-right: 12px;
 `;
 
-const SettingInfo = styled.View`
-  flex: 1;
-`;
+const SettingInfo = styled.View`flex: 1;`;
 
 const SettingLabel = styled.Text<{ warning?: boolean }>`
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 14px; font-weight: 600;
   color: ${({ warning }) => warning ? '#EF4444' : '#111827'};
   margin-bottom: 2px;
 `;
 
 const SettingDescription = styled.Text`
-  font-size: 10px;
-  color: #9CA3AF;
-  line-height: 14px;
+  font-size: 11px; color: #9CA3AF; line-height: 16px;
 `;
 
 const SettingRight = styled.View`
-  flex-direction: row;
-  align-items: center;
+  flex-direction: row; align-items: center;
 `;
 
 const SettingValue = styled.Text`
-  font-size: 11px;
-  color: #6B7280;
-  margin-right: 8px;
+  font-size: 13px; color: #6B7280; margin-right: 8px;
 `;
 
 const ActionButton = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-  background-color: #FFFFFF;
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 6px;
-  border-width: 1px;
-  border-color: #E5E7EB;
-  shadow-color: rgba(0, 0, 0, 0.04);
-  shadow-offset: 0px 1px;
-  shadow-opacity: 1;
-  shadow-radius: 2;
-  elevation: 1;
+  flex-direction: row; align-items: center;
+  background-color: #FFFFFF; border-radius: 12px; padding: 16px;
+  margin-bottom: 8px; border-width: 1px; border-color: #F3F4F6;
 `;
 
 const ActionButtonIcon = styled.View<{ bgColor: string }>`
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 40px; height: 40px; border-radius: 12px;
   background-color: ${({ bgColor }) => bgColor};
-  align-items: center;
-  justify-content: center;
-  margin-right: 10px;
+  align-items: center; justify-content: center; margin-right: 12px;
 `;
 
 const ActionButtonText = styled.Text`
-  font-size: 12px;
-  font-weight: 700;
-  color: #111827;
-  flex: 1;
+  font-size: 14px; font-weight: 600; color: #111827; flex: 1;
 `;
 
 const DangerCard = styled.View`
-  background-color: #FFFFFF;
-  border-radius: 12px;
-  border-width: 2px;
-  border-color: #FEE2E2;
-  shadow-color: rgba(0, 0, 0, 0.04);
-  shadow-offset: 0px 1px;
-  shadow-opacity: 1;
-  shadow-radius: 2;
-  elevation: 1;
+  background-color: #FFFFFF; border-radius: 16px;
+  border-width: 2px; border-color: #FEE2E2;
 `;
 
 const DangerButton = styled.TouchableOpacity`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
+  flex-direction: row; justify-content: space-between; align-items: center;
+  padding: 16px;
 `;
 
 const DangerButtonText = styled.Text`
-  font-size: 12px;
-  font-weight: 700;
-  color: #EF4444;
+  font-size: 14px; font-weight: 600; color: #EF4444;
 `;
 
 const Divider = styled.View`
-  height: 1px;
-  background-color: #FEE2E2;
+  height: 1px; background-color: #FEE2E2;
 `;

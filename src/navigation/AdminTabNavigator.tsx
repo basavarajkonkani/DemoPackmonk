@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Platform, Alert } from 'react-native';
+import { View, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesome5 } from '@expo/vector-icons';
 
@@ -13,10 +13,6 @@ import AdminCustomersScreen from '../screens/admin/AdminCustomersScreen';
 const Tab = createBottomTabNavigator();
 
 export default function AdminTabNavigator() {
-  React.useEffect(() => {
-    console.log('AdminTabNavigator mounted');
-  }, []);
-
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -36,30 +32,25 @@ export default function AdminTabNavigator() {
               style={{
                 alignItems: 'center', 
                 justifyContent: 'center',
-                paddingTop: 0,
+                paddingTop: 6,
               }}
             >
               <View
                 style={{
-                  width: 50, 
-                  height: 40, 
-                  borderRadius: 12,
+                  width: 56, 
+                  height: 32, 
+                  borderRadius: 20,
                   backgroundColor: focused ? '#0F8A3C' : 'transparent',
                   alignItems: 'center', 
                   justifyContent: 'center',
                   ...(Platform.OS === 'web' && focused && {
                     boxShadow: '0px 2px 8px rgba(15, 138, 60, 0.2)',
                   }),
-                  shadowColor: focused ? '#0F8A3C' : 'transparent',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: focused ? 0.15 : 0,
-                  shadowRadius: 4,
-                  elevation: focused ? 4 : 0,
                 }}
               >
                 <FontAwesome5 
                   name={name as any} 
-                  size={20} 
+                  size={18} 
                   color={focused ? '#FFFFFF' : color} 
                   solid={focused}
                 />
@@ -68,21 +59,21 @@ export default function AdminTabNavigator() {
           );
         },
         tabBarActiveTintColor: '#0F8A3C',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarInactiveTintColor: '#6B7280',
         tabBarStyle: {
           display: 'flex',
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          height: Platform.select({ ios: 80, android: 62, web: 68, default: 68 }),
-          paddingBottom: Platform.select({ ios: 18, android: 6, web: 6, default: 6 }),
-          paddingTop: 8,
-          paddingHorizontal: 4,
+          height: Platform.select({ ios: 85, android: 65, web: 70, default: 70 }),
+          paddingBottom: Platform.select({ ios: 24, android: 8, web: 8, default: 8 }),
+          paddingTop: 4,
+          paddingHorizontal: Platform.select({ web: 12, default: 8 }),
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -3 },
-          shadowOpacity: 0.1,
-          shadowRadius: 8,
-          elevation: 12,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          elevation: 10,
           ...(Platform.OS === 'web' && {
             position: 'fixed' as any,
             bottom: 0,
@@ -97,11 +88,10 @@ export default function AdminTabNavigator() {
           fontWeight: '600',
           marginTop: 4,
           marginBottom: 0,
-          letterSpacing: 0.2,
         },
         tabBarItemStyle: {
           paddingVertical: 0,
-          paddingHorizontal: 0,
+          paddingHorizontal: 4,
         },
         tabBarHideOnKeyboard: true,
         unmountOnBlur: false,

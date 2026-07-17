@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ScrollView, View, Alert, Platform, Modal, TextInput, Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -18,7 +18,6 @@ const PAYMENT_METHODS = [
 const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((s) => s.cart.items);
-  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
   const subtotal = useAppSelector(selectCartTotal);
   const setupFees = cartItems.reduce((s, i) => s + i.setupFee, 0);
   const shipping = DEFAULT_SHIPPING_FEE;
@@ -34,36 +33,6 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [editCompany, setEditCompany] = useState(company);
   const [editStreet, setEditStreet] = useState(street);
   const [editGst, setEditGst] = useState(gstNumber);
-
-  // Check authentication on screen focus
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      if (!isAuthenticated) {
-        // Show login/signup modal or navigate to auth screen
-        Alert.alert(
-          'Authentication Required',
-          'You need to log in or sign up to proceed with checkout.',
-          [
-            {
-              text: 'Sign In',
-              onPress: () => navigation.navigate('SignIn', { returnScreen: 'Checkout' }),
-            },
-            {
-              text: 'Sign Up',
-              onPress: () => navigation.navigate('SignUp', { returnScreen: 'Checkout' }),
-            },
-            {
-              text: 'Continue Browsing',
-              onPress: () => navigation.goBack(),
-              style: 'cancel',
-            },
-          ]
-        );
-      }
-    });
-
-    return unsubscribe;
-  }, [isAuthenticated, navigation]);
 
   const handlePlaceOrder = () => {
     if (!company.trim()) { Alert.alert('Missing', 'Enter company / address name.'); return; }

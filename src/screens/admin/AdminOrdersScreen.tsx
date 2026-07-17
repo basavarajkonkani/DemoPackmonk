@@ -2,65 +2,61 @@ import React, { useState } from 'react';
 import { ScrollView, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useAppDispatch, useAppSelector } from '../../store';
-import { updateOrderStatus, updateOrderTimeline, cancelOrder } from '../../store/adminSlice';
 
 interface Props {
   navigation: any;
 }
 
 const AdminOrdersScreen: React.FC<Props> = ({ navigation }) => {
-  const dispatch = useAppDispatch();
-  const orders = useAppSelector((state) => state.admin.orders);
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [orders, setOrders] = useState([
+    {
+      id: 'ORD-1001',
+      customerName: 'Rahul Sharma',
+      companyName: 'Sharma Industries',
+      productName: 'Stand-Up Pouch',
+      quantity: 5000,
+      amount: 62500,
+      status: 'pending' as const,
+      productionStage: 'Awaiting Approval',
+      orderDate: '2024-01-20',
+    },
+    {
+      id: 'ORD-1002',
+      customerName: 'Priya Patel',
+      companyName: 'Patel Enterprises',
+      productName: 'Kraft Paper Box',
+      quantity: 2000,
+      amount: 50000,
+      status: 'in_production' as const,
+      productionStage: 'Printing Stage',
+      orderDate: '2024-01-18',
+    },
+    {
+      id: 'ORD-1003',
+      customerName: 'Amit Kumar',
+      companyName: 'Kumar Foods',
+      productName: 'Window Pouch',
+      quantity: 3000,
+      amount: 45000,
+      status: 'shipped' as const,
+      productionStage: 'Dispatched',
+      orderDate: '2024-01-15',
+    },
+  ]);
 
   const statusConfig = {
     pending: { label: 'Pending', color: '#F59E0B', bg: '#FEF3C7' },
     in_production: { label: 'In Production', color: '#3B82F6', bg: '#DBEAFE' },
-    packed: { label: 'Packed', color: '#8B5CF6', bg: '#EDE9FE' },
     shipped: { label: 'Shipped', color: '#10B981', bg: '#D1FAE5' },
     delivered: { label: 'Delivered', color: '#059669', bg: '#A7F3D0' },
-    cancelled: { label: 'Cancelled', color: '#EF4444', bg: '#FEE2E2' },
   };
 
-  const handleUpdateStatus = (orderId: string, newStatus: any) => {
-    dispatch(updateOrderStatus({ id: orderId, status: newStatus }));
-    Alert.alert('Success', `Order status updated to ${statusConfig[newStatus].label}`);
-  };
-
-  const handleUpdateProgress = (orderId: string, stage: string) => {
-    const order = orders.find((o) => o.id === orderId);
-    if (order && order.timeline) {
-      const timelineItem = order.timeline.find((t) => t.stage === stage);
-      if (timelineItem && timelineItem.percentage < 100) {
-        const newPercentage = Math.min(100, timelineItem.percentage + 25);
-        dispatch(
-          updateOrderTimeline({
-            orderId,
-            stage,
-            percentage: newPercentage,
-          })
-        );
-        Alert.alert(
-          'Progress Updated',
-          `${stage} progress: ${newPercentage}%`
-        );
-      }
-    }
-  };
-
-  const handleCancelOrder = (orderId: string) => {
-    Alert.alert('Cancel Order', 'Are you sure you want to cancel this order?', [
-      { text: 'No', style: 'cancel' },
-      {
-        text: 'Yes',
-        style: 'destructive',
-        onPress: () => {
-          dispatch(cancelOrder(orderId));
-          Alert.alert('Success', 'Order cancelled');
-        },
-      },
-    ]);
+  const updateOrderStatus = (orderId: string, newStatus: string) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId ? { ...o, status: newStatus as any } : o
+      )
+    );
   };
 
   return (
@@ -73,7 +69,7 @@ const AdminOrdersScreen: React.FC<Props> = ({ navigation }) => {
         <PlaceholderBtn />
       </Header>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 8, paddingBottom: 80 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16 }}>
         {orders.map((order) => {
           const config = statusConfig[order.status];
           return (
@@ -125,52 +121,6 @@ const AdminOrdersScreen: React.FC<Props> = ({ navigation }) => {
                 </InfoRow>
               </ProductInfo>
 
-              {order.timeline && (
-                <>
-                  <Divider />
-                  <TimelineSection>
-                    <TimelineTitle>Production Timeline</TimelineTitle>
-                    {order.timeline.map((item, idx) => (
-                      <TimelineItem key={idx}>
-                        <TimelineItemLeft>
-                          <TimelineIcon
-                            style={{
-                              backgroundColor:
-                                item.status === 'completed'
-                                  ? '#10B981'
-                                  : item.status === 'in_progress'
-                                  ? '#3B82F6'
-                                  : '#D1D5DB',
-                            }}
-                          >
-                            <FontAwesome5
-                              name={
-                                item.status === 'completed'
-                                  ? 'check'
-                                  : 'hourglass-half'
-                              }
-                              size={12}
-                              color="#ffffff"
-                            />
-                          </TimelineIcon>
-                          <TimelineInfo>
-                            <TimelineStageName>{item.stage}</TimelineStageName>
-                            <TimelinePercentage>{item.percentage}%</TimelinePercentage>
-                          </TimelineInfo>
-                        </TimelineItemLeft>
-                        {item.status !== 'completed' && (
-                          <UpdateBtn
-                            onPress={() => handleUpdateProgress(order.id, item.stage)}
-                          >
-                            <FontAwesome5 name="plus" size={10} color="#0F8A3C" />
-                          </UpdateBtn>
-                        )}
-                      </TimelineItem>
-                    ))}
-                  </TimelineSection>
-                </>
-              )}
-
               <OrderActions>
                 <ActionBtn
                   onPress={() =>
@@ -180,19 +130,15 @@ const AdminOrdersScreen: React.FC<Props> = ({ navigation }) => {
                       [
                         {
                           text: 'In Production',
-                          onPress: () => handleUpdateStatus(order.id, 'in_production'),
-                        },
-                        {
-                          text: 'Packed',
-                          onPress: () => handleUpdateStatus(order.id, 'packed'),
+                          onPress: () => updateOrderStatus(order.id, 'in_production'),
                         },
                         {
                           text: 'Shipped',
-                          onPress: () => handleUpdateStatus(order.id, 'shipped'),
+                          onPress: () => updateOrderStatus(order.id, 'shipped'),
                         },
                         {
                           text: 'Delivered',
-                          onPress: () => handleUpdateStatus(order.id, 'delivered'),
+                          onPress: () => updateOrderStatus(order.id, 'delivered'),
                         },
                         { text: 'Cancel', style: 'cancel' },
                       ]
@@ -203,19 +149,11 @@ const AdminOrdersScreen: React.FC<Props> = ({ navigation }) => {
                   <ActionText style={{ color: '#3B82F6' }}>Update Status</ActionText>
                 </ActionBtn>
                 <ActionBtn
-                  onPress={() =>
-                    Alert.alert('Generate Invoice', 'Invoice PDF generated and ready to download')
-                  }
+                  onPress={() => Alert.alert('Generate Invoice', 'Feature coming soon')}
                 >
                   <FontAwesome5 name="file-invoice" size={14} color="#10B981" />
                   <ActionText style={{ color: '#10B981' }}>Invoice</ActionText>
                 </ActionBtn>
-                {order.status !== 'cancelled' && order.status !== 'delivered' && (
-                  <ActionBtn onPress={() => handleCancelOrder(order.id)}>
-                    <FontAwesome5 name="ban" size={14} color="#EF4444" />
-                    <ActionText style={{ color: '#EF4444' }}>Cancel</ActionText>
-                  </ActionBtn>
-                )}
               </OrderActions>
             </OrderCard>
           );
@@ -229,14 +167,14 @@ export default AdminOrdersScreen;
 
 const Wrapper = styled.View`
   flex: 1;
-  background-color: #f8f9fa;
+  background-color: #f9fafb;
 `;
 
 const Header = styled.View`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 12px;
+  padding: 16px 20px;
   background-color: #ffffff;
   border-bottom-width: 1px;
   border-bottom-color: #e5e7eb;
@@ -246,13 +184,13 @@ const BackBtn = styled.TouchableOpacity`
   width: 40px;
   height: 40px;
   border-radius: 20px;
-  background-color: #f3f4f6;
+  background-color: #f9fafb;
   align-items: center;
   justify-content: center;
 `;
 
 const HeaderTitle = styled.Text`
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: #111827;
   flex: 1;
@@ -265,50 +203,45 @@ const PlaceholderBtn = styled.View`
 
 const OrderCard = styled.View`
   background-color: #ffffff;
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 7px;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
   border-width: 1px;
   border-color: #e5e7eb;
-  shadow-color: rgba(0, 0, 0, 0.04);
-  shadow-offset: 0px 1px;
-  shadow-opacity: 1;
-  shadow-radius: 2;
-  elevation: 1;
 `;
 
 const OrderHeader = styled.View`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 `;
 
 const OrderId = styled.Text`
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: #111827;
 `;
 
 const StatusBadge = styled.View`
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border-radius: 12px;
 `;
 
 const StatusText = styled.Text`
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
 `;
 
 const CustomerInfo = styled.View`
   flex-direction: row;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 `;
 
 const Divider = styled.View`
   height: 1px;
   background-color: #e5e7eb;
-  margin: 8px 0;
+  margin: 12px 0;
 `;
 
 const ProductInfo = styled.View``;
@@ -316,102 +249,40 @@ const ProductInfo = styled.View``;
 const InfoRow = styled.View`
   flex-direction: row;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 `;
 
 const InfoLabel = styled.Text`
-  font-size: 11px;
+  font-size: 13px;
   color: #6b7280;
-  width: 70px;
-  font-weight: 600;
+  width: 90px;
 `;
 
 const InfoValue = styled.Text`
-  font-size: 11px;
+  font-size: 13px;
   color: #111827;
   flex: 1;
-  font-weight: 500;
-`;
-
-const TimelineSection = styled.View`
-  margin-vertical: 8px;
-`;
-
-const TimelineTitle = styled.Text`
-  font-size: 11px;
-  font-weight: 700;
-  color: #6b7280;
-  margin-bottom: 8px;
-`;
-
-const TimelineItem = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  padding-left: 4px;
-`;
-
-const TimelineItemLeft = styled.View`
-  flex-direction: row;
-  align-items: center;
-  flex: 1;
-`;
-
-const TimelineIcon = styled.View`
-  width: 24px;
-  height: 24px;
-  border-radius: 12px;
-  align-items: center;
-  justify-content: center;
-  margin-right: 8px;
-`;
-
-const TimelineInfo = styled.View``;
-
-const TimelineStageName = styled.Text`
-  font-size: 10px;
-  font-weight: 600;
-  color: #111827;
-`;
-
-const TimelinePercentage = styled.Text`
-  font-size: 9px;
-  color: #9CA3AF;
-`;
-
-const UpdateBtn = styled.TouchableOpacity`
-  width: 24px;
-  height: 24px;
-  border-radius: 12px;
-  background-color: #DCFCE7;
-  align-items: center;
-  justify-content: center;
 `;
 
 const OrderActions = styled.View`
   flex-direction: row;
   border-top-width: 1px;
   border-top-color: #e5e7eb;
-  padding-top: 8px;
-  margin-top: 6px;
+  padding-top: 12px;
+  margin-top: 8px;
   justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 4px;
 `;
 
 const ActionBtn = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background-color: #f3f4f6;
-  flex: 1;
-  min-width: 45%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: #f9fafb;
 `;
 
 const ActionText = styled.Text`
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
-  margin-left: 4px;
+  margin-left: 6px;
 `;

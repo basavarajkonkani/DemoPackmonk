@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
-import { ScrollView, TextInput, Alert } from 'react-native';
+import { ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useAppDispatch, useAppSelector } from '../../store';
-import { updateInventoryStock } from '../../store/adminSlice';
 
 const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const dispatch = useAppDispatch();
-  const inventory = useAppSelector((state) => state.admin.inventory);
   const [filterMaterial, setFilterMaterial] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const inventory = [
+    { id: '1', name: 'Clear BOPP Pouch', material: 'clear', size: '5x8', thickness: 75, hasZip: true, stock: 1500, reorderPoint: 500, price: 12 },
+    { id: '2', name: 'Silver Metalized Pouch', material: 'silver', size: '8x12', thickness: 100, hasZip: false, stock: 250, reorderPoint: 500, price: 18 },
+    { id: '3', name: 'Kraft Paper Pouch', material: 'kraft', size: '6x9', thickness: 90, hasZip: true, stock: 3000, reorderPoint: 800, price: 15 },
+    { id: '4', name: 'Milky White Pouch', material: 'milky', size: '10x15', thickness: 120, hasZip: true, stock: 180, reorderPoint: 400, price: 20 },
+  ];
+
   const materials = ['all', 'clear', 'silver', 'kraft', 'milky'];
 
-  const filteredInventory = inventory.filter((item) => {
+  const filteredInventory = inventory.filter(item => {
     const matchesMaterial = filterMaterial === 'all' || item.material === filterMaterial;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesMaterial && matchesSearch;
@@ -33,30 +36,12 @@ const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
       `Current stock: ${item.stock} units`,
       [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Update',
-          onPress: (newStock?: string) => {
-            if (newStock && !isNaN(parseInt(newStock, 10))) {
-              dispatch(updateInventoryStock({ id: item.id, stock: parseInt(newStock, 10) }));
-              Alert.alert('Success', `Stock updated to ${newStock} units`);
-            }
-          },
-        },
+        { text: 'Update', onPress: (newStock?: string) => Alert.alert('Success', `Stock updated to ${newStock}`) }
       ],
       'plain-text',
       String(item.stock),
       'numeric'
     );
-  };
-
-  const handleIncreaseStock = (item: any) => {
-    dispatch(updateInventoryStock({ id: item.id, stock: item.stock + 100 }));
-  };
-
-  const handleDecreaseStock = (item: any) => {
-    if (item.stock > 0) {
-      dispatch(updateInventoryStock({ id: item.id, stock: Math.max(0, item.stock - 100) }));
-    }
   };
 
   return (
@@ -96,7 +81,7 @@ const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
         </ScrollView>
       </FilterContainer>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <StatsRow>
           <StatCard>
             <StatIcon bgColor="#DBEAFE">
@@ -109,7 +94,7 @@ const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             <StatIcon bgColor="#FEE2E2">
               <FontAwesome5 name="exclamation-triangle" size={16} color="#EF4444" />
             </StatIcon>
-            <StatValue>{inventory.filter((i) => i.stock < i.reorderPoint).length}</StatValue>
+            <StatValue>{inventory.filter(i => i.stock < i.reorderPoint).length}</StatValue>
             <StatLabel>Low Stock</StatLabel>
           </StatCard>
           <StatCard>
@@ -160,24 +145,21 @@ const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                     <StockBarValue>{item.stock} / {item.reorderPoint} units</StockBarValue>
                   </StockBar>
                   <ProgressBar>
-                    <ProgressFill
-                      percentage={Math.min(100, (item.stock / item.reorderPoint) * 100)}
+                    <ProgressFill 
+                      percentage={Math.min(100, (item.stock / item.reorderPoint) * 100)} 
                       color={stockStatus.color}
                     />
                   </ProgressBar>
                 </StockInfo>
 
                 <CardFooter>
-                  <PriceText>₹{item.price}/unit</PriceText>
+                  <PriceText>${item.price}/unit</PriceText>
                   <ActionButtons>
-                    <ActionButton onPress={() => handleDecreaseStock(item)}>
-                      <FontAwesome5 name="minus" size={12} color="#EF4444" />
-                    </ActionButton>
                     <ActionButton onPress={() => handleUpdateStock(item)}>
                       <FontAwesome5 name="edit" size={12} color="#0F8A3C" />
                     </ActionButton>
-                    <ActionButton onPress={() => handleIncreaseStock(item)}>
-                      <FontAwesome5 name="plus" size={12} color="#10B981" />
+                    <ActionButton onPress={() => Alert.alert('Settings', 'Configure reorder settings')}>
+                      <FontAwesome5 name="cog" size={12} color="#6B7280" />
                     </ActionButton>
                   </ActionButtons>
                 </CardFooter>
@@ -193,200 +175,78 @@ const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 export default AdminInventoryScreen;
 
 const Header = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 12px;
-  background-color: #FFFFFF;
-  border-bottom-width: 1px;
-  border-bottom-color: #E5E7EB;
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background-color: #FFFFFF;
+  border-bottom-width: 1px; border-bottom-color: #E5E7EB;
 `;
-
-const BackButton = styled.TouchableOpacity`
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  background-color: #f3f4f6;
-  align-items: center;
-  justify-content: center;
-`;
-
-const HeaderTitle = styled.Text`
-  font-size: 16px;
-  font-weight: 700;
-  color: #1F2937;
-`;
-
+const BackButton = styled.TouchableOpacity`width: 40px; height: 40px; align-items: center; justify-content: center;`;
+const HeaderTitle = styled.Text`font-size: 18px; font-weight: 700; color: #1F2937;`;
 const AddButton = styled.TouchableOpacity`
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background-color: #0F8A3C;
-  align-items: center;
-  justify-content: center;
+  width: 40px; height: 40px; border-radius: 12px;
+  background-color: #0F8A3C; align-items: center; justify-content: center;
 `;
 
 const SearchContainer = styled.View`
-  flex-direction: row;
-  align-items: center;
-  background-color: #FFFFFF;
-  margin: 8px 12px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border-width: 1px;
-  border-color: #E5E7EB;
+  flex-direction: row; align-items: center; background-color: #FFFFFF;
+  margin: 16px; padding: 12px 16px; border-radius: 12px;
+  border-width: 1px; border-color: #E5E7EB;
 `;
+const SearchInput = styled.TextInput`flex: 1; font-size: 14px; color: #111827;`;
 
-const SearchInput = styled.TextInput`
-  flex: 1;
-  font-size: 12px;
-  color: #111827;
-`;
-
-const FilterContainer = styled.View`
-  margin-bottom: 12px;
-  align-items: center;
-`;
-
+const FilterContainer = styled.View`margin-bottom: 16px;`;
 const FilterButton = styled.TouchableOpacity<{ active: boolean }>`
-  padding: 6px 12px;
-  border-radius: 16px;
-  margin-right: 6px;
-  background-color: ${(props: any) => props.active ? '#0F8A3C' : '#FFFFFF'};
-  border-width: 1px;
-  border-color: ${(props: any) => props.active ? '#0F8A3C' : '#E5E7EB'};
+  padding: 8px 16px; border-radius: 20px; margin-right: 8px;
+  background-color: ${({ active }) => active ? '#0F8A3C' : '#FFFFFF'};
+  border-width: 1px; border-color: ${({ active }) => active ? '#0F8A3C' : '#E5E7EB'};
 `;
-
 const FilterButtonText = styled.Text<{ active: boolean }>`
-  font-size: 11px;
-  font-weight: 700;
-  color: ${(props: any) => props.active ? '#FFFFFF' : '#6B7280'};
+  font-size: 13px; font-weight: 600;
+  color: ${({ active }) => active ? '#FFFFFF' : '#6B7280'};
 `;
 
-const StatsRow = styled.View`
-  flex-direction: row;
-  padding: 0 12px;
-  margin-bottom: 12px;
-  justify-content: center;
-`;
-
+const StatsRow = styled.View`flex-direction: row; padding: 0 12px; margin-bottom: 16px;`;
 const StatCard = styled.View`
-  flex: 1;
-  background-color: #FFFFFF;
-  border-radius: 12px;
-  padding: 12px;
-  margin: 0 4px;
-  align-items: center;
-  border-width: 1px;
-  border-color: #E5E7EB;
-  shadow-color: rgba(0, 0, 0, 0.04);
-  shadow-offset: 0px 1px;
-  shadow-opacity: 1;
-  shadow-radius: 2;
-  elevation: 1;
+  flex: 1; background-color: #FFFFFF; border-radius: 12px;
+  padding: 14px; margin: 0 4px; align-items: center;
+  border-width: 1px; border-color: #F3F4F6;
 `;
-
 const StatIcon = styled.View<{ bgColor: string }>`
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background-color: ${(props: any) => props.bgColor};
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
+  width: 36px; height: 36px; border-radius: 10px;
+  background-color: ${({ bgColor }) => bgColor};
+  align-items: center; justify-content: center; margin-bottom: 8px;
 `;
+const StatValue = styled.Text`font-size: 20px; font-weight: 800; color: #111827;`;
+const StatLabel = styled.Text`font-size: 11px; color: #9CA3AF; margin-top: 2px;`;
 
-const StatValue = styled.Text`
-  font-size: 18px;
-  font-weight: 900;
-  color: #111827;
-`;
-
-const StatLabel = styled.Text`
-  font-size: 9px;
-  color: #9CA3AF;
-  margin-top: 1px;
-  font-weight: 700;
-`;
-
-const InventoryList = styled.View`
-  padding: 0 12px;
-`;
-
+const InventoryList = styled.View`padding: 0 16px 24px;`;
 const InventoryCard = styled.View`
-  background-color: #FFFFFF;
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 8px;
-  margin-horizontal: auto;
-  border-width: 1px;
-  border-color: #E5E7EB;
-  shadow-color: rgba(0, 0, 0, 0.04);
-  shadow-offset: 0px 1px;
-  shadow-opacity: 1;
-  shadow-radius: 2;
-  elevation: 1;
+  background-color: #FFFFFF; border-radius: 16px; padding: 16px;
+  margin-bottom: 12px; border-width: 1px; border-color: #F3F4F6;
 `;
-
 const CardHeader = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+  flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 12px;
 `;
-
-const ItemName = styled.Text`
-  font-size: 12px;
-  font-weight: 700;
-  color: #111827;
-  flex: 1;
-`;
-
+const ItemName = styled.Text`font-size: 15px; font-weight: 700; color: #111827; flex: 1;`;
 const StockBadge = styled.View<{ bgColor: string }>`
-  background-color: ${(props: any) => props.bgColor};
-  padding: 3px 8px;
-  border-radius: 6px;
+  background-color: ${({ bgColor }) => bgColor};
+  padding: 4px 10px; border-radius: 8px;
 `;
-
 const StockBadgeText = styled.Text<{ color: string }>`
-  font-size: 9px;
-  font-weight: 800;
-  color: ${(props: any) => props.color};
+  font-size: 10px; font-weight: 800; color: ${({ color }) => color};
 `;
 
 const ItemDetails = styled.View`
-  flex-direction: row;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
+  flex-direction: row; flex-wrap: wrap; margin-bottom: 12px;
 `;
-
 const DetailRow = styled.View`
-  flex-direction: row;
-  width: 50%;
-  margin-bottom: 4px;
+  flex-direction: row; width: 50%; margin-bottom: 6px;
 `;
+const DetailLabel = styled.Text`font-size: 12px; color: #9CA3AF; margin-right: 4px;`;
+const DetailValue = styled.Text`font-size: 12px; font-weight: 600; color: #111827;`;
 
-const DetailLabel = styled.Text`
-  font-size: 10px;
-  color: #9CA3AF;
-  margin-right: 4px;
-  font-weight: 600;
-`;
-
-const DetailValue = styled.Text`
-  font-size: 10px;
-  font-weight: 700;
-  color: #111827;
-`;
-
-const StockInfo = styled.View`
-  margin-bottom: 8px;
-`;
-
+const StockInfo = styled.View`margin-bottom: 12px;`;
 const StockBar = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  margin-bottom: 4px;
+  flex-direction: row; justify-content: space-between; margin-bottom: 6px;
 `;
 const StockBarLabel = styled.Text`font-size: 11px; color: #6B7280;`;
 const StockBarValue = styled.Text`font-size: 11px; font-weight: 700; color: #111827;`;
@@ -394,9 +254,8 @@ const ProgressBar = styled.View`
   height: 6px; background-color: #F3F4F6; border-radius: 3px; overflow: hidden;
 `;
 const ProgressFill = styled.View<{ percentage: number; color: string }>`
-  width: ${(props: any) => props.percentage}%;
-  height: 100%;
-  background-color: ${(props: any) => props.color};
+  width: ${({ percentage }) => percentage}%;
+  height: 100%; background-color: ${({ color }) => color};
 `;
 
 const CardFooter = styled.View`

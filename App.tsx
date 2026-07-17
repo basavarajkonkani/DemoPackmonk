@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Provider, useSelector } from 'react-redux';
 import { store, RootState, useAppDispatch } from './src/store';
+import { login } from './src/store/authSlice';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider } from 'styled-components/native';
@@ -12,9 +13,8 @@ import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { FontAwesome5 } from '@expo/vector-icons';
 import RootNavigator from './src/navigation/RootNavigator';
-import ErrorBoundary from './src/components/ErrorBoundary';
 import theme from './src/theme';
-import { AUTH_KEY } from './src/constants';
+import { ONBOARDING_KEY, AUTH_KEY } from './src/constants';
 
 // Keep splash screen visible while loading fonts
 if (Platform.OS !== 'web') {
@@ -28,9 +28,8 @@ const rootStyle = Platform.OS === 'web'
 // Inner component that has access to Redux store
 const AppContent: React.FC = () => {
   const dispatch = useAppDispatch();
-  const userRole = useSelector((state: RootState) => state.auth.role);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-  const [initialRoute, setInitialRoute] = useState<'MainTabs' | 'AdminTabs' | null>(null);
+  const [initialRoute, setInitialRoute] = useState<'Onboarding' | 'MainTabs' | null>(null);
   const [webFontsReady, setWebFontsReady] = useState(Platform.OS !== 'web');
   const [isReady, setIsReady] = useState(false);
   const navigationRef = useRef<any>(null);
@@ -40,26 +39,20 @@ const AppContent: React.FC = () => {
     ...FontAwesome5.font,
   });
 
-  // Check initial route - Always start at MainTabs (customer home, no login required)
+  // Check initial route - Always start at Onboarding, do NOT auto-login
   useEffect(() => {
     async function checkInitialRoute() {
       try {
-        // Clear any previous auth state from AsyncStorage to start fresh
-        // This ensures users land on customer home without being logged in
-        console.log('App initializing - clearing AsyncStorage...');
-        await AsyncStorage.removeItem(AUTH_KEY);
-        console.log('AsyncStorage cleared - starting fresh');
+        // Always start with Onboarding screen
+        // Users must authenticate via OTP each session
+        setInitialRoute('Onboarding');
         
-        // Always start with MainTabs (customer home dashboard)
-        // Users can browse, search, configure pouches, and add to cart without login
-        setInitialRoute('MainTabs');
-        
-        console.log('App initialized - starting at MainTabs (customer home)');
+        console.log('App initialized - starting at Onboarding screen');
         
         setIsReady(true);
       } catch (error) {
         console.warn('Error checking initial route:', error);
-        setInitialRoute('MainTabs');
+        setInitialRoute('Onboarding');
         setIsReady(true);
       }
     }
@@ -67,29 +60,28 @@ const AppContent: React.FC = () => {
     checkInitialRoute();
   }, [dispatch]);
 
-  // React to auth state changes - handle logout and admin login
+  // React to Redux auth state changes ONLY after initial load
+  // This prevents the immediate redirect on app start
   useEffect(() => {
+    // Only react to auth changes after we've set the initial route
     if (!isReady || !navigationRef.current) return;
     
-    console.log('useEffect: Auth state changed:', { isAuthenticated, userRole });
+    console.log('Auth state check - isAuthenticated:', isAuthenticated);
     
-    // If admin is logged in, navigate to AdminTabs
-    if (isAuthenticated && userRole === 'admin') {
-      console.log('useEffect: Admin authenticated - navigating to AdminTabs');
-      navigationRef.current?.reset({
-        index: 0,
-        routes: [{ name: 'AdminTabs' }],
-      });
-    } 
-    // If user logged out (isAuthenticated is false), return to MainTabs (customer home)
-    else if (!isAuthenticated) {
-      console.log('useEffect: User logged out - navigating back to MainTabs');
-      navigationRef.current?.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs' }],
-      });
-    }
-  }, [isAuthenticated, userRole, isReady]);
+    // Add a small delay to prevent race condition
+    const timer = setTimeout(() => {
+      // If logged out, navigate to Onboarding using navigation ref
+      if (!isAuthenticated) {
+        console.log('Auth state changed to unauthenticated - navigating to Onboarding');
+        navigationRef.current?.reset({
+          index: 0,
+          routes: [{ name: 'Onboarding' }],
+        });
+      }
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, isReady]);
 
   // For web, wait for FontAwesome to load from CDN
   useEffect(() => {
@@ -133,12 +125,10 @@ const AppContent: React.FC = () => {
 
   return (
     <SafeAreaProvider>
-      <ErrorBoundary>
-        <NavigationContainer ref={navigationRef} onReady={onLayoutRootView}>
-          <StatusBar style="dark" backgroundColor="#FFFFFF" translucent={false} />
-          <RootNavigator initialRoute={initialRoute} />
-        </NavigationContainer>
-      </ErrorBoundary>
+      <NavigationContainer ref={navigationRef} onReady={onLayoutRootView}>
+        <StatusBar style="dark" backgroundColor="#FFFFFF" translucent={false} />
+        <RootNavigator initialRoute={initialRoute} />
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 };
