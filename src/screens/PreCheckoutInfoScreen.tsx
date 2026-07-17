@@ -8,6 +8,7 @@ import {
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { IMAGES } from '../constants/images';
+import { getTabBarHeight } from '../utils/layoutUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -25,6 +26,11 @@ interface Props {
 }
 
 const PreCheckoutInfoScreen: React.FC<Props> = ({ navigation, route }) => {
+  // Calculate proper bottom padding
+  const tabBarHeight = getTabBarHeight();
+  const bottomBarHeight = 90;
+  const totalBottomPadding = tabBarHeight + bottomBarHeight + 20;
+
   const handleContinueToCheckout = () => {
     navigation.navigate('Checkout', route.params);
   };
@@ -54,7 +60,7 @@ const PreCheckoutInfoScreen: React.FC<Props> = ({ navigation, route }) => {
           alignItems: 'center',
           paddingHorizontal: 20,
           paddingTop: 20,
-          paddingBottom: 120,
+          paddingBottom: totalBottomPadding,
         }}
         bounces={false}
       >
@@ -118,7 +124,7 @@ const PreCheckoutInfoScreen: React.FC<Props> = ({ navigation, route }) => {
         </Card>
       </ScrollView>
 
-      <BottomBar>
+      <BottomBar tabBarHeight={tabBarHeight}>
         <ContinueBtn onPress={handleContinueToCheckout} activeOpacity={0.9}>
           <ContinueBtnText>Continue to Checkout</ContinueBtnText>
           <FontAwesome5 name="arrow-right" size={14} color="#FFFFFF" style={{ marginLeft: 10 }} />
@@ -303,15 +309,19 @@ const TrustText = styled.Text`
   text-align: center;
 `;
 
-const BottomBar = styled.View`
+const BottomBar = styled.View<{ tabBarHeight: number }>`
   position: absolute;
-  bottom: 0;
+  bottom: ${({ tabBarHeight }) => `${tabBarHeight}px`};
   left: 0;
   right: 0;
-  padding: 12px 16px ${Platform.OS === 'ios' ? '36px' : '20px'};
+  width: 100%;
+  padding: 12px 16px;
   background-color: #FFFFFF;
   border-top-width: 1px;
   border-top-color: #E5E7EB;
+  z-index: 1000;
+  elevation: 10;
+  box-sizing: border-box;
 `;
 
 const ContinueBtn = styled.TouchableOpacity`

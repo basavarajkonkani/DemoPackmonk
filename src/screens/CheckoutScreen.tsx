@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '../store';
 import { clearCart, selectCartTotal } from '../store/cartSlice';
 import { placeOrder } from '../store/ordersSlice';
 import { GST_RATE, DEFAULT_SHIPPING_FEE } from '../constants';
+import { getTabBarHeight } from '../utils/layoutUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -24,6 +25,11 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const shipping = DEFAULT_SHIPPING_FEE;
   const gst = Number(((subtotal + setupFees + shipping) * GST_RATE).toFixed(2));
   const total = Number((subtotal + setupFees + shipping + gst).toFixed(2));
+
+  // Calculate proper bottom padding for button
+  const tabBarHeight = getTabBarHeight();
+  const bottomBarHeight = 90;
+  const totalBottomPadding = tabBarHeight + bottomBarHeight + 20;
 
   const [payment, setPayment] = useState('upi');
   const [company, setCompany] = useState('Work');
@@ -167,7 +173,7 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </ModalOverlay>
       </Modal>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 140, alignItems: 'center' }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: totalBottomPadding, alignItems: 'center' }}>
         <ContentWrapper>
         {/* Progress Indicator */}
         <ProgressBar>
@@ -294,7 +300,7 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </ScrollView>
 
       {/* Place Order */}
-      <BottomBar>
+      <BottomBar tabBarHeight={tabBarHeight}>
         <PlaceOrderBtn onPress={handlePlaceOrder} activeOpacity={0.9}>
           <FontAwesome5 name="lock" size={14} color="#FFFFFF" style={{ marginRight: 10 }} />
           <PlaceOrderText>Review & Place Order</PlaceOrderText>
@@ -372,10 +378,19 @@ const PaymentNote = styled.Text`
   margin-top: 2px;
 `;
 
-const BottomBar = styled.View`
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 12px 16px ${Platform.OS === 'ios' ? '36px' : '20px'};
-  background-color: #FFFFFF; border-top-width: 1px; border-top-color: #E5E7EB;
+const BottomBar = styled.View<{ tabBarHeight: number }>`
+  position: absolute;
+  bottom: ${({ tabBarHeight }) => `${tabBarHeight}px`};
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #FFFFFF;
+  border-top-width: 1px;
+  border-top-color: #E5E7EB;
+  z-index: 1000;
+  elevation: 10;
+  box-sizing: border-box;
 `;
 const PlaceOrderBtn = styled.TouchableOpacity`
   flex-direction: row;

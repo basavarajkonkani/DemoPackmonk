@@ -18,7 +18,7 @@ import {
   MATERIAL_LABELS,
   calculatePouchPrice,
 } from '../store/pouchSlice';
-import { getScrollViewBottomPaddingWithTabBarAndFooter } from '../utils/layoutUtils';
+import { getTabBarHeight, getStickyFooterHeight } from '../utils/layoutUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -31,6 +31,11 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const shipping = cartItems.length > 0 ? DEFAULT_SHIPPING_FEE : 0;
   const gst = Number(((subtotal + setupFees + shipping) * GST_RATE).toFixed(2));
   const total = Number((subtotal + setupFees + shipping + gst).toFixed(2));
+
+  // Calculate proper bottom padding
+  const tabBarHeight = getTabBarHeight();
+  const checkoutBarHeight = 140; // Approximate height of CheckoutBar
+  const totalBottomPadding = tabBarHeight + checkoutBarHeight + 20;
 
   const handleQty = (cartId: string, dir: 'inc' | 'dec', qty: number, productId: string) => {
     const item = cartItems.find((i) => i.cartId === cartId);
@@ -198,14 +203,14 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       <ScrollView 
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={{ 
-          padding: 16, 
-          paddingBottom: 140,
-          alignItems: 'center' 
-        }} 
+          paddingBottom: totalBottomPadding,
+          paddingHorizontal: 16,
+          paddingTop: 16,
+        }}
         style={{ flex: 1 }}
       >
         <ContentWrapper>
-        {cartItems.map((item) => {
+          {cartItems.map((item) => {
           // Check if this is a ready stock item (has isReadyStock flag)
           const isReadyStockItem = (item as any).isReadyStock === true;
           
@@ -318,7 +323,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </ScrollView>
 
       {/* Checkout Bar */}
-      <CheckoutBar>
+      <CheckoutBar tabBarHeight={tabBarHeight}>
         <ContinueShoppingLink onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })} activeOpacity={0.8}>
           <FontAwesome5 name="arrow-left" size={12} color="#0F8A3C" style={{ marginRight: 6 }} />
           <ContinueShoppingText>Continue Shopping</ContinueShoppingText>
@@ -337,7 +342,6 @@ const Container = styled.View`
   flex: 1;
   background-color: #F8F9FA;
   flex-direction: column;
-  position: relative;
 `;
 
 const ContentWrapper = styled.View`
@@ -464,17 +468,23 @@ const GrandLabel = styled.Text`font-size: 16px; font-weight: 700; color: #111827
 const GrandVal = styled.Text`font-size: 24px; font-weight: 800; color: #111827; letter-spacing: -0.4px;`;
 
 /* Checkout bar */
-const CheckoutBar = styled.View`
+const CheckoutBar = styled.View<{ tabBarHeight: number }>`
   position: absolute;
-  bottom: 0;
+  bottom: ${({ tabBarHeight }) => `${tabBarHeight}px`};
   left: 0;
   right: 0;
+  width: 100%;
   padding: 12px 16px;
-  padding-bottom: ${Platform.select({ ios: '36px', android: '20px', default: '20px' })};
   background-color: #FFFFFF;
   border-top-width: 1px;
   border-top-color: #E5E7EB;
-  z-index: 100;
+  z-index: 1000;
+  elevation: 10;
+  shadow-color: #000000;
+  shadow-offset: 0 -2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+  box-sizing: border-box;
 `;
 const ContinueShoppingLink = styled.TouchableOpacity`
   flex-direction: row;
