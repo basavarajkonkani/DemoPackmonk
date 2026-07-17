@@ -195,7 +195,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <Container>
       {renderTopBar(true)}
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: getScrollViewBottomPaddingWithTabBarAndFooter(), alignItems: 'center' }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 20, alignItems: 'center' }} style={{ flex: 1 }}>
         <ContentWrapper>
         {cartItems.map((item) => {
           // Check if this is a ready stock item (has isReadyStock flag)
@@ -325,7 +325,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 export default CartScreen;
 
-const Container = styled.View`flex: 1; background-color: #F8F9FA;`;
+const Container = styled.View`flex: 1; background-color: #F8F9FA; flex-direction: column;`;
 
 const ContentWrapper = styled.View`
   width: 100%;
@@ -452,7 +452,6 @@ const GrandVal = styled.Text`font-size: 24px; font-weight: 800; color: #111827; 
 
 /* Checkout bar */
 const CheckoutBar = styled.View`
-  position: absolute; bottom: 0; left: 0; right: 0;
   padding: 12px 16px ${Platform.OS === 'ios' ? '36px' : '20px'};
   background-color: #FFFFFF; border-top-width: 1px; border-top-color: #E5E7EB;
 `;
