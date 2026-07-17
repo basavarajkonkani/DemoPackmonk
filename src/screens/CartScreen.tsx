@@ -195,7 +195,15 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <Container>
       {renderTopBar(true)}
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, paddingBottom: 20, alignItems: 'center' }} style={{ flex: 1 }}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={{ 
+          padding: 16, 
+          paddingBottom: getScrollViewBottomPaddingWithTabBarAndFooter() + 12,
+          alignItems: 'center' 
+        }} 
+        style={{ flex: 1 }}
+      >
         <ContentWrapper>
         {cartItems.map((item) => {
           // Check if this is a ready stock item (has isReadyStock flag)
@@ -325,7 +333,12 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 export default CartScreen;
 
-const Container = styled.View`flex: 1; background-color: #F8F9FA; flex-direction: column;`;
+const Container = styled.View`
+  flex: 1;
+  background-color: #F8F9FA;
+  flex-direction: column;
+  position: relative;
+`;
 
 const ContentWrapper = styled.View`
   width: 100%;
@@ -452,8 +465,15 @@ const GrandVal = styled.Text`font-size: 24px; font-weight: 800; color: #111827; 
 
 /* Checkout bar */
 const CheckoutBar = styled.View`
-  padding: 12px 16px ${Platform.OS === 'ios' ? '36px' : '20px'};
-  background-color: #FFFFFF; border-top-width: 1px; border-top-color: #E5E7EB;
+  position: absolute;
+  bottom: ${Platform.select({ ios: '85px', android: '65px', default: '70px' })};
+  left: 0;
+  right: 0;
+  padding: 12px 16px ${Platform.OS === 'ios' ? '12px' : '12px'};
+  background-color: #FFFFFF;
+  border-top-width: 1px;
+  border-top-color: #E5E7EB;
+  z-index: 100;
 `;
 const ContinueShoppingLink = styled.TouchableOpacity`
   flex-direction: row;
