@@ -197,7 +197,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   }
 
   return (
-    <Container>
+    <Container pointerEvents="box-none">
       {renderTopBar(true)}
 
       <ScrollView 
@@ -209,6 +209,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         }}
         style={{ flex: 1 }}
         scrollEventThrottle={16}
+        pointerEvents="auto"
       >
         <ContentWrapper>
           {cartItems.map((item) => {
@@ -324,12 +325,12 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </ScrollView>
 
       {/* Checkout Bar - Fixed at bottom above tab bar */}
-      <CheckoutBar tabBarHeight={tabBarHeight}>
-        <ContinueShoppingLink onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })} activeOpacity={0.8}>
+      <CheckoutBar tabBarHeight={tabBarHeight} pointerEvents="box-none">
+        <ContinueShoppingLink onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })} activeOpacity={0.8} pointerEvents="auto">
           <FontAwesome5 name="arrow-left" size={12} color="#0F8A3C" style={{ marginRight: 6 }} />
           <ContinueShoppingText>Continue Shopping</ContinueShoppingText>
         </ContinueShoppingLink>
-        <CheckoutBtn onPress={() => navigation.navigate('Checkout')} activeOpacity={0.9}>
+        <CheckoutBtn onPress={() => navigation.navigate('Checkout')} activeOpacity={0.9} pointerEvents="auto">
           <CheckoutLabel>Proceed to Checkout</CheckoutLabel>
         </CheckoutBtn>
       </CheckoutBar>
@@ -479,12 +480,16 @@ const CheckoutBar = styled.View<{ tabBarHeight: number }>`
   background-color: #FFFFFF;
   border-top-width: 1px;
   border-top-color: #E5E7EB;
-  z-index: 999;
-  elevation: 999;
+  z-index: 9999;
+  elevation: 9999;
   shadow-color: #000000;
   shadow-offset: 0px -2px;
   shadow-opacity: 0.1;
   shadow-radius: 4px;
+  flex-direction: column;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  pointer-events: box-none;
 `;
 const ContinueShoppingLink = styled.TouchableOpacity`
   flex-direction: row;
