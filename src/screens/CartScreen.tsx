@@ -25,7 +25,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((s) => s.cart.items);
-  const products = useAppSelector((s) => s.configurableCatalog.items);
+  const products = useAppSelector((s) => s.products.items);
   const subtotal = useAppSelector(selectCartTotal);
   const setupFees = cartItems.reduce((s, i) => s + i.setupFee, 0);
   const shipping = cartItems.length > 0 ? DEFAULT_SHIPPING_FEE : 0;
