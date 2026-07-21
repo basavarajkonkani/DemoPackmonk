@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, View, Alert, Platform, Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -25,7 +25,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((s) => s.cart.items);
-  const products = useAppSelector((s) => s.products.items);
+  const products = useAppSelector((s) => s.configurableCatalog.items);
   const subtotal = useAppSelector(selectCartTotal);
   const setupFees = cartItems.reduce((s, i) => s + i.setupFee, 0);
   const shipping = cartItems.length > 0 ? DEFAULT_SHIPPING_FEE : 0;
@@ -34,7 +34,7 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   // Calculate proper bottom padding
   const tabBarHeight = getTabBarHeight();
-  const checkoutBarHeight = 140; // Approximate height of CheckoutBar
+  const [checkoutBarHeight, setCheckoutBarHeight] = useState(0);
   const totalBottomPadding = tabBarHeight + checkoutBarHeight + 20;
 
   const handleQty = (cartId: string, dir: 'inc' | 'dec', qty: number, productId: string) => {
@@ -325,7 +325,16 @@ const CartScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </ScrollView>
 
       {/* Checkout Bar - Fixed at bottom above tab bar */}
-      <CheckoutBar tabBarHeight={tabBarHeight} pointerEvents="box-none">
+      <CheckoutBar
+        tabBarHeight={tabBarHeight}
+        pointerEvents="box-none"
+        onLayout={(e: any) => {
+          const measuredHeight = e.nativeEvent.layout.height;
+          if (measuredHeight > 0 && measuredHeight !== checkoutBarHeight) {
+            setCheckoutBarHeight(measuredHeight);
+          }
+        }}
+      >
         <ContinueShoppingLink onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })} activeOpacity={0.8} pointerEvents="auto">
           <FontAwesome5 name="arrow-left" size={12} color="#0F8A3C" style={{ marginRight: 6 }} />
           <ContinueShoppingText>Continue Shopping</ContinueShoppingText>
@@ -472,7 +481,7 @@ const GrandVal = styled.Text`font-size: 24px; font-weight: 800; color: #111827; 
 /* Checkout bar */
 const CheckoutBar = styled.View<{ tabBarHeight: number }>`
   position: absolute;
-  bottom: ${({ tabBarHeight }) => `${tabBarHeight}px`};
+  bottom: ${({ tabBarHeight }: { tabBarHeight: number }) => `${tabBarHeight}px`};
   left: 0;
   right: 0;
   width: 100%;
