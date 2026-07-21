@@ -1,4 +1,13 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+/**
+ * Repository for the "configurable custom packaging" catalog — corrugated
+ * boxes, mailer boxes, rigid gift boxes, bags, laminated rolls and tape
+ * whose dimensions/material/print can be freely configured in the Design
+ * Studio flow. This is intentionally a separate model from
+ * `catalogRepository` (ready-to-ship pouches with fixed size variants):
+ * the two represent genuinely different product types and forcing one
+ * schema onto both would require awkward compromises on either side.
+ */
+import { readList } from '../storage';
 
 export interface ProductMaterial {
   id: string;
@@ -36,23 +45,20 @@ export interface PackagingProduct {
   materials: ProductMaterial[];
   dimensions: DimensionConfig;
   bulkDiscounts: BulkDiscount[];
-  ecoFriendlyRating: number; // 1–5
-  strengthRating: number;    // 1–5
+  ecoFriendlyRating: number;
+  strengthRating: number;
 }
 
-interface ProductsState {
-  items: PackagingProduct[];
-  selectedProductId: string | null;
-}
+const STORE_NAME = 'configurable_products';
 
-const initialProducts: PackagingProduct[] = [
-  /* ─────────────────────────── BOXES ─────────────────────────── */
+const SEED_PRODUCTS: PackagingProduct[] = [
   {
     id: 'corrugated-shipping-box',
     name: 'Corrugated Shipping Box',
     category: 'box',
     description: 'Sturdy double-walled boxes built to protect goods during tough transits.',
-    longDescription: 'Industrial-grade corrugated shipping boxes with high-durability fluting, exceptional puncture resistance and stacking strength. Perfect for e-commerce, logistics, and heavy products. 100% recyclable from post-consumer waste.',
+    longDescription:
+      'Industrial-grade corrugated shipping boxes with high-durability fluting, exceptional puncture resistance and stacking strength. Perfect for e-commerce, logistics, and heavy products. 100% recyclable from post-consumer waste.',
     minQuantity: 50,
     basePrice: 1.85,
     materials: [
@@ -75,7 +81,8 @@ const initialProducts: PackagingProduct[] = [
     name: 'Premium Mailer Box',
     category: 'box',
     description: 'Ideal for subscription boxes, retail presentation and premium unboxing.',
-    longDescription: 'Roll-end tuck-front mailers create a memorable unboxing experience. Built with clean-fold edges and sturdy lock tabs — no tape required to assemble. A favourite for apparel, subscription services, cosmetics and electronics.',
+    longDescription:
+      'Roll-end tuck-front mailers create a memorable unboxing experience. Built with clean-fold edges and sturdy lock tabs — no tape required to assemble. A favourite for apparel, subscription services, cosmetics and electronics.',
     minQuantity: 100,
     basePrice: 1.45,
     materials: [
@@ -98,9 +105,10 @@ const initialProducts: PackagingProduct[] = [
     name: 'Rigid Luxury Gift Box',
     category: 'box',
     description: 'Magnetic closure rigid boxes with a premium soft-touch laminate finish.',
-    longDescription: 'Our rigid gift boxes feature a strong 2mm greyboard core wrapped in art paper with soft-touch laminate. Magnetic flap closure adds a high-end feel. Perfect for luxury cosmetics, fragrance, jewellery, and corporate gifting. FSC-certified.',
+    longDescription:
+      'Our rigid gift boxes feature a strong 2mm greyboard core wrapped in art paper with soft-touch laminate. Magnetic flap closure adds a high-end feel. Perfect for luxury cosmetics, fragrance, jewellery, and corporate gifting. FSC-certified.',
     minQuantity: 50,
-    basePrice: 3.20,
+    basePrice: 3.2,
     materials: [
       { id: 'soft-touch-white', name: 'Soft Touch White', multiplier: 1.0, description: 'Velvety white surface. Feels premium in hand.' },
       { id: 'soft-touch-black', name: 'Soft Touch Black', multiplier: 1.1, description: 'Deep matte black. Ultra-luxury presentation.' },
@@ -116,14 +124,13 @@ const initialProducts: PackagingProduct[] = [
     ecoFriendlyRating: 3,
     strengthRating: 5,
   },
-
-  /* ─────────────────────────── MAILERS ─────────────────────────── */
   {
     id: 'kraft-bubble-mailer',
     name: 'Kraft Bubble Mailer',
     category: 'mailer',
     description: 'Lightweight padded envelopes for shipping accessories, jewellery and books.',
-    longDescription: 'Padded kraft envelopes with high-slip bubble wrap lining and a reliable peel-and-seal adhesive flap. Excellent cushioning and moisture protection while minimising postage costs.',
+    longDescription:
+      'Padded kraft envelopes with high-slip bubble wrap lining and a reliable peel-and-seal adhesive flap. Excellent cushioning and moisture protection while minimising postage costs.',
     minQuantity: 100,
     basePrice: 0.65,
     materials: [
@@ -145,7 +152,8 @@ const initialProducts: PackagingProduct[] = [
     name: 'Flat Bottom Pouch',
     category: 'mailer',
     description: 'Stand-alone retail-ready pouches with a flat base for maximum shelf appeal.',
-    longDescription: 'Flat bottom pouches combine the capacity of a box with the flexibility of flexible packaging. Eight-panel construction allows the pouch to stand upright independently. Resealable zipper and tear notch. Ideal for premium food, coffee, pet treats, and nutraceuticals.',
+    longDescription:
+      'Flat bottom pouches combine the capacity of a box with the flexibility of flexible packaging. Eight-panel construction allows the pouch to stand upright independently. Resealable zipper and tear notch. Ideal for premium food, coffee, pet treats, and nutraceuticals.',
     minQuantity: 500,
     basePrice: 0.88,
     materials: [
@@ -163,14 +171,13 @@ const initialProducts: PackagingProduct[] = [
     ecoFriendlyRating: 3,
     strengthRating: 4,
   },
-
-  /* ─────────────────────────── BAGS ─────────────────────────── */
   {
     id: 'stand-up-pouch',
     name: 'Stand Up Pouch',
     category: 'bag',
     description: 'Resealable stand-up pouches perfect for food, coffee, snacks and supplements.',
-    longDescription: 'Our stand-up pouches are made from multi-layer laminate films with a strong bottom gusset that lets them stand independently on shelf. Available with a resealable zipper for consumer convenience. High-resolution flexographic printing up to 9 colours.',
+    longDescription:
+      'Our stand-up pouches are made from multi-layer laminate films with a strong bottom gusset that lets them stand independently on shelf. Available with a resealable zipper for consumer convenience. High-resolution flexographic printing up to 9 colours.',
     minQuantity: 500,
     basePrice: 0.72,
     materials: [
@@ -193,7 +200,8 @@ const initialProducts: PackagingProduct[] = [
     name: 'Compostable Poly Mailer',
     category: 'bag',
     description: '100% biodegradable waterproof mailers for apparel and soft goods.',
-    longDescription: 'Made from cornstarch and PBAT — breaks down in home compost within 180 days. Waterproof, tear-resistant, and features dual self-adhesive strips for easy returns and reusability. The sustainable choice for fashion and lifestyle brands.',
+    longDescription:
+      'Made from cornstarch and PBAT — breaks down in home compost within 180 days. Waterproof, tear-resistant, and features dual self-adhesive strips for easy returns and reusability. The sustainable choice for fashion and lifestyle brands.',
     minQuantity: 200,
     basePrice: 0.42,
     materials: [
@@ -214,9 +222,10 @@ const initialProducts: PackagingProduct[] = [
     name: 'Laminated Roll Film',
     category: 'bag',
     description: 'Flexible laminated roll stock for form-fill-seal packaging machines.',
-    longDescription: 'Our laminated roll film is compatible with all major FFS machines — vertical and horizontal. Multi-layer construction with barrier properties for moisture, oxygen and UV. Used in dairy, snack, confectionery and pharma industries. Custom width and print available.',
+    longDescription:
+      'Our laminated roll film is compatible with all major FFS machines — vertical and horizontal. Multi-layer construction with barrier properties for moisture, oxygen and UV. Used in dairy, snack, confectionery and pharma industries. Custom width and print available.',
     minQuantity: 5,
-    basePrice: 28.00, // per roll
+    basePrice: 28.0,
     materials: [
       { id: 'bopp-laminate', name: 'BOPP Laminate', multiplier: 1.0, description: 'Bi-axially oriented polypropylene. Excellent clarity and gloss.' },
       { id: 'pet-foil', name: 'PET Foil Laminate', multiplier: 1.25, description: 'Polyester + aluminium foil. Superior barrier properties.' },
@@ -232,16 +241,15 @@ const initialProducts: PackagingProduct[] = [
     ecoFriendlyRating: 2,
     strengthRating: 4,
   },
-
-  /* ─────────────────────────── TAPE ─────────────────────────── */
   {
     id: 'reinforced-paper-tape',
     name: 'Custom Reinforced Paper Tape',
     category: 'tape',
     description: 'Water-activated fiberglass tape that creates a tamper-evident molecular bond.',
-    longDescription: 'Water-activated paper tape fuses instantly with corrugated surfaces, creating a molecular bond that is completely tamper-proof. Reinforced with fiberglass mesh — one strip seals heavy packaging safely. Print your logo or message for branded shipping.',
+    longDescription:
+      'Water-activated paper tape fuses instantly with corrugated surfaces, creating a molecular bond that is completely tamper-proof. Reinforced with fiberglass mesh — one strip seals heavy packaging safely. Print your logo or message for branded shipping.',
     minQuantity: 10,
-    basePrice: 12.50,
+    basePrice: 12.5,
     materials: [
       { id: 'paper-tape-kraft', name: 'Brown Reinforced Paper', multiplier: 1.0, description: 'Water-activated kraft backing. Strong and tamper evident.' },
       { id: 'paper-tape-white', name: 'White Reinforced Paper', multiplier: 1.08, description: 'Bleached white backing. High-contrast dark ink prints.' },
@@ -260,9 +268,10 @@ const initialProducts: PackagingProduct[] = [
     name: 'Printed BOPP Tape',
     category: 'tape',
     description: 'Crystal-clear or custom printed polypropylene tape for branded carton sealing.',
-    longDescription: 'BOPP (Bi-Axially Oriented Polypropylene) tape offers superior clarity and adhesion. Up to 3-colour custom flexographic printing. Available in standard widths and lengths. Excellent temperature resistance and noise-free unwind for high-speed packing lines.',
+    longDescription:
+      'BOPP (Bi-Axially Oriented Polypropylene) tape offers superior clarity and adhesion. Up to 3-colour custom flexographic printing. Available in standard widths and lengths. Excellent temperature resistance and noise-free unwind for high-speed packing lines.',
     minQuantity: 24,
-    basePrice: 4.80,
+    basePrice: 4.8,
     materials: [
       { id: 'clear-bopp', name: 'Crystal Clear', multiplier: 1.0, description: 'Transparent tape. Invisible seal on light-coloured boxes.' },
       { id: 'tan-bopp', name: 'Tan / Brown BOPP', multiplier: 1.0, description: 'Classic tan look. Blends with kraft boxes seamlessly.' },
@@ -279,27 +288,11 @@ const initialProducts: PackagingProduct[] = [
   },
 ];
 
-const initialState: ProductsState = {
-  items: initialProducts,
-  selectedProductId: null,
-};
+export async function listConfigurableProducts(): Promise<PackagingProduct[]> {
+  return readList(STORE_NAME, SEED_PRODUCTS);
+}
 
-const productsSlice = createSlice({
-  name: 'products',
-  initialState,
-  reducers: {
-    selectProduct: (state, action: PayloadAction<string>) => {
-      state.selectedProductId = action.payload;
-    },
-    clearSelectedProduct: (state) => {
-      state.selectedProductId = null;
-    },
-  },
-});
-
-export const { selectProduct, clearSelectedProduct } = productsSlice.actions;
-export default productsSlice.reducer;
-
-export const selectProductsList = (state: { products: ProductsState }) => state.products.items;
-export const selectCurrentProduct = (state: { products: ProductsState }) =>
-  state.products.items.find((item) => item.id === state.products.selectedProductId) ?? null;
+export async function getConfigurableProduct(id: string): Promise<PackagingProduct | null> {
+  const all = await listConfigurableProducts();
+  return all.find((p) => p.id === id) ?? null;
+}

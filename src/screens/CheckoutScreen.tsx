@@ -20,6 +20,7 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((s) => s.cart.items);
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const authUser = useAppSelector((s) => s.auth.user);
   const subtotal = useAppSelector(selectCartTotal);
   const setupFees = cartItems.reduce((s, i) => s + i.setupFee, 0);
   const shipping = DEFAULT_SHIPPING_FEE;
@@ -78,6 +79,9 @@ const CheckoutScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             const orderId = `PCH${Math.floor(1000 + Math.random() * 9000)}`;
             const order = {
               id: orderId,
+              customerId: authUser?.id ?? 'guest',
+              customerName: authUser?.name ?? 'Guest Customer',
+              companyName: company,
               date: new Date().toISOString(),
               status: 'pending_review' as const,
               subtotal, setupFees, shipping, tax: gst, total,

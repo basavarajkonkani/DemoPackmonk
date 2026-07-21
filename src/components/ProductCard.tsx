@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Image } from 'react-native';
 import styled from 'styled-components/native';
-import { PackagingProduct } from '../store/productsSlice';
+import { PackagingProduct } from '../store/configurableCatalogSlice';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { IMAGES, PRODUCT_IMAGES, CATEGORY_IMAGES } from '../constants/images';
 import { getLowestPackagingPrice } from '../utils/priceUtils';

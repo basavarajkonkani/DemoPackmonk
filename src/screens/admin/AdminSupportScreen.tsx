@@ -283,7 +283,7 @@ const AdminSupportScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                       <FontAwesome5 name="user-plus" size={14} color="#3B82F6" />
                       <ActionText style={{ color: '#3B82F6' }}>Assign</ActionText>
                     </ActionBtn>
-                    <ActionBtn onPress={() => Alert.alert('View', 'View full ticket details')}>
+                    <ActionBtn onPress={() => Alert.alert(ticket.ticketNumber, `${ticket.subject}\n\n${ticket.description}\n\nCustomer: ${ticket.customer} (${ticket.email})`)}>
                       <FontAwesome5 name="eye" size={14} color="#6B7280" />
                       <ActionText style={{ color: '#6B7280' }}>View</ActionText>
                     </ActionBtn>

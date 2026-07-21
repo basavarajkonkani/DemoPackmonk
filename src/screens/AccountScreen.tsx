@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { ScrollView, Alert, Switch, Linking } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, Alert, Switch, Linking, Modal } from 'react-native';
 import styled from 'styled-components/native';
 import { CommonActions } from '@react-navigation/native';
 import Header from '../components/Header';
+import AdminAccessCard from '../components/AdminAccessCard';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppSelector, useAppDispatch } from '../store';
 import { selectOrdersList, selectTotalBusinessSpending } from '../store/ordersSlice';
 import { logout } from '../store/authSlice';
+import { fetchProfile, updateProfileThunk, selectCompanyProfile } from '../store/profileSlice';
 import { SUPPORT_EMAIL, WHATSAPP_NUMBER, AUTH_KEY, ONBOARDING_KEY } from '../constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getScrollViewBottomPaddingWithTabBar } from '../utils/layoutUtils';
@@ -21,7 +23,7 @@ const NOTIFS = [
 
 const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const [ecoTarget, setEcoTarget] = useState(500);
+  const [ecoTarget, setEcoTargetState] = useState(500);
   const [notifToggles, setNotifToggles] = useState([true, true, true, true, true]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
@@ -68,6 +70,53 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const orders = useAppSelector(selectOrdersList);
   const totalSpent = useAppSelector(selectTotalBusinessSpending);
   const authUser = useAppSelector((state) => state.auth.user);
+  const profile = useAppSelector(selectCompanyProfile);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ companyName: '', email: '', phone: '', gstNumber: '' });
+
+  useEffect(() => {
+    dispatch(fetchProfile());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (profile) setEcoTargetState(profile.ecoTargetKg);
+  }, [profile]);
+
+  const setEcoTarget = (val: number) => {
+    setEcoTargetState(val);
+    if (profile) dispatch(updateProfileThunk({ ...profile, ecoTargetKg: val }));
+  };
+
+  const openEditProfile = () => {
+    if (profile) {
+      setProfileForm({
+        companyName: profile.companyName,
+        email: profile.email,
+        phone: profile.phone,
+        gstNumber: profile.gstNumber,
+      });
+    }
+    setShowEditProfile(true);
+  };
+
+  const saveProfile = () => {
+    if (!profile) return;
+    if (!profileForm.companyName.trim() || !profileForm.email.trim()) {
+      Alert.alert('Error', 'Company name and email are required');
+      return;
+    }
+    dispatch(
+      updateProfileThunk({
+        ...profile,
+        companyName: profileForm.companyName.trim(),
+        email: profileForm.email.trim(),
+        phone: profileForm.phone.trim(),
+        gstNumber: profileForm.gstNumber.trim(),
+      })
+    );
+    setShowEditProfile(false);
+    Alert.alert('Success', 'Profile updated');
+  };
 
   // Menu items for buyer app only (Admin removed)
   const MENU_ITEMS = [
@@ -119,27 +168,29 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <OnlineDot />
             </AvatarWrap>
             <ProfileInfo>
-              <ProfileName>ZenTech Logistics</ProfileName>
+              <ProfileName>{profile?.companyName ?? 'Loading...'}</ProfileName>
               <TierBadge>
                 <FontAwesome5 name="medal" size={9} color="#D97706" style={{ marginRight: 4 }} />
-                <TierBadgeText>Premium Enterprise</TierBadgeText>
+                <TierBadgeText>
+                  {profile?.tier === 'enterprise' ? 'Premium Enterprise' : profile?.tier === 'growth' ? 'Growth Plan' : 'Starter Plan'}
+                </TierBadgeText>
               </TierBadge>
               <ProfileMeta>
                 <FontAwesome5 name="envelope" size={10} color="#9CA3AF" style={{ marginRight: 5 }} />
-                <ProfileMetaText>ops@zentech.io</ProfileMetaText>
+                <ProfileMetaText>{profile?.email}</ProfileMetaText>
               </ProfileMeta>
               <ProfileMeta>
                 <FontAwesome5 name="id-badge" size={10} color="#9CA3AF" style={{ marginRight: 5 }} />
-                <ProfileMetaText>GST: 29ABCDE1234F1Z5</ProfileMetaText>
+                <ProfileMetaText>GST: {profile?.gstNumber}</ProfileMetaText>
               </ProfileMeta>
             </ProfileInfo>
-            <EditBtn onPress={() => Alert.alert('Edit Profile', 'Profile editing will be available once you connect to your account backend. Contact support@pacmonk.com to update your details.')}>
+            <EditBtn onPress={openEditProfile}>
               <FontAwesome5 name="edit" size={14} color="#0F8A3C" />
             </EditBtn>
           </ProfileTop>
           <ClientIDRow>
             <FontAwesome5 name="fingerprint" size={11} color="#9CA3AF" style={{ marginRight: 5 }} />
-            <ClientIDText>Client ID: PM-ZENT-94107</ClientIDText>
+            <ClientIDText>Client ID: {profile?.clientId}</ClientIDText>
           </ClientIDRow>
         </ProfileCard>
 
@@ -299,6 +350,9 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           ))}
         </SupportCard>
 
+        {/* Admin Access */}
+        <AdminAccessCard navigation={navigation} />
+
         {/* Sign Out */}
         <SignOutBtn onPress={handleSignOut} activeOpacity={0.8}>
           <FontAwesome5 name="sign-out-alt" size={14} color="#EF4444" style={{ marginRight: 8 }} />
@@ -325,6 +379,56 @@ const AccountScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </ConfirmModal>
         </ConfirmOverlay>
       )}
+
+      {/* Edit Profile Modal */}
+      <Modal visible={showEditProfile} transparent animationType="slide">
+        <EditModalOverlay>
+          <EditModalContent>
+            <EditModalHeader>
+              <EditModalTitle>Edit Profile</EditModalTitle>
+              <EditCloseBtn onPress={() => setShowEditProfile(false)}>
+                <FontAwesome5 name="times" size={18} color="#111827" />
+              </EditCloseBtn>
+            </EditModalHeader>
+            <ScrollView contentContainerStyle={{ padding: 16 }}>
+              <EditFormLabel>Company Name *</EditFormLabel>
+              <EditFormInput
+                value={profileForm.companyName}
+                onChangeText={(t) => setProfileForm({ ...profileForm, companyName: t })}
+                placeholder="ZenTech Logistics"
+              />
+              <EditFormLabel>Email *</EditFormLabel>
+              <EditFormInput
+                value={profileForm.email}
+                onChangeText={(t) => setProfileForm({ ...profileForm, email: t })}
+                placeholder="ops@zentech.io"
+                keyboardType="email-address"
+              />
+              <EditFormLabel>Phone</EditFormLabel>
+              <EditFormInput
+                value={profileForm.phone}
+                onChangeText={(t) => setProfileForm({ ...profileForm, phone: t })}
+                placeholder="+1 415 555 0134"
+                keyboardType="phone-pad"
+              />
+              <EditFormLabel>GST Number</EditFormLabel>
+              <EditFormInput
+                value={profileForm.gstNumber}
+                onChangeText={(t) => setProfileForm({ ...profileForm, gstNumber: t })}
+                placeholder="29ABCDE1234F1Z5"
+              />
+            </ScrollView>
+            <EditModalFooter>
+              <EditCancelBtn onPress={() => setShowEditProfile(false)}>
+                <EditCancelBtnText>Cancel</EditCancelBtnText>
+              </EditCancelBtn>
+              <EditSaveBtn onPress={saveProfile}>
+                <EditSaveBtnText>Save Changes</EditSaveBtnText>
+              </EditSaveBtn>
+            </EditModalFooter>
+          </EditModalContent>
+        </EditModalOverlay>
+      </Modal>
     </Container>
   );
 };
@@ -582,3 +686,34 @@ const ConfirmBtnDeleteText = styled.Text`
   font-weight: 600;
   color: #FFFFFF;
 `;
+
+/* Edit Profile Modal */
+const EditModalOverlay = styled.View`
+  flex: 1; background-color: rgba(0,0,0,0.5); justify-content: flex-end;
+`;
+const EditModalContent = styled.View`
+  background-color: #FFFFFF; border-top-left-radius: 20px; border-top-right-radius: 20px;
+  max-height: 85%;
+`;
+const EditModalHeader = styled.View`
+  flex-direction: row; justify-content: space-between; align-items: center;
+  padding: 16px; border-bottom-width: 1px; border-bottom-color: #F3F4F6;
+`;
+const EditModalTitle = styled.Text`font-size: 16px; font-weight: 700; color: #111827;`;
+const EditCloseBtn = styled.TouchableOpacity`padding: 4px;`;
+const EditFormLabel = styled.Text`font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; margin-top: 14px;`;
+const EditFormInput = styled.TextInput`
+  border-width: 1px; border-color: #E5E7EB; border-radius: 10px;
+  padding: 12px; font-size: 14px; color: #111827; background-color: #F9FAFB;
+`;
+const EditModalFooter = styled.View`
+  flex-direction: row; gap: 12px; padding: 16px; border-top-width: 1px; border-top-color: #F3F4F6;
+`;
+const EditCancelBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #F3F4F6; align-items: center;
+`;
+const EditCancelBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #6B7280;`;
+const EditSaveBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #0F8A3C; align-items: center;
+`;
+const EditSaveBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #FFFFFF;`;

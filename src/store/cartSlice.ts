@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { PackagingProduct } from './productsSlice';
+import { PackagingProduct } from './configurableCatalogSlice';
 import { PouchType, WindowOption, MaterialType, CapacityOption } from './pouchSlice';
 
 export interface CustomDesignConfig {

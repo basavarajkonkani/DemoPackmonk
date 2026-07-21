@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { ScrollView, View, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, View, Platform, Alert, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
-import { useAppSelector } from '../store';
-import { selectOrdersList } from '../store/ordersSlice';
+import { useAppDispatch, useAppSelector } from '../store';
+import { fetchOrders, cancelOrderThunk, selectOrdersList, selectOrdersLoading } from '../store/ordersSlice';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { getScrollViewBottomPaddingWithTabBar } from '../utils/layoutUtils';
 
@@ -13,13 +13,37 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   quality_check: { label: 'Quality Check', color: '#7C3AED', bg: '#F3E8FF' },
   shipped: { label: 'Shipped', color: '#0284C7', bg: '#E0F2FE' },
   delivered: { label: 'Delivered', color: '#0F8A3C', bg: '#DCFCE7' },
+  cancelled: { label: 'Cancelled', color: '#EF4444', bg: '#FEE2E2' },
 };
 
+const CANCELLABLE_STATUSES = ['pending_review', 'artwork_approved'];
+
 const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
   const orders = useAppSelector(selectOrdersList);
-  const [expandedId, setExpandedId] = useState<string | null>(orders[0]?.id ?? null);
+  const loading = useAppSelector(selectOrdersLoading);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    dispatch(fetchOrders());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!expandedId && orders.length > 0) setExpandedId(orders[0].id);
+  }, [orders]);
 
   const toggle = (id: string) => setExpandedId(expandedId === id ? null : id);
+
+  const handleCancelOrder = (orderId: string) => {
+    Alert.alert('Cancel Order', 'Are you sure you want to cancel this order? This cannot be undone.', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Yes, Cancel',
+        style: 'destructive',
+        onPress: () => dispatch(cancelOrderThunk(orderId)),
+      },
+    ]);
+  };
 
   return (
     <Container>
@@ -60,7 +84,11 @@ const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </OrderStat>
         </OrderStats>
 
-        {orders.length === 0 ? (
+        {loading && orders.length === 0 ? (
+          <View style={{ paddingVertical: 60, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#0F8A3C" />
+          </View>
+        ) : orders.length === 0 ? (
           <EmptyWrap>
             <EmptyIcon>
               <FontAwesome5 name="clipboard" size={36} color="#9CA3AF" />
@@ -195,6 +223,13 @@ const OrdersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                           <TrackingNum>{order.trackingNumber}</TrackingNum>
                         </View>
                       </TrackingRow>
+                    )}
+
+                    {CANCELLABLE_STATUSES.includes(order.status) && (
+                      <CancelOrderBtn onPress={() => handleCancelOrder(order.id)} activeOpacity={0.8}>
+                        <FontAwesome5 name="ban" size={13} color="#EF4444" style={{ marginRight: 8 }} />
+                        <CancelOrderText>Cancel Order</CancelOrderText>
+                      </CancelOrderBtn>
                     )}
                   </ExpandedBody>
                 )}
@@ -347,6 +382,13 @@ const TrackingRow = styled.View`
 `;
 const TrackingLabel = styled.Text`font-size: 9px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px;`;
 const TrackingNum = styled.Text`font-size: 13px; font-weight: 700; color: #111827;`;
+
+const CancelOrderBtn = styled.TouchableOpacity`
+  flex-direction: row; align-items: center; justify-content: center;
+  margin-top: 12px; padding: 12px; border-radius: 12px;
+  background-color: #FEF2F2; border-width: 1px; border-color: #FECACA;
+`;
+const CancelOrderText = styled.Text`font-size: 13px; font-weight: 700; color: #EF4444;`;
 
 const BackHeader = styled.View`
   flex-direction: row; align-items: center; justify-content: space-between;

@@ -5,7 +5,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch, useAppSelector } from '../store';
-import { selectProduct } from '../store/productsSlice';
+import { selectConfigurableProduct } from '../store/configurableCatalogSlice';
 import { addToCart, calculateItemPrice } from '../store/cartSlice';
 import { QUANTITY_OPTIONS } from '../constants';
 import {
@@ -41,7 +41,7 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) =>
   const insets = useSafeAreaInsets();
   const layoutCalcs = useBottomLayoutCalculations();
   const { productId } = route.params;
-  const products = useAppSelector((s) => s.products.items);
+  const products = useAppSelector((s) => s.configurableCatalog.items);
   const product = products.find((p) => p.id === productId);
 
   const [selectedSize, setSelectedSize] = useState('M');
@@ -105,7 +105,7 @@ const ProductDetailScreen: React.FC<Props> = ({ route, navigation: navProp }) =>
 
   const handleGetQuote = () => navigation.navigate('RequestQuote', { productId: product.id });
   const handleCustomize = () => {
-    dispatch(selectProduct(product.id));
+    dispatch(selectConfigurableProduct(product.id));
     navigation.navigate('DesignStudio');
   };
 

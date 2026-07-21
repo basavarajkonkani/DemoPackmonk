@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import Layout from '../components/Layout';
-import { useAppSelector } from '../store';
+import { useAppSelector, useAppDispatch } from '../store';
+import { addBanner, updateBanner, deleteBanner } from '../store/slices/bannersSlice';
 import { Banner } from '../types';
 
 const BannersPage: React.FC = () => {
-  const [banners, setBanners] = useState<Banner[]>(
-    useAppSelector((state: any) => state.banners?.items || [])
-  );
+  const dispatch = useAppDispatch();
+  const banners = useAppSelector((state) => state.banners.items);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<{
@@ -62,31 +62,23 @@ const BannersPage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.imageUrl) {
       alert('Please fill in title and image URL');
       return;
     }
+    if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) {
+      alert('Start date must be before end date');
+      return;
+    }
 
     if (editingId) {
-      // Update existing banner
-      setBanners(
-        banners.map((b) =>
-          b.id === editingId
-            ? { ...b, ...formData, updatedAt: new Date().toISOString() }
-            : b
-        )
-      );
-      alert('Banner updated successfully!');
+      const existing = banners.find((b) => b.id === editingId);
+      if (existing) {
+        dispatch(updateBanner({ ...existing, ...formData }));
+      }
     } else {
-      // Add new banner
-      const newBanner: Banner = {
-        id: `ban_${Date.now()}`,
-        ...formData,
-        createdAt: new Date().toISOString(),
-      };
-      setBanners([...banners, newBanner]);
-      alert('Banner added successfully!');
+      dispatch(addBanner(formData));
     }
 
     setShowForm(false);
@@ -95,8 +87,7 @@ const BannersPage: React.FC = () => {
   const handleDeleteClick = (bannerId: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this banner?');
     if (confirmed) {
-      setBanners(banners.filter((b) => b.id !== bannerId));
-      alert('Banner deleted successfully!');
+      dispatch(deleteBanner(bannerId));
     }
   };
 

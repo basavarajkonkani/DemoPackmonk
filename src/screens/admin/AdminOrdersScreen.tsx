@@ -1,52 +1,52 @@
-import React, { useState } from 'react';
-import { ScrollView, Alert } from 'react-native';
+import React, { useEffect } from 'react';
+import { ScrollView, Alert, ActivityIndicator, View } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { updateOrderStatus, updateOrderTimeline, cancelOrder } from '../../store/adminSlice';
+import {
+  fetchOrders,
+  changeOrderStatus,
+  cancelOrderThunk,
+  selectOrdersList,
+  selectOrdersLoading,
+} from '../../store/ordersSlice';
+import type { OrderStatus } from '../../store/ordersSlice';
 
 interface Props {
   navigation: any;
 }
 
+const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; bg: string }> = {
+  pending_review: { label: 'Pending Review', color: '#F59E0B', bg: '#FEF3C7' },
+  artwork_approved: { label: 'Artwork Approved', color: '#0F8A3C', bg: '#DCFCE7' },
+  in_production: { label: 'In Production', color: '#3B82F6', bg: '#DBEAFE' },
+  quality_check: { label: 'Quality Check', color: '#8B5CF6', bg: '#EDE9FE' },
+  shipped: { label: 'Shipped', color: '#0284C7', bg: '#E0F2FE' },
+  delivered: { label: 'Delivered', color: '#059669', bg: '#A7F3D0' },
+  cancelled: { label: 'Cancelled', color: '#EF4444', bg: '#FEE2E2' },
+};
+
+const NEXT_STATUS_OPTIONS: OrderStatus[] = [
+  'pending_review',
+  'artwork_approved',
+  'in_production',
+  'quality_check',
+  'shipped',
+  'delivered',
+];
+
 const AdminOrdersScreen: React.FC<Props> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const orders = useAppSelector((state) => state.admin.orders);
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const orders = useAppSelector(selectOrdersList);
+  const loading = useAppSelector(selectOrdersLoading);
 
-  const statusConfig = {
-    pending: { label: 'Pending', color: '#F59E0B', bg: '#FEF3C7' },
-    in_production: { label: 'In Production', color: '#3B82F6', bg: '#DBEAFE' },
-    packed: { label: 'Packed', color: '#8B5CF6', bg: '#EDE9FE' },
-    shipped: { label: 'Shipped', color: '#10B981', bg: '#D1FAE5' },
-    delivered: { label: 'Delivered', color: '#059669', bg: '#A7F3D0' },
-    cancelled: { label: 'Cancelled', color: '#EF4444', bg: '#FEE2E2' },
-  };
+  useEffect(() => {
+    dispatch(fetchOrders());
+  }, [dispatch]);
 
-  const handleUpdateStatus = (orderId: string, newStatus: any) => {
-    dispatch(updateOrderStatus({ id: orderId, status: newStatus }));
-    Alert.alert('Success', `Order status updated to ${statusConfig[newStatus].label}`);
-  };
-
-  const handleUpdateProgress = (orderId: string, stage: string) => {
-    const order = orders.find((o) => o.id === orderId);
-    if (order && order.timeline) {
-      const timelineItem = order.timeline.find((t) => t.stage === stage);
-      if (timelineItem && timelineItem.percentage < 100) {
-        const newPercentage = Math.min(100, timelineItem.percentage + 25);
-        dispatch(
-          updateOrderTimeline({
-            orderId,
-            stage,
-            percentage: newPercentage,
-          })
-        );
-        Alert.alert(
-          'Progress Updated',
-          `${stage} progress: ${newPercentage}%`
-        );
-      }
-    }
+  const handleUpdateStatus = (orderId: string, newStatus: OrderStatus) => {
+    dispatch(changeOrderStatus({ id: orderId, status: newStatus }));
+    Alert.alert('Success', `Order status updated to ${STATUS_CONFIG[newStatus].label}`);
   };
 
   const handleCancelOrder = (orderId: string) => {
@@ -56,12 +56,18 @@ const AdminOrdersScreen: React.FC<Props> = ({ navigation }) => {
         text: 'Yes',
         style: 'destructive',
         onPress: () => {
-          dispatch(cancelOrder(orderId));
+          dispatch(cancelOrderThunk(orderId));
           Alert.alert('Success', 'Order cancelled');
         },
       },
     ]);
   };
+
+  const totalQuantity = (order: (typeof orders)[number]) =>
+    order.items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const productSummary = (order: (typeof orders)[number]) =>
+    order.items.map((item) => item.name).join(', ') || 'No items';
 
   return (
     <Wrapper>
@@ -73,154 +79,121 @@ const AdminOrdersScreen: React.FC<Props> = ({ navigation }) => {
         <PlaceholderBtn />
       </Header>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 8, paddingBottom: 80 }}>
-        {orders.map((order) => {
-          const config = statusConfig[order.status];
-          return (
-            <OrderCard key={order.id}>
-              <OrderHeader>
-                <OrderId>{order.id}</OrderId>
-                <StatusBadge style={{ backgroundColor: config.bg }}>
-                  <StatusText style={{ color: config.color }}>
-                    {config.label}
-                  </StatusText>
-                </StatusBadge>
-              </OrderHeader>
+      {loading && orders.length === 0 ? (
+        <View style={{ padding: 40, alignItems: 'center' }}>
+          <ActivityIndicator color="#0F8A3C" size="large" />
+        </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 8, paddingBottom: 80 }}>
+          {orders.length === 0 ? (
+            <EmptyState>
+              <FontAwesome5 name="clipboard-list" size={32} color="#D1D5DB" />
+              <EmptyStateText>No orders yet</EmptyStateText>
+            </EmptyState>
+          ) : (
+            orders.map((order) => {
+              const config = STATUS_CONFIG[order.status];
+              return (
+                <OrderCard key={order.id}>
+                  <OrderHeader>
+                    <OrderId>{order.id}</OrderId>
+                    <StatusBadge style={{ backgroundColor: config.bg }}>
+                      <StatusText style={{ color: config.color }}>{config.label}</StatusText>
+                    </StatusBadge>
+                  </OrderHeader>
 
-              <CustomerInfo>
-                <InfoLabel>Customer:</InfoLabel>
-                <InfoValue>{order.customerName}</InfoValue>
-              </CustomerInfo>
-              <CustomerInfo>
-                <InfoLabel>Company:</InfoLabel>
-                <InfoValue>{order.companyName}</InfoValue>
-              </CustomerInfo>
+                  <CustomerInfo>
+                    <InfoLabel>Customer:</InfoLabel>
+                    <InfoValue>{order.customerName}</InfoValue>
+                  </CustomerInfo>
+                  <CustomerInfo>
+                    <InfoLabel>Company:</InfoLabel>
+                    <InfoValue>{order.companyName}</InfoValue>
+                  </CustomerInfo>
 
-              <Divider />
+                  <Divider />
 
-              <ProductInfo>
-                <InfoRow>
-                  <InfoLabel>Product:</InfoLabel>
-                  <InfoValue>{order.productName}</InfoValue>
-                </InfoRow>
-                <InfoRow>
-                  <InfoLabel>Quantity:</InfoLabel>
-                  <InfoValue>{order.quantity.toLocaleString()} units</InfoValue>
-                </InfoRow>
-                <InfoRow>
-                  <InfoLabel>Amount:</InfoLabel>
-                  <InfoValue style={{ fontWeight: '700' }}>
-                    ₹{order.amount.toLocaleString()}
-                  </InfoValue>
-                </InfoRow>
-                <InfoRow>
-                  <InfoLabel>Order Date:</InfoLabel>
-                  <InfoValue>{order.orderDate}</InfoValue>
-                </InfoRow>
-                <InfoRow>
-                  <InfoLabel>Production:</InfoLabel>
-                  <InfoValue style={{ color: '#3B82F6' }}>
-                    {order.productionStage}
-                  </InfoValue>
-                </InfoRow>
-              </ProductInfo>
+                  <ProductInfo>
+                    <InfoRow>
+                      <InfoLabel>Product:</InfoLabel>
+                      <InfoValue numberOfLines={1}>{productSummary(order)}</InfoValue>
+                    </InfoRow>
+                    <InfoRow>
+                      <InfoLabel>Quantity:</InfoLabel>
+                      <InfoValue>{totalQuantity(order).toLocaleString()} units</InfoValue>
+                    </InfoRow>
+                    <InfoRow>
+                      <InfoLabel>Amount:</InfoLabel>
+                      <InfoValue style={{ fontWeight: '700' }}>₹{order.total.toLocaleString()}</InfoValue>
+                    </InfoRow>
+                    <InfoRow>
+                      <InfoLabel>Order Date:</InfoLabel>
+                      <InfoValue>{new Date(order.date).toLocaleDateString()}</InfoValue>
+                    </InfoRow>
+                  </ProductInfo>
 
-              {order.timeline && (
-                <>
                   <Divider />
                   <TimelineSection>
                     <TimelineTitle>Production Timeline</TimelineTitle>
-                    {order.timeline.map((item, idx) => (
-                      <TimelineItem key={idx}>
+                    {order.milestones.map((m) => (
+                      <TimelineItem key={m.status}>
                         <TimelineItemLeft>
                           <TimelineIcon
-                            style={{
-                              backgroundColor:
-                                item.status === 'completed'
-                                  ? '#10B981'
-                                  : item.status === 'in_progress'
-                                  ? '#3B82F6'
-                                  : '#D1D5DB',
-                            }}
+                            style={{ backgroundColor: m.isCompleted ? '#10B981' : '#D1D5DB' }}
                           >
                             <FontAwesome5
-                              name={
-                                item.status === 'completed'
-                                  ? 'check'
-                                  : 'hourglass-half'
-                              }
+                              name={m.isCompleted ? 'check' : 'hourglass-half'}
                               size={12}
                               color="#ffffff"
                             />
                           </TimelineIcon>
                           <TimelineInfo>
-                            <TimelineStageName>{item.stage}</TimelineStageName>
-                            <TimelinePercentage>{item.percentage}%</TimelinePercentage>
+                            <TimelineStageName>{m.label}</TimelineStageName>
+                            <TimelinePercentage>{m.timestamp ?? 'Pending'}</TimelinePercentage>
                           </TimelineInfo>
                         </TimelineItemLeft>
-                        {item.status !== 'completed' && (
-                          <UpdateBtn
-                            onPress={() => handleUpdateProgress(order.id, item.stage)}
-                          >
-                            <FontAwesome5 name="plus" size={10} color="#0F8A3C" />
-                          </UpdateBtn>
-                        )}
                       </TimelineItem>
                     ))}
                   </TimelineSection>
-                </>
-              )}
 
-              <OrderActions>
-                <ActionBtn
-                  onPress={() =>
-                    Alert.alert(
-                      'Update Status',
-                      `Current: ${config.label}\n\nUpdate to:`,
-                      [
-                        {
-                          text: 'In Production',
-                          onPress: () => handleUpdateStatus(order.id, 'in_production'),
-                        },
-                        {
-                          text: 'Packed',
-                          onPress: () => handleUpdateStatus(order.id, 'packed'),
-                        },
-                        {
-                          text: 'Shipped',
-                          onPress: () => handleUpdateStatus(order.id, 'shipped'),
-                        },
-                        {
-                          text: 'Delivered',
-                          onPress: () => handleUpdateStatus(order.id, 'delivered'),
-                        },
-                        { text: 'Cancel', style: 'cancel' },
-                      ]
-                    )
-                  }
-                >
-                  <FontAwesome5 name="sync" size={14} color="#3B82F6" />
-                  <ActionText style={{ color: '#3B82F6' }}>Update Status</ActionText>
-                </ActionBtn>
-                <ActionBtn
-                  onPress={() =>
-                    Alert.alert('Generate Invoice', 'Invoice PDF generated and ready to download')
-                  }
-                >
-                  <FontAwesome5 name="file-invoice" size={14} color="#10B981" />
-                  <ActionText style={{ color: '#10B981' }}>Invoice</ActionText>
-                </ActionBtn>
-                {order.status !== 'cancelled' && order.status !== 'delivered' && (
-                  <ActionBtn onPress={() => handleCancelOrder(order.id)}>
-                    <FontAwesome5 name="ban" size={14} color="#EF4444" />
-                    <ActionText style={{ color: '#EF4444' }}>Cancel</ActionText>
-                  </ActionBtn>
-                )}
-              </OrderActions>
-            </OrderCard>
-          );
-        })}
-      </ScrollView>
+                  <OrderActions>
+                    <ActionBtn
+                      onPress={() =>
+                        Alert.alert(
+                          'Update Status',
+                          `Current: ${config.label}\n\nUpdate to:`,
+                          [
+                            ...NEXT_STATUS_OPTIONS.map((status) => ({
+                              text: STATUS_CONFIG[status].label,
+                              onPress: () => handleUpdateStatus(order.id, status),
+                            })),
+                            { text: 'Dismiss', style: 'cancel' as const },
+                          ]
+                        )
+                      }
+                    >
+                      <FontAwesome5 name="sync" size={14} color="#3B82F6" />
+                      <ActionText style={{ color: '#3B82F6' }}>Update Status</ActionText>
+                    </ActionBtn>
+                    <ActionBtn
+                      onPress={() => Alert.alert('Generate Invoice', 'Invoice PDF generated and ready to download')}
+                    >
+                      <FontAwesome5 name="file-invoice" size={14} color="#10B981" />
+                      <ActionText style={{ color: '#10B981' }}>Invoice</ActionText>
+                    </ActionBtn>
+                    {order.status !== 'cancelled' && order.status !== 'delivered' && (
+                      <ActionBtn onPress={() => handleCancelOrder(order.id)}>
+                        <FontAwesome5 name="ban" size={14} color="#EF4444" />
+                        <ActionText style={{ color: '#EF4444' }}>Cancel</ActionText>
+                      </ActionBtn>
+                    )}
+                  </OrderActions>
+                </OrderCard>
+              );
+            })
+          )}
+        </ScrollView>
+      )}
     </Wrapper>
   );
 };
@@ -261,6 +234,17 @@ const HeaderTitle = styled.Text`
 
 const PlaceholderBtn = styled.View`
   width: 40px;
+`;
+
+const EmptyState = styled.View`
+  align-items: center;
+  padding-vertical: 60px;
+`;
+const EmptyStateText = styled.Text`
+  font-size: 14px;
+  color: #9CA3AF;
+  margin-top: 12px;
+  font-weight: 600;
 `;
 
 const OrderCard = styled.View`
@@ -378,15 +362,6 @@ const TimelineStageName = styled.Text`
 const TimelinePercentage = styled.Text`
   font-size: 9px;
   color: #9CA3AF;
-`;
-
-const UpdateBtn = styled.TouchableOpacity`
-  width: 24px;
-  height: 24px;
-  border-radius: 12px;
-  background-color: #DCFCE7;
-  align-items: center;
-  justify-content: center;
 `;
 
 const OrderActions = styled.View`

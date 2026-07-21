@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,53 +7,27 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-
-interface Invoice {
-  id: string;
-  orderNumber: string;
-  date: string;
-  amount: number;
-  gstAmount: number;
-  totalAmount: number;
-  status: 'paid' | 'pending' | 'overdue';
-  invoiceType: 'GST Invoice' | 'Delivery Challan' | 'Packing Slip';
-  downloadUrl: string;
-}
+import { useAppDispatch, useAppSelector } from '../store';
+import { fetchInvoices, selectInvoices } from '../store/invoicesSlice';
+import type { Invoice } from '../store/invoicesSlice';
 
 const InvoicesScreen: React.FC = () => {
   const navigation = useNavigation();
+  const dispatch = useAppDispatch();
+  const invoices = useAppSelector(selectInvoices);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
 
-  // Mock data - replace with API call
-  const invoices: Invoice[] = [
-    {
-      id: '1',
-      orderNumber: 'ORD-2024-001',
-      date: '2024-01-15',
-      amount: 50000,
-      gstAmount: 9000,
-      totalAmount: 59000,
-      status: 'paid',
-      invoiceType: 'GST Invoice',
-      downloadUrl: '#',
-    },
-    {
-      id: '2',
-      orderNumber: 'ORD-2024-002',
-      date: '2024-01-20',
-      amount: 75000,
-      gstAmount: 13500,
-      totalAmount: 88500,
-      status: 'pending',
-      invoiceType: 'GST Invoice',
-      downloadUrl: '#',
-    },
-  ];
+  useEffect(() => {
+    dispatch(fetchInvoices()).finally(() => setLoading(false));
+  }, [dispatch]);
 
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesSearch =
@@ -77,8 +51,14 @@ const InvoicesScreen: React.FC = () => {
   };
 
   const handleDownload = (invoice: Invoice) => {
-    // Implement download logic
-    console.log('Downloading invoice:', invoice.id);
+    Alert.alert('Downloading', `Invoice for ${invoice.orderNumber} is downloading...`);
+  };
+
+  const handleView = (invoice: Invoice) => {
+    Alert.alert(
+      `Invoice — ${invoice.orderNumber}`,
+      `Type: ${invoice.invoiceType}\nDate: ${new Date(invoice.date).toLocaleDateString()}\nAmount: ₹${invoice.amount.toLocaleString()}\nGST: ₹${invoice.gstAmount.toLocaleString()}\nTotal: ₹${invoice.totalAmount.toLocaleString()}\nStatus: ${invoice.status.toUpperCase()}`
+    );
   };
 
   return (
@@ -117,6 +97,11 @@ const InvoicesScreen: React.FC = () => {
         ))}
       </View>
 
+      {loading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#0F8A3C" />
+        </View>
+      ) : (
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {filteredInvoices.map((invoice) => (
           <View key={invoice.id} style={styles.invoiceCard}>
@@ -156,7 +141,7 @@ const InvoicesScreen: React.FC = () => {
                 <FontAwesome5 name="download" size={14} color="#0F8A3C" />
                 <Text style={styles.downloadButtonText}>Download</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.viewButton}>
+              <TouchableOpacity style={styles.viewButton} onPress={() => handleView(invoice)}>
                 <FontAwesome5 name="eye" size={14} color="#6B7280" />
                 <Text style={styles.viewButtonText}>View</Text>
               </TouchableOpacity>
@@ -164,6 +149,7 @@ const InvoicesScreen: React.FC = () => {
           </View>
         ))}
       </ScrollView>
+      )}
     </SafeAreaView>
   );
 };

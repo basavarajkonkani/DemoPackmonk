@@ -1,6 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Order, OrderNote } from '../../types';
 import { mockOrders } from '../../data/mockData';
+import { readList, writeList } from '../../services/storage';
+
+const STORE_NAME = 'orders';
 
 interface OrdersState {
   items: Order[];
@@ -10,7 +13,7 @@ interface OrdersState {
 }
 
 const initialState: OrdersState = {
-  items: mockOrders,
+  items: readList(STORE_NAME, mockOrders),
   selectedOrder: null,
   loading: false,
   error: null,
@@ -23,6 +26,7 @@ const ordersSlice = createSlice({
     setOrders: (state, action: PayloadAction<Order[]>) => {
       state.items = action.payload;
       state.error = null;
+      writeList(STORE_NAME, state.items);
     },
     updateOrder: (state, action: PayloadAction<Order>) => {
       const index = state.items.findIndex((o) => o.id === action.payload.id);
@@ -31,6 +35,7 @@ const ordersSlice = createSlice({
         if (state.selectedOrder?.id === action.payload.id) {
           state.selectedOrder = action.payload;
         }
+        writeList(STORE_NAME, state.items);
       }
     },
     updateOrderStatus: (state, action: PayloadAction<{ orderId: string; status: any }>) => {
@@ -41,6 +46,7 @@ const ordersSlice = createSlice({
         if (state.selectedOrder?.id === action.payload.orderId) {
           state.selectedOrder = order;
         }
+        writeList(STORE_NAME, state.items);
       }
     },
     updateProductionStage: (state, action: PayloadAction<{ orderId: string; stage: any }>) => {
@@ -51,6 +57,7 @@ const ordersSlice = createSlice({
         if (state.selectedOrder?.id === action.payload.orderId) {
           state.selectedOrder = order;
         }
+        writeList(STORE_NAME, state.items);
       }
     },
     addOrderNote: (state, action: PayloadAction<{ orderId: string; note: OrderNote }>) => {
@@ -64,6 +71,7 @@ const ordersSlice = createSlice({
         if (state.selectedOrder?.id === action.payload.orderId) {
           state.selectedOrder = order;
         }
+        writeList(STORE_NAME, state.items);
       }
     },
     approveArtwork: (state, action: PayloadAction<{ orderId: string; artworkId: string }>) => {
@@ -77,6 +85,7 @@ const ordersSlice = createSlice({
           if (state.selectedOrder?.id === action.payload.orderId) {
             state.selectedOrder = order;
           }
+          writeList(STORE_NAME, state.items);
         }
       }
     },
@@ -91,6 +100,7 @@ const ordersSlice = createSlice({
           if (state.selectedOrder?.id === action.payload.orderId) {
             state.selectedOrder = order;
           }
+          writeList(STORE_NAME, state.items);
         }
       }
     },

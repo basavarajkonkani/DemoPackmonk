@@ -1,22 +1,30 @@
 import React from 'react';
-import { View, Platform, Alert } from 'react-native';
+import { View, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import { FontAwesome5 } from '@expo/vector-icons';
 
-// Admin Screens
+// Core (tab bar) admin screens
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import AdminOrdersScreen from '../screens/admin/AdminOrdersScreen';
 import AdminProductsScreen from '../screens/admin/AdminProductsScreen';
 import AdminAnalyticsScreen from '../screens/admin/AdminAnalyticsScreen';
 import AdminCustomersScreen from '../screens/admin/AdminCustomersScreen';
 
+// Secondary admin screens (reachable via Dashboard quick actions / stack push)
+import AdminArtworkScreen from '../screens/admin/AdminArtworkScreen';
+import AdminBannersScreen from '../screens/admin/AdminBannersScreen';
+import AdminInventoryScreen from '../screens/admin/AdminInventoryScreen';
+import AdminPricingScreen from '../screens/admin/AdminPricingScreen';
+import AdminPromotionsScreen from '../screens/admin/AdminPromotionsScreen';
+import AdminSettingsScreen from '../screens/admin/AdminSettingsScreen';
+import AdminSupportScreen from '../screens/admin/AdminSupportScreen';
+import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
+
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
-export default function AdminTabNavigator() {
-  React.useEffect(() => {
-    console.log('AdminTabNavigator mounted');
-  }, []);
-
+function AdminTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -32,20 +40,20 @@ export default function AdminTabNavigator() {
           const name = icons[route.name] || 'circle';
 
           return (
-            <View 
+            <View
               style={{
-                alignItems: 'center', 
+                alignItems: 'center',
                 justifyContent: 'center',
                 paddingTop: 0,
               }}
             >
               <View
                 style={{
-                  width: 50, 
-                  height: 40, 
+                  width: 50,
+                  height: 40,
                   borderRadius: 12,
                   backgroundColor: focused ? '#0F8A3C' : 'transparent',
-                  alignItems: 'center', 
+                  alignItems: 'center',
                   justifyContent: 'center',
                   ...(Platform.OS === 'web' && focused && {
                     boxShadow: '0px 2px 8px rgba(15, 138, 60, 0.2)',
@@ -57,10 +65,10 @@ export default function AdminTabNavigator() {
                   elevation: focused ? 4 : 0,
                 }}
               >
-                <FontAwesome5 
-                  name={name as any} 
-                  size={20} 
-                  color={focused ? '#FFFFFF' : color} 
+                <FontAwesome5
+                  name={name as any}
+                  size={20}
+                  color={focused ? '#FFFFFF' : color}
                   solid={focused}
                 />
               </View>
@@ -108,31 +116,55 @@ export default function AdminTabNavigator() {
         lazy: false,
       })}
     >
-      <Tab.Screen 
-        name="AdminDashboard" 
-        component={AdminDashboardScreen} 
-        options={{ tabBarLabel: 'Dashboard' }} 
+      <Tab.Screen
+        name="AdminDashboard"
+        component={AdminDashboardScreen}
+        options={{ tabBarLabel: 'Dashboard' }}
       />
-      <Tab.Screen 
-        name="AdminOrders" 
-        component={AdminOrdersScreen} 
-        options={{ tabBarLabel: 'Orders' }} 
+      <Tab.Screen
+        name="AdminOrders"
+        component={AdminOrdersScreen}
+        options={{ tabBarLabel: 'Orders' }}
       />
-      <Tab.Screen 
-        name="AdminProducts" 
-        component={AdminProductsScreen} 
-        options={{ tabBarLabel: 'Products' }} 
+      <Tab.Screen
+        name="AdminProducts"
+        component={AdminProductsScreen}
+        options={{ tabBarLabel: 'Products' }}
       />
-      <Tab.Screen 
-        name="AdminAnalytics" 
-        component={AdminAnalyticsScreen} 
-        options={{ tabBarLabel: 'Analytics' }} 
+      <Tab.Screen
+        name="AdminAnalytics"
+        component={AdminAnalyticsScreen}
+        options={{ tabBarLabel: 'Analytics' }}
       />
-      <Tab.Screen 
-        name="AdminCustomers" 
-        component={AdminCustomersScreen} 
-        options={{ tabBarLabel: 'Customers' }} 
+      <Tab.Screen
+        name="AdminCustomers"
+        component={AdminCustomersScreen}
+        options={{ tabBarLabel: 'Customers' }}
       />
     </Tab.Navigator>
+  );
+}
+
+/**
+ * AdminTabNavigator is a Stack whose first screen is the 5-tab bar above.
+ * The remaining 8 admin screens (Artwork, Banners, Inventory, Pricing,
+ * Promotions, Settings, Support, Users) are pushed on top of the tab bar
+ * as regular stack screens — reachable from the Dashboard's "Quick Actions"
+ * grid via `navigation.navigate('AdminArtwork')` etc. This keeps the tab
+ * bar to a manageable 5 items while making every admin screen reachable.
+ */
+export default function AdminTabNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="AdminTabsHome" component={AdminTabs} />
+      <Stack.Screen name="AdminArtwork" component={AdminArtworkScreen} />
+      <Stack.Screen name="AdminBanners" component={AdminBannersScreen} />
+      <Stack.Screen name="AdminInventory" component={AdminInventoryScreen} />
+      <Stack.Screen name="AdminPricing" component={AdminPricingScreen} />
+      <Stack.Screen name="AdminPromotions" component={AdminPromotionsScreen} />
+      <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
+      <Stack.Screen name="AdminSupport" component={AdminSupportScreen} />
+      <Stack.Screen name="AdminUsers" component={AdminUsersScreen} />
+    </Stack.Navigator>
   );
 }

@@ -1,17 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ScrollView, Alert, TouchableOpacity, TextInput, Modal, View, FlatList, Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../../store';
 import {
-  addProduct,
-  updateProduct,
-  deleteProduct,
-  toggleProductStatus,
-  updateProductStock,
-  updateProductPrice,
-} from '../../store/adminSlice';
-import type { AdminProduct } from '../../store/adminSlice';
+  fetchCatalog,
+  createCatalogProduct,
+  updateCatalogProduct,
+  deleteCatalogProduct,
+  toggleCatalogProductActive,
+  setCatalogProductStock,
+  setCatalogProductPrice,
+  selectCatalogItems,
+} from '../../store/catalogSlice';
+import type { CatalogProduct } from '../../store/catalogSlice';
+// Backward-compat alias so the rest of this file (originally written against
+// the old AdminProduct shape) needs minimal changes.
+type AdminProduct = CatalogProduct;
 
 interface Props {
   navigation: any;
@@ -29,7 +34,11 @@ interface FormErrors {
 
 const AdminProductsScreen: React.FC<Props> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const products = useAppSelector((state) => state.admin.products);
+  const products = useAppSelector(selectCatalogItems);
+
+  useEffect(() => {
+    dispatch(fetchCatalog());
+  }, [dispatch]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
@@ -196,7 +205,7 @@ const AdminProductsScreen: React.FC<Props> = ({ navigation }) => {
 
     if (editingProduct) {
       dispatch(
-        updateProduct({
+        updateCatalogProduct({
           ...editingProduct,
           name: formData.name.trim(),
           category: formData.category.trim(),
@@ -213,32 +222,33 @@ const AdminProductsScreen: React.FC<Props> = ({ navigation }) => {
           finish: formData.finish.trim(),
           images: formData.images.length > 0 ? formData.images : ['default.jpg'],
           isActive: formData.isActive,
-          updatedAt: new Date().toISOString().split('T')[0],
         })
       );
       Alert.alert('Success', 'Product updated successfully');
     } else {
-      const newProduct: AdminProduct = {
-        id: Date.now().toString(),
-        name: formData.name.trim(),
-        category: formData.category.trim(),
-        material: formData.material.trim(),
-        size: formData.size.trim(),
-        thickness: formData.thickness.trim(),
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock || '0', 10),
-        lowStockThreshold: parseInt(formData.lowStockThreshold || '0', 10),
-        moq: parseInt(formData.moq || '0', 10),
-        images: formData.images.length > 0 ? formData.images : ['default.jpg'],
-        description: formData.description.trim(),
-        isActive: formData.isActive,
-        productCode: formData.productCode.trim(),
-        sku: formData.sku.trim(),
-        finish: formData.finish.trim(),
-        createdAt: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0],
-      };
-      dispatch(addProduct(newProduct));
+      dispatch(
+        createCatalogProduct({
+          name: formData.name.trim(),
+          category: formData.category.trim(),
+          material: formData.material.trim(),
+          size: formData.size.trim(),
+          thickness: formData.thickness.trim(),
+          price: parseFloat(formData.price),
+          stock: parseInt(formData.stock || '0', 10),
+          lowStockThreshold: parseInt(formData.lowStockThreshold || '0', 10),
+          moq: parseInt(formData.moq || '0', 10),
+          images: formData.images.length > 0 ? formData.images : ['default.jpg'],
+          description: formData.description.trim(),
+          isActive: formData.isActive,
+          productCode: formData.productCode.trim(),
+          sku: formData.sku.trim(),
+          finish: formData.finish.trim(),
+          hasZipper: false,
+          hasWindow: false,
+          ecoRating: 3,
+          sizeOptions: [],
+        })
+      );
       Alert.alert('Success', 'Product added successfully');
     }
 
@@ -253,7 +263,7 @@ const AdminProductsScreen: React.FC<Props> = ({ navigation }) => {
         text: 'Delete',
         style: 'destructive',
         onPress: () => {
-          dispatch(deleteProduct(id));
+          dispatch(deleteCatalogProduct(id));
           Alert.alert('Success', 'Product deleted');
         },
       },
@@ -261,7 +271,8 @@ const AdminProductsScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleToggleStatus = (id: string) => {
-    dispatch(toggleProductStatus(id));
+    const product = products.find((p) => p.id === id);
+    if (product) dispatch(toggleCatalogProductActive({ id, isActive: !product.isActive }));
   };
 
   const handleUpdatePrice = (product: AdminProduct) => {
@@ -274,7 +285,7 @@ const AdminProductsScreen: React.FC<Props> = ({ navigation }) => {
           text: 'Update',
           onPress: (newPrice?: string) => {
             if (newPrice && !isNaN(parseFloat(newPrice))) {
-              dispatch(updateProductPrice({ id: product.id, price: parseFloat(newPrice) }));
+              dispatch(setCatalogProductPrice({ id: product.id, price: parseFloat(newPrice) }));
               Alert.alert('Success', `Price updated to ₹${newPrice}`);
             }
           },
@@ -296,7 +307,7 @@ const AdminProductsScreen: React.FC<Props> = ({ navigation }) => {
           text: 'Update',
           onPress: (newStock?: string) => {
             if (newStock && !isNaN(parseInt(newStock, 10))) {
-              dispatch(updateProductStock({ id: product.id, stock: parseInt(newStock, 10) }));
+              dispatch(setCatalogProductStock({ id: product.id, stock: parseInt(newStock, 10) }));
               Alert.alert('Success', `Stock updated to ${newStock} units`);
             }
           },

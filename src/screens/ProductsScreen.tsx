@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ScrollView, View, Dimensions, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import { useAppSelector, useAppDispatch } from '../store';
-import { selectProductsList, selectProduct } from '../store/productsSlice';
+import { selectConfigurableProductsList } from '../store/configurableCatalogSlice';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -68,7 +68,7 @@ const SORT_OPTIONS = ['Popular', 'Price: Low', 'Price: High', 'Eco Rating', 'New
 
 const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const products = useAppSelector(selectProductsList);
+  const products = useAppSelector(selectConfigurableProductsList);
   const [selectedCat, setSelectedCat] = useState<CategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('Popular');

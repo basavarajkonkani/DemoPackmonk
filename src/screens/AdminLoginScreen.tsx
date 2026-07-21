@@ -5,7 +5,11 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch } from '../store';
 import { loginAsAdmin } from '../store/authSlice';
 
-// Default admin credentials
+// TEMPORARY: hardcoded credentials for demo/offline use only. This app has no
+// backend yet, so there is nowhere else to authenticate against. Before
+// shipping to production, replace this with a real authentication API call
+// (e.g. POST /auth/admin/login) and remove these constants entirely — do not
+// ship a client bundle with admin credentials embedded in it.
 const ADMIN_CREDENTIALS = [
   { username: 'admin@packmonk.com', password: 'Admin@123' },
   { username: 'superadmin@packmonk.com', password: 'SuperAdmin@123' },
@@ -50,8 +54,9 @@ const AdminLoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           email: username,
           role: 'admin' as const,
           phone: '+91-1234567890',
-          avatar: null,
-          address: 'Bangalore, India',
+          companyAddress: 'Bangalore, India',
+          createdAt: new Date().toISOString(),
+          isActive: true,
         };
 
         dispatch(loginAsAdmin(adminUser));
@@ -174,44 +179,6 @@ const AdminLoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               )}
             </LoginButton>
 
-            {/* Divider */}
-            <DividerSection>
-              <DividerLine />
-              <DividerText>Demo Credentials</DividerText>
-              <DividerLine />
-            </DividerSection>
-
-            {/* Demo Credentials Info */}
-            <CredentialsBox>
-              <CredentialsHeader>
-                <FontAwesome5 name="info-circle" size={16} color="#0F8A3C" />
-                <CredentialsTitle>For Testing</CredentialsTitle>
-              </CredentialsHeader>
-              
-              {ADMIN_CREDENTIALS.map((cred, idx) => (
-                <CredentialItem key={idx}>
-                  <CredentialLabel>Account {idx + 1}</CredentialLabel>
-                  <CredentialDetail>
-                    <CredentialKey>Email:</CredentialKey>
-                    <CredentialValue>{cred.username}</CredentialValue>
-                  </CredentialDetail>
-                  <CredentialDetail>
-                    <CredentialKey>Password:</CredentialKey>
-                    <CredentialValue>{cred.password}</CredentialValue>
-                  </CredentialDetail>
-                  <CopyBtn 
-                    onPress={() => {
-                      setUsername(cred.username);
-                      setPassword(cred.password);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <FontAwesome5 name="copy" size={12} color="#0F8A3C" />
-                    <CopyBtnText>Use This</CopyBtnText>
-                  </CopyBtn>
-                </CredentialItem>
-              ))}
-            </CredentialsBox>
           </FormSection>
 
           {/* Footer */}
@@ -359,102 +326,6 @@ const LoginButtonText = styled.Text`
   font-size: 16px;
   font-weight: 700;
   color: #FFFFFF;
-`;
-
-const DividerSection = styled.View`
-  flex-direction: row;
-  align-items: center;
-  margin: 28px 0;
-`;
-
-const DividerLine = styled.View`
-  flex: 1;
-  height: 1px;
-  background-color: #E5E7EB;
-`;
-
-const DividerText = styled.Text`
-  font-size: 12px;
-  font-weight: 600;
-  color: #9CA3AF;
-  margin-horizontal: 12px;
-`;
-
-const CredentialsBox = styled.View`
-  background-color: #FFFFFF;
-  border-radius: 14px;
-  padding: 16px;
-  border-width: 1px;
-  border-color: #E5E7EB;
-`;
-
-const CredentialsHeader = styled.View`
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom-width: 1px;
-  border-bottom-color: #F3F4F6;
-`;
-
-const CredentialsTitle = styled.Text`
-  font-size: 13px;
-  font-weight: 700;
-  color: #111827;
-  margin-left: 8px;
-`;
-
-const CredentialItem = styled.View`
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom-width: 1px;
-  border-bottom-color: #F3F4F6;
-`;
-
-const CredentialLabel = styled.Text`
-  font-size: 12px;
-  font-weight: 600;
-  color: #6B7280;
-  margin-bottom: 6px;
-`;
-
-const CredentialDetail = styled.View`
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 4px;
-`;
-
-const CredentialKey = styled.Text`
-  font-size: 11px;
-  color: #9CA3AF;
-  font-weight: 500;
-`;
-
-const CredentialValue = styled.Text`
-  font-size: 11px;
-  color: #374151;
-  font-weight: 600;
-  margin-left: 6px;
-  font-family: 'Courier New';
-`;
-
-const CopyBtn = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-  margin-top: 8px;
-  padding: 6px 10px;
-  background-color: #ECFDF5;
-  border-radius: 8px;
-  align-self: flex-start;
-  border-width: 1px;
-  border-color: #DBEAFE;
-`;
-
-const CopyBtnText = styled.Text`
-  font-size: 11px;
-  color: #0F8A3C;
-  font-weight: 600;
-  margin-left: 6px;
 `;
 
 const FooterSection = styled.View`

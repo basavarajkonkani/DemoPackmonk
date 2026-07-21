@@ -9,7 +9,7 @@ interface Props {
 
 const AdminAccessCard: React.FC<Props> = ({ navigation }) => {
   return (
-    <Card onPress={() => navigation.navigate('AdminTabs')} activeOpacity={0.8}>
+    <Card onPress={() => navigation.navigate('AdminLogin')} activeOpacity={0.8}>
       <CardBackground>
         <BackgroundPattern>
           <FontAwesome5 name="shield-alt" size={120} color="rgba(255, 255, 255, 0.1)" />

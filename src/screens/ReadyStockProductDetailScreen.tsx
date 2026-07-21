@@ -3,9 +3,10 @@ import { ScrollView, Alert, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAppDispatch } from '../store';
+import { useAppDispatch, useAppSelector } from '../store';
 import { addToCart } from '../store/cartSlice';
 import { type PouchType } from '../store/pouchSlice';
+import { toggleWishlistThunk, selectIsWishlisted } from '../store/wishlistSlice';
 import StockIndicator from '../components/StockIndicator';
 import MOQBadge from '../components/MOQBadge';
 import PincodeChecker from '../components/PincodeChecker';
@@ -53,6 +54,20 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
 
   const [quantity, setQuantity] = useState(product.moq);
   const [showPincodeChecker, setShowPincodeChecker] = useState(false);
+  const isWishlisted = useAppSelector(selectIsWishlisted(product.id));
+
+  const handleToggleWishlist = () => {
+    dispatch(
+      toggleWishlistThunk({
+        productId: product.id,
+        name: product.name,
+        imageKey: '',
+        price: product.price,
+        category: product.category,
+        inStock: product.inStock,
+      })
+    );
+  };
   const [selectedSizeId, setSelectedSizeId] = useState<string>(
     product.sizeOptions?.[0]?.id || 'default'
   );
@@ -212,9 +227,14 @@ const ReadyStockProductDetailScreen: React.FC<Props> = ({ route, navigation }) =
             <FontAwesome5 name="arrow-left" size={16} color="#111827" />
           </NavBtn>
           <NavTitle>Product Details</NavTitle>
-          <NavBtn onPress={() => navigation.navigate('MainTabs', { screen: 'Cart' })}>
-            <FontAwesome5 name="shopping-cart" size={16} color="#111827" />
-          </NavBtn>
+          <NavBarRight>
+            <NavBtn onPress={handleToggleWishlist} style={{ marginRight: 8 }}>
+              <FontAwesome5 name="heart" size={16} color={isWishlisted ? '#EF4444' : '#111827'} solid={isWishlisted} />
+            </NavBtn>
+            <NavBtn onPress={() => navigation.navigate('MainTabs', { screen: 'Cart' })}>
+              <FontAwesome5 name="shopping-cart" size={16} color="#111827" />
+            </NavBtn>
+          </NavBarRight>
         </NavBar>
 
         <ScrollView 
@@ -467,6 +487,11 @@ const NavTitle = styled.Text`
   font-size: 16px;
   font-weight: 700;
   color: #111827;
+`;
+
+const NavBarRight = styled.View`
+  flex-direction: row;
+  align-items: center;
 `;
 
 const ProductImageContainer = styled.View`

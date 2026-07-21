@@ -1,18 +1,35 @@
-import React, { useState } from 'react';
-import { ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, Alert, Modal } from 'react-native';
 import styled from 'styled-components/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { updateBanner, deleteBanner, updateBannerStatus } from '../../store/adminSlice';
+import {
+  fetchBanners,
+  updateBannerThunk,
+  deleteBannerThunk,
+  setBannerStatusThunk,
+  createBannerThunk,
+  selectBanners,
+} from '../../store/bannersSlice';
+import type { Banner } from '../../store/bannersSlice';
 
 interface Props {
   navigation: any;
 }
 
+const EMPTY_FORM = { title: '', description: '', imageUrl: '', targetUrl: '', startDate: '', endDate: '' };
+
 const AdminBannersScreen: React.FC<Props> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const banners = useAppSelector((state) => state.admin.banners);
+  const banners = useAppSelector(selectBanners);
+  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+
+  useEffect(() => {
+    dispatch(fetchBanners());
+  }, [dispatch]);
 
   const statusConfig = {
     active: { label: 'Active', color: '#10B981', bg: '#D1FAE5' },
@@ -25,43 +42,78 @@ const AdminBannersScreen: React.FC<Props> = ({ navigation }) => {
     return ((clicks / impressions) * 100).toFixed(2);
   };
 
-  const handleEditBanner = (banner: any) => {
-    Alert.alert('Edit Banner', `Edit: ${banner.title}`, [
-      {
-        text: 'Edit',
-        onPress: () => Alert.alert('Success', 'Banner updated successfully'),
-      },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+  const openEdit = (banner: Banner) => {
+    setEditingBanner(banner);
+    setForm({
+      title: banner.title,
+      description: banner.description,
+      imageUrl: banner.imageUrl,
+      targetUrl: banner.targetUrl ?? '',
+      startDate: banner.startDate,
+      endDate: banner.endDate,
+    });
+  };
+
+  const saveEdit = () => {
+    if (!editingBanner) return;
+    if (!form.title.trim() || !form.imageUrl.trim()) {
+      Alert.alert('Error', 'Title and image URL are required');
+      return;
+    }
+    dispatch(
+      updateBannerThunk({
+        ...editingBanner,
+        title: form.title.trim(),
+        description: form.description.trim(),
+        imageUrl: form.imageUrl.trim(),
+        targetUrl: form.targetUrl.trim() || undefined,
+        startDate: form.startDate,
+        endDate: form.endDate,
+      })
+    );
+    setEditingBanner(null);
+    setForm(EMPTY_FORM);
   };
 
   const handleAddBanner = () => {
-    Alert.alert('Add New Banner', 'Create a new promotional banner', [
-      {
-        text: 'Create',
-        onPress: () => Alert.alert('Success', 'Banner created successfully'),
-      },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    setForm(EMPTY_FORM);
+    setShowAddModal(true);
   };
 
-  const handleDeleteBanner = (banner: any) => {
+  const saveNewBanner = () => {
+    if (!form.title.trim() || !form.imageUrl.trim()) {
+      Alert.alert('Error', 'Title and image URL are required');
+      return;
+    }
+    dispatch(
+      createBannerThunk({
+        title: form.title.trim(),
+        description: form.description.trim(),
+        imageUrl: form.imageUrl.trim(),
+        targetUrl: form.targetUrl.trim() || undefined,
+        startDate: form.startDate || new Date().toISOString().split('T')[0],
+        endDate: form.endDate || new Date().toISOString().split('T')[0],
+        status: 'scheduled',
+        priority: banners.length + 1,
+      })
+    );
+    setShowAddModal(false);
+    setForm(EMPTY_FORM);
+  };
+
+  const handleDeleteBanner = (banner: Banner) => {
     Alert.alert('Delete Banner', `Are you sure you want to delete "${banner.title}"?`, [
       {
         text: 'Delete',
-        onPress: () => {
-          dispatch(deleteBanner(banner.id));
-          Alert.alert('Success', 'Banner deleted');
-        },
+        onPress: () => dispatch(deleteBannerThunk(banner.id)),
         style: 'destructive',
       },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };
 
-  const handleActivateBanner = (banner: any) => {
-    dispatch(updateBannerStatus({ id: banner.id, status: 'active' }));
-    Alert.alert('Success', `${banner.title} is now active`);
+  const handleActivateBanner = (banner: Banner) => {
+    dispatch(setBannerStatusThunk({ id: banner.id, status: 'active' }));
   };
 
   const stats = {
@@ -170,7 +222,7 @@ const AdminBannersScreen: React.FC<Props> = ({ navigation }) => {
               )}
 
               <Actions>
-                <ActionBtn onPress={() => handleEditBanner(banner)}>
+                <ActionBtn onPress={() => openEdit(banner)}>
                   <FontAwesome5 name="edit" size={14} color="#0F8A3C" />
                   <ActionText style={{ color: '#0F8A3C' }}>Edit</ActionText>
                 </ActionBtn>
@@ -189,6 +241,41 @@ const AdminBannersScreen: React.FC<Props> = ({ navigation }) => {
           );
         })}
       </ScrollView>
+
+      <Modal visible={!!editingBanner || showAddModal} transparent animationType="slide">
+        <ModalOverlay>
+          <ModalContent>
+            <ModalHeader>
+              <ModalTitle>{editingBanner ? 'Edit Banner' : 'New Banner'}</ModalTitle>
+              <CloseBtn onPress={() => { setEditingBanner(null); setShowAddModal(false); }}>
+                <FontAwesome5 name="times" size={18} color="#111827" />
+              </CloseBtn>
+            </ModalHeader>
+            <ScrollView contentContainerStyle={{ padding: 16 }}>
+              <FormLabel>Title *</FormLabel>
+              <FormInput value={form.title} onChangeText={(t) => setForm({ ...form, title: t })} placeholder="Summer Collection Launch" />
+              <FormLabel>Description</FormLabel>
+              <FormInput value={form.description} onChangeText={(t) => setForm({ ...form, description: t })} placeholder="Short description" multiline />
+              <FormLabel>Image URL *</FormLabel>
+              <FormInput value={form.imageUrl} onChangeText={(t) => setForm({ ...form, imageUrl: t })} placeholder="banner-image.jpg" />
+              <FormLabel>Target URL</FormLabel>
+              <FormInput value={form.targetUrl} onChangeText={(t) => setForm({ ...form, targetUrl: t })} placeholder="/products/summer" />
+              <FormLabel>Start Date (YYYY-MM-DD)</FormLabel>
+              <FormInput value={form.startDate} onChangeText={(t) => setForm({ ...form, startDate: t })} placeholder="2024-01-15" />
+              <FormLabel>End Date (YYYY-MM-DD)</FormLabel>
+              <FormInput value={form.endDate} onChangeText={(t) => setForm({ ...form, endDate: t })} placeholder="2024-02-15" />
+            </ScrollView>
+            <ModalFooter>
+              <CancelBtn onPress={() => { setEditingBanner(null); setShowAddModal(false); }}>
+                <CancelBtnText>Cancel</CancelBtnText>
+              </CancelBtn>
+              <SaveBtn onPress={editingBanner ? saveEdit : saveNewBanner}>
+                <SaveBtnText>{editingBanner ? 'Save Changes' : 'Create Banner'}</SaveBtnText>
+              </SaveBtn>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -412,3 +499,33 @@ const ActionText = styled.Text`
   font-weight: 700;
   margin-left: 4px;
 `;
+
+const ModalOverlay = styled.View`
+  flex: 1; background-color: rgba(0,0,0,0.5); justify-content: flex-end;
+`;
+const ModalContent = styled.View`
+  background-color: #FFFFFF; border-top-left-radius: 20px; border-top-right-radius: 20px;
+  max-height: 85%;
+`;
+const ModalHeader = styled.View`
+  flex-direction: row; justify-content: space-between; align-items: center;
+  padding: 16px; border-bottom-width: 1px; border-bottom-color: #F3F4F6;
+`;
+const ModalTitle = styled.Text`font-size: 16px; font-weight: 700; color: #111827;`;
+const CloseBtn = styled.TouchableOpacity`padding: 4px;`;
+const FormLabel = styled.Text`font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; margin-top: 14px;`;
+const FormInput = styled.TextInput`
+  border-width: 1px; border-color: #E5E7EB; border-radius: 10px;
+  padding: 12px; font-size: 14px; color: #111827; background-color: #F9FAFB;
+`;
+const ModalFooter = styled.View`
+  flex-direction: row; gap: 12px; padding: 16px; border-top-width: 1px; border-top-color: #F3F4F6;
+`;
+const CancelBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #F3F4F6; align-items: center;
+`;
+const CancelBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #6B7280;`;
+const SaveBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #0F8A3C; align-items: center;
+`;
+const SaveBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #FFFFFF;`;

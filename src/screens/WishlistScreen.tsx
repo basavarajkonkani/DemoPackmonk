@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,74 +7,35 @@ import {
   TouchableOpacity,
   Image,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useAppDispatch } from '../store';
+import { useAppDispatch, useAppSelector } from '../store';
 import { addToCart } from '../store/cartSlice';
+import { fetchWishlist, removeFromWishlistThunk, selectWishlist } from '../store/wishlistSlice';
 import { IMAGES } from '../constants/images';
 
-interface WishlistItem {
-  id: string;
-  name: string;
-  image: any;
-  price: number;
-  category: string;
-  inStock: boolean;
-  discount?: number;
-}
-
 const WishlistScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([
-    {
-      id: '1',
-      name: 'Gold Standy Zipper Pouch',
-      image: IMAGES.goldStandyZipperPouch,
-      price: 16750,
-      category: 'Premium Pouches',
-      inStock: true,
-      discount: 10,
-    },
-    {
-      id: '2',
-      name: 'Silver Standy Pouch',
-      image: IMAGES.silverStandyPouch,
-      price: 12000,
-      category: 'Metalized Pouches',
-      inStock: true,
-    },
-    {
-      id: '3',
-      name: 'Kraft Window Standy Pouch (Brown)',
-      image: IMAGES.kraftWindowStandyPouchBrown,
-      price: 14500,
-      category: 'Eco-Friendly Pouches',
-      inStock: true,
-      discount: 15,
-    },
-    {
-      id: '4',
-      name: 'Milky Standy Zipper Pouch',
-      image: IMAGES.milkyStandyZipperPouch,
-      price: 13500,
-      category: 'Premium Pouches',
-      inStock: true,
-    },
-  ]);
+  const wishlistItems = useAppSelector(selectWishlist);
+  const [loading, setLoading] = React.useState(true);
+
+  useEffect(() => {
+    dispatch(fetchWishlist()).finally(() => setLoading(false));
+  }, [dispatch]);
 
   const removeFromWishlist = (id: string) => {
-    setWishlistItems((prev) => prev.filter((item) => item.id !== id));
+    dispatch(removeFromWishlistThunk(id));
   };
 
-  const handleAddToCart = (item: WishlistItem) => {
-    // Create a proper CartItem structure
+  const handleAddToCart = (item: (typeof wishlistItems)[number]) => {
     dispatch(
       addToCart({
         cartId: `cart-${item.id}-${Date.now()}`,
-        productId: item.id,
+        productId: item.productId,
         name: item.name,
         category: 'pouch',
         design: {
@@ -92,19 +53,20 @@ const WishlistScreen: React.FC = () => {
           textSize: 16,
         },
         quantity: 1,
-        baseUnitPrice: item.price / 1000, // Convert to per-unit price
+        baseUnitPrice: item.price / 1000,
         unitPrice: item.price / 1000,
         totalPrice: item.price / 1000,
         setupFee: 0,
       })
     );
-    // Optionally remove from wishlist after adding to cart
     removeFromWishlist(item.id);
   };
 
-  const handleViewProduct = (item: WishlistItem) => {
-    navigation.navigate('ProductDetail' as never, { productId: item.id } as never);
+  const handleViewProduct = (item: (typeof wishlistItems)[number]) => {
+    navigation.navigate('ReadyStockProducts');
   };
+
+  const getImage = (key: string) => (IMAGES as Record<string, any>)[key] ?? IMAGES.silverStandyPouch;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -116,94 +78,100 @@ const WishlistScreen: React.FC = () => {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {wishlistItems.length > 0 ? (
-          <View style={styles.wishlistGrid}>
-            {wishlistItems.map((item) => (
-              <View key={item.id} style={styles.itemCard}>
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => removeFromWishlist(item.id)}
-                >
-                  <FontAwesome5 name="times" size={16} color="#EF4444" />
-                </TouchableOpacity>
+      {loading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#0F8A3C" />
+        </View>
+      ) : (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {wishlistItems.length > 0 ? (
+            <View style={styles.wishlistGrid}>
+              {wishlistItems.map((item) => (
+                <View key={item.id} style={styles.itemCard}>
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={() => removeFromWishlist(item.id)}
+                  >
+                    <FontAwesome5 name="times" size={16} color="#EF4444" />
+                  </TouchableOpacity>
 
-                {item.discount && (
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountText}>{item.discount}% OFF</Text>
-                  </View>
-                )}
-
-                <TouchableOpacity onPress={() => handleViewProduct(item)}>
-                  <View style={styles.imageContainer}>
-                    <Image source={item.image} style={styles.itemImage} resizeMode="cover" />
-                  </View>
-                </TouchableOpacity>
-
-                <View style={styles.itemInfo}>
-                  <Text style={styles.categoryText}>{item.category}</Text>
-                  <Text style={styles.itemName} numberOfLines={2}>
-                    {item.name}
-                  </Text>
-
-                  <View style={styles.priceRow}>
-                    <View>
-                      {item.discount ? (
-                        <>
-                          <Text style={styles.originalPrice}>₹{item.price.toLocaleString()}</Text>
-                          <Text style={styles.discountedPrice}>
-                            ₹{(item.price * (1 - item.discount / 100)).toLocaleString()}
-                          </Text>
-                        </>
-                      ) : (
-                        <Text style={styles.price}>₹{item.price.toLocaleString()}</Text>
-                      )}
+                  {item.discount && (
+                    <View style={styles.discountBadge}>
+                      <Text style={styles.discountText}>{item.discount}% OFF</Text>
                     </View>
-                    <View
-                      style={[
-                        styles.stockBadge,
-                        { backgroundColor: item.inStock ? '#DCFCE7' : '#FEE2E2' },
-                      ]}
-                    >
-                      <Text
+                  )}
+
+                  <TouchableOpacity onPress={() => handleViewProduct(item)}>
+                    <View style={styles.imageContainer}>
+                      <Image source={getImage(item.imageKey)} style={styles.itemImage} resizeMode="cover" />
+                    </View>
+                  </TouchableOpacity>
+
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.categoryText}>{item.category}</Text>
+                    <Text style={styles.itemName} numberOfLines={2}>
+                      {item.name}
+                    </Text>
+
+                    <View style={styles.priceRow}>
+                      <View>
+                        {item.discount ? (
+                          <>
+                            <Text style={styles.originalPrice}>₹{item.price.toLocaleString()}</Text>
+                            <Text style={styles.discountedPrice}>
+                              ₹{(item.price * (1 - item.discount / 100)).toLocaleString()}
+                            </Text>
+                          </>
+                        ) : (
+                          <Text style={styles.price}>₹{item.price.toLocaleString()}</Text>
+                        )}
+                      </View>
+                      <View
                         style={[
-                          styles.stockText,
-                          { color: item.inStock ? '#0F8A3C' : '#EF4444' },
+                          styles.stockBadge,
+                          { backgroundColor: item.inStock ? '#DCFCE7' : '#FEE2E2' },
                         ]}
                       >
-                        {item.inStock ? 'In Stock' : 'Out of Stock'}
-                      </Text>
+                        <Text
+                          style={[
+                            styles.stockText,
+                            { color: item.inStock ? '#0F8A3C' : '#EF4444' },
+                          ]}
+                        >
+                          {item.inStock ? 'In Stock' : 'Out of Stock'}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
 
-                  <TouchableOpacity
-                    style={[styles.addToCartButton, !item.inStock && styles.disabledButton]}
-                    onPress={() => handleAddToCart(item)}
-                    disabled={!item.inStock}
-                  >
-                    <FontAwesome5 name="cart-plus" size={14} color="#FFFFFF" />
-                    <Text style={styles.addToCartText}>Add to Cart</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.addToCartButton, !item.inStock && styles.disabledButton]}
+                      onPress={() => handleAddToCart(item)}
+                      disabled={!item.inStock}
+                    >
+                      <FontAwesome5 name="cart-plus" size={14} color="#FFFFFF" />
+                      <Text style={styles.addToCartText}>Add to Cart</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <FontAwesome5 name="heart" size={64} color="#D1D5DB" />
-            <Text style={styles.emptyStateTitle}>Your Wishlist is Empty</Text>
-            <Text style={styles.emptyStateText}>
-              Save items you love to your wishlist
-            </Text>
-            <TouchableOpacity
-              style={styles.browseButton}
-              onPress={() => navigation.navigate('Products' as never)}
-            >
-              <Text style={styles.browseButtonText}>Browse Products</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </ScrollView>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <FontAwesome5 name="heart" size={64} color="#D1D5DB" />
+              <Text style={styles.emptyStateTitle}>Your Wishlist is Empty</Text>
+              <Text style={styles.emptyStateText}>
+                Save items you love to your wishlist
+              </Text>
+              <TouchableOpacity
+                style={styles.browseButton}
+                onPress={() => navigation.navigate('MainTabs', { screen: 'Products' })}
+              >
+                <Text style={styles.browseButtonText}>Browse Products</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };

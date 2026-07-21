@@ -1,42 +1,33 @@
-import React, { useState } from 'react';
-import { ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, Alert, Modal } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useAppDispatch, useAppSelector } from '../../store';
+import {
+  fetchTeam,
+  inviteTeamMemberThunk,
+  updateTeamMemberThunk,
+  removeTeamMemberThunk,
+  selectTeam,
+} from '../../store/teamSlice';
+import type { TeamMember } from '../../store/teamSlice';
 
 interface Props {
   navigation: any;
 }
 
+const EMPTY_FORM = { name: '', email: '', phone: '', role: 'Member' };
+
 const ManageTeamScreen: React.FC<Props> = ({ navigation }) => {
-  const [team, setTeam] = useState([
-    {
-      id: '1',
-      name: 'Rahul Sharma',
-      email: 'rahul@company.com',
-      phone: '+91 98765 43210',
-      role: 'Owner',
-      addedAt: '2024-01-01',
-      isOwner: true,
-    },
-    {
-      id: '2',
-      name: 'Neha Verma',
-      email: 'neha@company.com',
-      phone: '+91 98765 43211',
-      role: 'Manager',
-      addedAt: '2024-01-15',
-      isOwner: false,
-    },
-    {
-      id: '3',
-      name: 'Vikram Singh',
-      email: 'vikram@company.com',
-      phone: '+91 98765 43212',
-      role: 'Procurement',
-      addedAt: '2024-01-20',
-      isOwner: false,
-    },
-  ]);
+  const dispatch = useAppDispatch();
+  const team = useAppSelector(selectTeam);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+
+  useEffect(() => {
+    dispatch(fetchTeam());
+  }, [dispatch]);
 
   const removeMember = (id: string) => {
     const member = team.find((m) => m.id === id);
@@ -49,9 +40,50 @@ const ManageTeamScreen: React.FC<Props> = ({ navigation }) => {
       {
         text: 'Remove',
         style: 'destructive',
-        onPress: () => setTeam((prev) => prev.filter((m) => m.id !== id)),
+        onPress: () => dispatch(removeTeamMemberThunk(id)),
       },
     ]);
+  };
+
+  const openAdd = () => {
+    setEditingMember(null);
+    setForm(EMPTY_FORM);
+    setShowAddModal(true);
+  };
+
+  const openEditRole = (member: TeamMember) => {
+    setEditingMember(member);
+    setForm({ name: member.name, email: member.email, phone: member.phone, role: member.role });
+    setShowAddModal(true);
+  };
+
+  const saveMember = () => {
+    if (!form.name.trim() || !form.email.trim()) {
+      Alert.alert('Error', 'Name and email are required');
+      return;
+    }
+    if (editingMember) {
+      dispatch(
+        updateTeamMemberThunk({
+          ...editingMember,
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          role: form.role.trim() || 'Member',
+        })
+      );
+    } else {
+      dispatch(
+        inviteTeamMemberThunk({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          role: form.role.trim() || 'Member',
+        })
+      );
+    }
+    setShowAddModal(false);
+    setForm(EMPTY_FORM);
   };
 
   return (
@@ -61,7 +93,7 @@ const ManageTeamScreen: React.FC<Props> = ({ navigation }) => {
           <FontAwesome5 name="arrow-left" size={18} color="#111827" />
         </BackBtn>
         <HeaderTitle>Team Members</HeaderTitle>
-        <AddBtn onPress={() => Alert.alert('Add Member', 'Feature coming soon')}>
+        <AddBtn onPress={openAdd}>
           <FontAwesome5 name="user-plus" size={18} color="#ffffff" />
         </AddBtn>
       </Header>
@@ -101,9 +133,7 @@ const ManageTeamScreen: React.FC<Props> = ({ navigation }) => {
 
             {!member.isOwner && (
               <ActionRow>
-                <ActionBtn
-                  onPress={() => Alert.alert('Edit', `Edit ${member.name}'s role`)}
-                >
+                <ActionBtn onPress={() => openEditRole(member)}>
                   <FontAwesome5 name="edit" size={14} color="#3B82F6" />
                   <ActionText style={{ color: '#3B82F6' }}>Edit Role</ActionText>
                 </ActionBtn>
@@ -116,12 +146,43 @@ const ManageTeamScreen: React.FC<Props> = ({ navigation }) => {
           </MemberCard>
         ))}
 
-        <AddNewCard onPress={() => Alert.alert('Add Member', 'Feature coming soon')}>
+        <AddNewCard onPress={openAdd}>
           <FontAwesome5 name="user-plus" size={32} color="#0f8a3c" />
           <AddNewText>Invite Team Member</AddNewText>
           <AddNewSubtext>Give access to place and track orders</AddNewSubtext>
         </AddNewCard>
       </ScrollView>
+
+      <Modal visible={showAddModal} transparent animationType="slide">
+        <ModalOverlay>
+          <ModalContent>
+            <ModalHeader>
+              <ModalTitle>{editingMember ? 'Edit Team Member' : 'Invite Team Member'}</ModalTitle>
+              <CloseBtn onPress={() => setShowAddModal(false)}>
+                <FontAwesome5 name="times" size={18} color="#111827" />
+              </CloseBtn>
+            </ModalHeader>
+            <ScrollView contentContainerStyle={{ padding: 16 }}>
+              <FormLabel>Full Name *</FormLabel>
+              <FormInput value={form.name} onChangeText={(t) => setForm({ ...form, name: t })} placeholder="Jane Doe" />
+              <FormLabel>Email *</FormLabel>
+              <FormInput value={form.email} onChangeText={(t) => setForm({ ...form, email: t })} placeholder="jane@company.com" keyboardType="email-address" />
+              <FormLabel>Phone</FormLabel>
+              <FormInput value={form.phone} onChangeText={(t) => setForm({ ...form, phone: t })} placeholder="+91 98765 43210" keyboardType="phone-pad" />
+              <FormLabel>Role</FormLabel>
+              <FormInput value={form.role} onChangeText={(t) => setForm({ ...form, role: t })} placeholder="Manager / Procurement / etc." />
+            </ScrollView>
+            <ModalFooter>
+              <CancelBtn onPress={() => setShowAddModal(false)}>
+                <CancelBtnText>Cancel</CancelBtnText>
+              </CancelBtn>
+              <SaveBtn onPress={saveMember}>
+                <SaveBtnText>{editingMember ? 'Save Changes' : 'Send Invite'}</SaveBtnText>
+              </SaveBtn>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
+      </Modal>
     </Wrapper>
   );
 };
@@ -298,3 +359,33 @@ const AddNewSubtext = styled.Text`
   color: #6b7280;
   margin-top: 4px;
 `;
+
+const ModalOverlay = styled.View`
+  flex: 1; background-color: rgba(0,0,0,0.5); justify-content: flex-end;
+`;
+const ModalContent = styled.View`
+  background-color: #FFFFFF; border-top-left-radius: 20px; border-top-right-radius: 20px;
+  max-height: 85%;
+`;
+const ModalHeader = styled.View`
+  flex-direction: row; justify-content: space-between; align-items: center;
+  padding: 16px; border-bottom-width: 1px; border-bottom-color: #F3F4F6;
+`;
+const ModalTitle = styled.Text`font-size: 16px; font-weight: 700; color: #111827;`;
+const CloseBtn = styled.TouchableOpacity`padding: 4px;`;
+const FormLabel = styled.Text`font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; margin-top: 14px;`;
+const FormInput = styled.TextInput`
+  border-width: 1px; border-color: #E5E7EB; border-radius: 10px;
+  padding: 12px; font-size: 14px; color: #111827; background-color: #F9FAFB;
+`;
+const ModalFooter = styled.View`
+  flex-direction: row; gap: 12px; padding: 16px; border-top-width: 1px; border-top-color: #F3F4F6;
+`;
+const CancelBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #F3F4F6; align-items: center;
+`;
+const CancelBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #6B7280;`;
+const SaveBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #0F8A3C; align-items: center;
+`;
+const SaveBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #FFFFFF;`;

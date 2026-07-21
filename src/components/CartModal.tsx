@@ -22,7 +22,7 @@ interface CartModalProps {
 const CartModal: React.FC<CartModalProps> = ({ visible, onClose, onCheckoutSuccess, navigation }) => {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((s) => s.cart.items);
-  const products = useAppSelector((s) => s.products.items);
+  const products = useAppSelector((s) => s.configurableCatalog.items);
   const subtotal = useAppSelector(selectCartTotal);
   const setupFees = cartItems.reduce((s, i) => s + i.setupFee, 0);
   const shipping = cartItems.length > 0 ? DEFAULT_SHIPPING_FEE : 0;

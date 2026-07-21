@@ -2,7 +2,7 @@
  * Price utility functions for calculating minimum and starting prices
  */
 
-import { PackagingProduct } from '../store/productsSlice';
+import { PackagingProduct } from '../store/configurableCatalogSlice';
 import { POUCH_CATALOG, PouchType } from '../store/pouchSlice';
 
 /**

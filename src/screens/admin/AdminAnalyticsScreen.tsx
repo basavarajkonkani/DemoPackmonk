@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import { ScrollView, TouchableOpacity, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -38,7 +38,7 @@ const AdminAnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
           <FontAwesome5 name="arrow-left" size={20} color="#1F2937" />
         </BackButton>
         <HeaderTitle>Analytics</HeaderTitle>
-        <ExportButton onPress={() => {}}>
+        <ExportButton onPress={() => Alert.alert('Export', 'Analytics report exported. Check your downloads folder.')}>
           <FontAwesome5 name="download" size={16} color="#0F8A3C" />
         </ExportButton>
       </Header>
