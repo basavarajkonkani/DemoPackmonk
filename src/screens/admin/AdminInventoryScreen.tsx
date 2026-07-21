@@ -1,16 +1,56 @@
-import React, { useState } from 'react';
-import { ScrollView, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, TextInput, Alert, Modal } from 'react-native';
 import styled from 'styled-components/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { updateInventoryStock } from '../../store/adminSlice';
+import {
+  fetchInventory,
+  setInventoryStockThunk,
+  createInventoryItemThunk,
+  deleteInventoryItemThunk,
+  selectInventory,
+} from '../../store/inventorySlice';
 
 const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const inventory = useAppSelector((state) => state.admin.inventory);
+  const inventory = useAppSelector(selectInventory);
   const [filterMaterial, setFilterMaterial] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newItem, setNewItem] = useState({ name: '', material: 'clear', size: '', thickness: '', stock: '', reorderPoint: '', price: '' });
+
+  useEffect(() => {
+    dispatch(fetchInventory());
+  }, [dispatch]);
+
+  const handleCreateItem = () => {
+    if (!newItem.name.trim() || !newItem.size.trim()) {
+      Alert.alert('Error', 'Name and size are required');
+      return;
+    }
+    dispatch(
+      createInventoryItemThunk({
+        name: newItem.name.trim(),
+        material: newItem.material,
+        size: newItem.size.trim(),
+        thickness: parseFloat(newItem.thickness) || 0,
+        hasZip: false,
+        stock: parseInt(newItem.stock, 10) || 0,
+        reorderPoint: parseInt(newItem.reorderPoint, 10) || 100,
+        price: parseFloat(newItem.price) || 0,
+      })
+    );
+    setShowAddModal(false);
+    setNewItem({ name: '', material: 'clear', size: '', thickness: '', stock: '', reorderPoint: '', price: '' });
+  };
+
+  const handleDeleteItem = (id: string, name: string) => {
+    Alert.alert('Delete Item', `Remove "${name}" from inventory?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => dispatch(deleteInventoryItemThunk(id)) },
+    ]);
+  };
 
   const materials = ['all', 'clear', 'silver', 'kraft', 'milky'];
 
@@ -37,7 +77,7 @@ const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
           text: 'Update',
           onPress: (newStock?: string) => {
             if (newStock && !isNaN(parseInt(newStock, 10))) {
-              dispatch(updateInventoryStock({ id: item.id, stock: parseInt(newStock, 10) }));
+              dispatch(setInventoryStockThunk({ id: item.id, stock: parseInt(newStock, 10) }));
               Alert.alert('Success', `Stock updated to ${newStock} units`);
             }
           },
@@ -50,12 +90,12 @@ const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
   };
 
   const handleIncreaseStock = (item: any) => {
-    dispatch(updateInventoryStock({ id: item.id, stock: item.stock + 100 }));
+    dispatch(setInventoryStockThunk({ id: item.id, stock: item.stock + 100 }));
   };
 
   const handleDecreaseStock = (item: any) => {
     if (item.stock > 0) {
-      dispatch(updateInventoryStock({ id: item.id, stock: Math.max(0, item.stock - 100) }));
+      dispatch(setInventoryStockThunk({ id: item.id, stock: Math.max(0, item.stock - 100) }));
     }
   };
 
@@ -66,7 +106,7 @@ const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
           <FontAwesome5 name="arrow-left" size={20} color="#1F2937" />
         </BackButton>
         <HeaderTitle>Inventory Management</HeaderTitle>
-        <AddButton onPress={() => Alert.alert('Add Item', 'Add new inventory item')}>
+        <AddButton onPress={() => setShowAddModal(true)}>
           <FontAwesome5 name="plus" size={18} color="#FFF" />
         </AddButton>
       </Header>
@@ -179,6 +219,9 @@ const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                     <ActionButton onPress={() => handleIncreaseStock(item)}>
                       <FontAwesome5 name="plus" size={12} color="#10B981" />
                     </ActionButton>
+                    <ActionButton onPress={() => handleDeleteItem(item.id, item.name)}>
+                      <FontAwesome5 name="trash" size={12} color="#EF4444" />
+                    </ActionButton>
                   </ActionButtons>
                 </CardFooter>
               </InventoryCard>
@@ -186,6 +229,43 @@ const AdminInventoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
           })}
         </InventoryList>
       </ScrollView>
+
+      <Modal visible={showAddModal} transparent animationType="slide">
+        <ModalOverlay>
+          <ModalContent>
+            <ModalHeader>
+              <ModalTitle>Add Inventory Item</ModalTitle>
+              <CloseBtn onPress={() => setShowAddModal(false)}>
+                <FontAwesome5 name="times" size={18} color="#111827" />
+              </CloseBtn>
+            </ModalHeader>
+            <ScrollView contentContainerStyle={{ padding: 16 }}>
+              <FormLabel>Name *</FormLabel>
+              <FormInput placeholder="e.g., Clear BOPP Pouch" value={newItem.name} onChangeText={(t) => setNewItem({ ...newItem, name: t })} />
+              <FormLabel>Material</FormLabel>
+              <FormInput placeholder="clear / silver / kraft / milky" value={newItem.material} onChangeText={(t) => setNewItem({ ...newItem, material: t })} />
+              <FormLabel>Size *</FormLabel>
+              <FormInput placeholder="e.g., 5x8" value={newItem.size} onChangeText={(t) => setNewItem({ ...newItem, size: t })} />
+              <FormLabel>Thickness (microns)</FormLabel>
+              <FormInput placeholder="e.g., 75" value={newItem.thickness} onChangeText={(t) => setNewItem({ ...newItem, thickness: t })} keyboardType="numeric" />
+              <FormLabel>Initial Stock</FormLabel>
+              <FormInput placeholder="0" value={newItem.stock} onChangeText={(t) => setNewItem({ ...newItem, stock: t })} keyboardType="number-pad" />
+              <FormLabel>Reorder Point</FormLabel>
+              <FormInput placeholder="500" value={newItem.reorderPoint} onChangeText={(t) => setNewItem({ ...newItem, reorderPoint: t })} keyboardType="number-pad" />
+              <FormLabel>Price per unit (₹)</FormLabel>
+              <FormInput placeholder="0.00" value={newItem.price} onChangeText={(t) => setNewItem({ ...newItem, price: t })} keyboardType="decimal-pad" />
+            </ScrollView>
+            <ModalFooter>
+              <CancelBtn onPress={() => setShowAddModal(false)}>
+                <CancelBtnText>Cancel</CancelBtnText>
+              </CancelBtn>
+              <SaveBtn onPress={handleCreateItem}>
+                <SaveBtnText>Add Item</SaveBtnText>
+              </SaveBtn>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -409,3 +489,33 @@ const ActionButton = styled.TouchableOpacity`
   width: 32px; height: 32px; border-radius: 8px;
   background-color: #F3F4F6; align-items: center; justify-content: center;
 `;
+
+const ModalOverlay = styled.View`
+  flex: 1; background-color: rgba(0,0,0,0.5); justify-content: flex-end;
+`;
+const ModalContent = styled.View`
+  background-color: #FFFFFF; border-top-left-radius: 20px; border-top-right-radius: 20px;
+  max-height: 85%;
+`;
+const ModalHeader = styled.View`
+  flex-direction: row; justify-content: space-between; align-items: center;
+  padding: 16px; border-bottom-width: 1px; border-bottom-color: #F3F4F6;
+`;
+const ModalTitle = styled.Text`font-size: 16px; font-weight: 700; color: #111827;`;
+const CloseBtn = styled.TouchableOpacity`padding: 4px;`;
+const FormLabel = styled.Text`font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; margin-top: 14px;`;
+const FormInput = styled.TextInput`
+  border-width: 1px; border-color: #E5E7EB; border-radius: 10px;
+  padding: 12px; font-size: 14px; color: #111827; background-color: #F9FAFB;
+`;
+const ModalFooter = styled.View`
+  flex-direction: row; gap: 12px; padding: 16px; border-top-width: 1px; border-top-color: #F3F4F6;
+`;
+const CancelBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #F3F4F6; align-items: center;
+`;
+const CancelBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #6B7280;`;
+const SaveBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #0F8A3C; align-items: center;
+`;
+const SaveBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #FFFFFF;`;

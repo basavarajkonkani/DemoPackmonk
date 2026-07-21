@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,70 +8,28 @@ import {
   Image,
   Alert,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { IMAGES } from '../constants/images';
-
-interface SavedDesign {
-  id: string;
-  name: string;
-  productType: string;
-  thumbnail: any;
-  createdAt: string;
-  lastModified: string;
-  dimensions: string;
-  colors: number;
-}
+import { useAppDispatch, useAppSelector } from '../store';
+import { fetchDesigns, duplicateDesignThunk, deleteDesignsThunk, selectDesigns } from '../store/designsSlice';
+import type { SavedDesign } from '../store/designsSlice';
 
 const SavedDesignsScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
+  const dispatch = useAppDispatch();
+  const designs = useAppSelector(selectDesigns);
   const [selectedDesigns, setSelectedDesigns] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with API call or Redux state
-  const designs: SavedDesign[] = [
-    {
-      id: '1',
-      name: 'Premium Coffee Pouch Design',
-      productType: 'Gold Standy Pouch',
-      thumbnail: IMAGES.goldStandyPouch,
-      createdAt: '2024-01-15',
-      lastModified: '2024-01-20',
-      dimensions: '10x15 cm',
-      colors: 4,
-    },
-    {
-      id: '2',
-      name: 'Organic Tea Packaging',
-      productType: 'Kraft Window Standy Pouch',
-      thumbnail: IMAGES.kraftWindowStandyPouchBrown,
-      createdAt: '2024-01-10',
-      lastModified: '2024-01-18',
-      dimensions: '8x12 cm',
-      colors: 3,
-    },
-    {
-      id: '3',
-      name: 'Premium Snack Packaging',
-      productType: 'Silver Standy Zipper Pouch',
-      thumbnail: IMAGES.silverStandyZipperPouch,
-      createdAt: '2024-01-08',
-      lastModified: '2024-01-19',
-      dimensions: '12x18 cm',
-      colors: 6,
-    },
-    {
-      id: '4',
-      name: 'Wellness Product Pouch',
-      productType: 'Milky Standy Pouch',
-      thumbnail: IMAGES.milkyStandyPouch,
-      createdAt: '2024-01-05',
-      lastModified: '2024-01-15',
-      dimensions: '15x20 cm',
-      colors: 5,
-    },
-  ];
+  useEffect(() => {
+    dispatch(fetchDesigns()).finally(() => setLoading(false));
+  }, [dispatch]);
+
+  const getThumbnail = (key: string) => (IMAGES as Record<string, any>)[key] ?? IMAGES.goldStandyPouch;
 
   const toggleSelection = (id: string) => {
     setSelectedDesigns((prev) =>
@@ -80,19 +38,19 @@ const SavedDesignsScreen: React.FC = () => {
   };
 
   const handleEdit = (design: SavedDesign) => {
-    navigation.navigate('DesignStudio' as never, { designId: design.id } as never);
+    navigation.navigate('DesignStudio', { designId: design.id });
   };
 
   const handleDuplicate = (design: SavedDesign) => {
     Alert.alert('Duplicate Design', `Create a copy of "${design.name}"?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Duplicate', onPress: () => console.log('Duplicating:', design.id) },
+      { text: 'Duplicate', onPress: () => dispatch(duplicateDesignThunk(design.id)) },
     ]);
   };
 
   const handleDelete = () => {
     if (selectedDesigns.length === 0) return;
-    
+
     Alert.alert(
       'Delete Designs',
       `Are you sure you want to delete ${selectedDesigns.length} design(s)?`,
@@ -102,7 +60,7 @@ const SavedDesignsScreen: React.FC = () => {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            console.log('Deleting designs:', selectedDesigns);
+            dispatch(deleteDesignsThunk(selectedDesigns));
             setSelectedDesigns([]);
           },
         },
@@ -111,7 +69,7 @@ const SavedDesignsScreen: React.FC = () => {
   };
 
   const handleAddToCart = (design: SavedDesign) => {
-    navigation.navigate('StreamlinedPouchConfigurator' as never, { designId: design.id } as never);
+    navigation.navigate('StreamlinedPouchConfigurator', { designId: design.id });
   };
 
   return (
@@ -139,6 +97,11 @@ const SavedDesignsScreen: React.FC = () => {
         </View>
       )}
 
+      {loading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#0F8A3C" />
+        </View>
+      ) : (
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.grid}>
           {designs.map((design) => {
@@ -156,7 +119,7 @@ const SavedDesignsScreen: React.FC = () => {
                 )}
 
                 <View style={styles.thumbnailContainer}>
-                  <Image source={design.thumbnail} style={styles.thumbnail} resizeMode="cover" />
+                  <Image source={getThumbnail(design.thumbnailKey)} style={styles.thumbnail} resizeMode="cover" />
                 </View>
 
                 <View style={styles.designInfo}>
@@ -217,13 +180,14 @@ const SavedDesignsScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.createButton}
-              onPress={() => navigation.navigate('DesignStudio' as never)}
+              onPress={() => navigation.navigate('DesignStudio')}
             >
               <Text style={styles.createButtonText}>Create Design</Text>
             </TouchableOpacity>
           </View>
         )}
       </ScrollView>
+      )}
     </SafeAreaView>
   );
 };

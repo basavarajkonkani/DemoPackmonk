@@ -64,6 +64,70 @@ const AdminUsersScreen: React.FC<Props> = ({ navigation }) => {
 
   const filteredUsers = users.filter((u) => filter === 'all' || u.role === filter);
 
+  const handleAddUser = () => {
+    Alert.prompt(
+      'Add User',
+      "Enter the new user's full name",
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Next',
+          onPress: (name?: string) => {
+            if (!name?.trim()) return;
+            Alert.prompt(
+              'Email Address',
+              `Enter email for ${name.trim()}`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Create User',
+                  onPress: (email?: string) => {
+                    if (!email?.trim()) return;
+                    setUsers((prev) => [
+                      ...prev,
+                      {
+                        id: Date.now().toString(),
+                        name: name.trim(),
+                        email: email.trim(),
+                        phone: '',
+                        companyName: '',
+                        gstNumber: '',
+                        role: 'user',
+                        isActive: true,
+                        createdAt: new Date().toISOString().split('T')[0],
+                      },
+                    ]);
+                  },
+                },
+              ],
+              'plain-text'
+            );
+          },
+        },
+      ],
+      'plain-text'
+    );
+  };
+
+  const handleEditUser = (user: (typeof users)[number]) => {
+    Alert.prompt(
+      'Edit Name',
+      `Update name for ${user.email}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Save',
+          onPress: (name?: string) => {
+            if (!name?.trim()) return;
+            setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, name: name.trim() } : u)));
+          },
+        },
+      ],
+      'plain-text',
+      user.name
+    );
+  };
+
   return (
     <Wrapper>
       <Header>
@@ -71,7 +135,7 @@ const AdminUsersScreen: React.FC<Props> = ({ navigation }) => {
           <FontAwesome5 name="arrow-left" size={18} color="#111827" />
         </BackBtn>
         <HeaderTitle>User Management</HeaderTitle>
-        <AddBtn onPress={() => Alert.alert('Add User', 'Feature coming soon')}>
+        <AddBtn onPress={handleAddUser}>
           <FontAwesome5 name="user-plus" size={18} color="#ffffff" />
         </AddBtn>
       </Header>
@@ -142,7 +206,7 @@ const AdminUsersScreen: React.FC<Props> = ({ navigation }) => {
             </InfoSection>
 
             <UserActions>
-              <ActionBtn onPress={() => Alert.alert('Edit', `Edit ${user.name}`)}>
+              <ActionBtn onPress={() => handleEditUser(user)}>
                 <FontAwesome5 name="edit" size={16} color="#3B82F6" />
                 <ActionText style={{ color: '#3B82F6' }}>Edit</ActionText>
               </ActionBtn>

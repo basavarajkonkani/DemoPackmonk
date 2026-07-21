@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Alert, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import { useAppSelector, useAppDispatch } from '../store';
-import { selectCurrentProduct, clearSelectedProduct } from '../store/productsSlice';
+import { selectCurrentConfigurableProduct, clearSelectedConfigurableProduct } from '../store/configurableCatalogSlice';
 import { addToCart, calculateItemPrice } from '../store/cartSlice';
 import Header from '../components/Header';
 import DesignPreview from '../components/DesignPreview';
@@ -43,7 +43,7 @@ const TEXT_COLORS = [
 
 const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const selectedProduct = useAppSelector(selectCurrentProduct);
+  const selectedProduct = useAppSelector(selectCurrentConfigurableProduct);
   const [activeTab, setActiveTab] = useState<StudioTab>('Design');
 
   const [length, setLength] = useState(10);
@@ -169,7 +169,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       '✅ Added to Cart',
       `${selectedProduct.name} custom config added successfully.`,
       [
-        { text: 'Configure Another', onPress: () => dispatch(clearSelectedProduct()) },
+        { text: 'Configure Another', onPress: () => dispatch(clearSelectedConfigurableProduct()) },
         { text: 'View Cart', onPress: () => navigation.navigate('Cart') },
       ]
     );
@@ -190,7 +190,7 @@ const DesignStudioScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <FontAwesome5 name="box-open" size={14} color="#0F8A3C" style={{ marginRight: 8 }} />
             <ProductInfoName numberOfLines={1}>{selectedProduct.name}</ProductInfoName>
           </ProductInfoLeft>
-          <ChangeProductBtn onPress={() => dispatch(clearSelectedProduct())} activeOpacity={0.8}>
+          <ChangeProductBtn onPress={() => dispatch(clearSelectedConfigurableProduct())} activeOpacity={0.8}>
             <FontAwesome5 name="exchange-alt" size={11} color="#6B7280" style={{ marginRight: 4 }} />
             <ChangeProductText>Change</ChangeProductText>
           </ChangeProductBtn>

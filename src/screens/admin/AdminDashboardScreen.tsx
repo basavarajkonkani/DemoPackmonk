@@ -1,29 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, View, TouchableOpacity, RefreshControl } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppDispatch, useAppSelector } from '../../store';
+import { fetchOrders, selectOrdersList } from '../../store/ordersSlice';
+import { fetchCatalog, selectCatalogItems } from '../../store/catalogSlice';
+import { fetchCustomers, selectCustomers } from '../../store/customersSlice';
+import { fetchTickets, selectTickets } from '../../store/supportSlice';
 
 interface Props {
   navigation: any;
 }
 
 const AdminDashboardScreen: React.FC<Props> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('month');
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+  const orders = useAppSelector(selectOrdersList);
+  const products = useAppSelector(selectCatalogItems);
+  const customers = useAppSelector(selectCustomers);
+  const tickets = useAppSelector(selectTickets);
+
+  const loadAll = () => {
+    dispatch(fetchOrders());
+    dispatch(fetchCatalog());
+    dispatch(fetchCustomers());
+    dispatch(fetchTickets());
   };
 
+  useEffect(() => {
+    loadAll();
+  }, [dispatch]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadAll();
+    setTimeout(() => setRefreshing(false), 800);
+  };
+
+  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+  const pendingOrders = orders.filter((o) => o.status === 'pending_review').length;
+  const lowStockCount = products.filter((p) => p.stock < p.lowStockThreshold).length;
+  const openTickets = tickets.filter((t) => t.status === 'open').length;
+
   const stats = [
-    { label: 'Total Orders', value: '2,847', icon: 'shopping-bag', color: '#10B981', bg: '#D1FAE5', change: '+12.5%', up: true },
-    { label: 'Revenue', value: '₹45.2L', icon: 'rupee-sign', color: '#3B82F6', bg: '#DBEAFE', change: '+8.2%', up: true },
-    { label: 'Active Users', value: '1,234', icon: 'users', color: '#F59E0B', bg: '#FEF3C7', change: '+15.3%', up: true },
-    { label: 'Low Stock', value: '12', icon: 'exclamation-triangle', color: '#EF4444', bg: '#FEE2E2', change: '-3', up: false },
-    { label: 'Pending Orders', value: '45', icon: 'clock', color: '#8B5CF6', bg: '#EDE9FE', change: '+5', up: true },
-    { label: 'Support Tickets', value: '23', icon: 'headset', color: '#EC4899', bg: '#FCE7F3', change: '-8', up: false },
+    { label: 'Total Orders', value: orders.length.toLocaleString(), icon: 'shopping-bag', color: '#10B981', bg: '#D1FAE5' },
+    { label: 'Revenue', value: `₹${(totalRevenue / 1000).toFixed(1)}k`, icon: 'rupee-sign', color: '#3B82F6', bg: '#DBEAFE' },
+    { label: 'Customers', value: customers.length.toLocaleString(), icon: 'users', color: '#F59E0B', bg: '#FEF3C7' },
+    { label: 'Low Stock', value: lowStockCount.toString(), icon: 'exclamation-triangle', color: '#EF4444', bg: '#FEE2E2' },
+    { label: 'Pending Orders', value: pendingOrders.toString(), icon: 'clock', color: '#8B5CF6', bg: '#EDE9FE' },
+    { label: 'Open Tickets', value: openTickets.toString(), icon: 'headset', color: '#EC4899', bg: '#FCE7F3' },
   ];
 
   const quickActions = [
@@ -41,23 +69,18 @@ const AdminDashboardScreen: React.FC<Props> = ({ navigation }) => {
     { label: 'Settings', screen: 'AdminSettings', icon: 'cog', color: '#6B7280', description: 'System settings' },
   ];
 
-  const recentOrders = [
-    { id: 'ORD-1001', customer: 'Rahul Sharma', amount: '₹62,500', status: 'pending', time: '10 min ago' },
-    { id: 'ORD-1002', customer: 'Priya Patel', amount: '₹50,000', status: 'processing', time: '1 hour ago' },
-    { id: 'ORD-1003', customer: 'Amit Kumar', amount: '₹45,000', status: 'shipped', time: '2 hours ago' },
-  ];
-
-  const recentActivities = [
-    { icon: 'user-plus', text: 'New user registered: ABC Traders', time: '5 min ago', color: '#10B981' },
-    { icon: 'shopping-cart', text: 'New order placed: ORD-1001', time: '10 min ago', color: '#3B82F6' },
-    { icon: 'image', text: 'Artwork submitted for approval', time: '30 min ago', color: '#F59E0B' },
-    { icon: 'check-circle', text: 'Order ORD-999 shipped', time: '1 hour ago', color: '#0F8A3C' },
-  ];
+  const recentOrders = [...orders]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5);
 
   const statusColors: Record<string, { color: string; bg: string; label: string }> = {
-    pending: { color: '#F59E0B', bg: '#FEF3C7', label: 'Pending' },
-    processing: { color: '#3B82F6', bg: '#DBEAFE', label: 'Processing' },
-    shipped: { color: '#10B981', bg: '#D1FAE5', label: 'Shipped' },
+    pending_review: { color: '#F59E0B', bg: '#FEF3C7', label: 'Pending Review' },
+    artwork_approved: { color: '#0F8A3C', bg: '#DCFCE7', label: 'Artwork Approved' },
+    in_production: { color: '#3B82F6', bg: '#DBEAFE', label: 'In Production' },
+    quality_check: { color: '#8B5CF6', bg: '#EDE9FE', label: 'Quality Check' },
+    shipped: { color: '#0284C7', bg: '#E0F2FE', label: 'Shipped' },
+    delivered: { color: '#10B981', bg: '#D1FAE5', label: 'Delivered' },
+    cancelled: { color: '#EF4444', bg: '#FEE2E2', label: 'Cancelled' },
   };
 
   return (
@@ -107,14 +130,6 @@ const AdminDashboardScreen: React.FC<Props> = ({ navigation }) => {
                 </StatIconWrap>
                 <StatValue>{stat.value}</StatValue>
                 <StatLabel>{stat.label}</StatLabel>
-                <StatChange up={stat.up}>
-                  <FontAwesome5 
-                    name={stat.up ? 'arrow-up' : 'arrow-down'} 
-                    size={10} 
-                    color={stat.up ? '#10B981' : '#EF4444'} 
-                  />
-                  <StatChangeText up={stat.up}> {stat.change}</StatChangeText>
-                </StatChange>
               </StatCard>
             ))}
           </StatsGrid>
@@ -128,23 +143,28 @@ const AdminDashboardScreen: React.FC<Props> = ({ navigation }) => {
               <FontAwesome5 name="arrow-right" size={12} color="#0F8A3C" />
             </ViewAllButton>
           </SectionTitleRow>
-          {recentOrders.map((order) => (
-            <OrderCard key={order.id}>
-              <OrderLeft>
-                <OrderId>{order.id}</OrderId>
-                <OrderCustomer>{order.customer}</OrderCustomer>
-                <OrderTime>{order.time}</OrderTime>
-              </OrderLeft>
-              <OrderRight>
-                <OrderAmount>{order.amount}</OrderAmount>
-                <OrderStatusBadge style={{ backgroundColor: statusColors[order.status].bg }}>
-                  <OrderStatusText style={{ color: statusColors[order.status].color }}>
-                    {statusColors[order.status].label}
-                  </OrderStatusText>
-                </OrderStatusBadge>
-              </OrderRight>
-            </OrderCard>
-          ))}
+          {recentOrders.length === 0 ? (
+            <EmptyText>No orders yet</EmptyText>
+          ) : (
+            recentOrders.map((order) => {
+              const cfg = statusColors[order.status];
+              return (
+                <OrderCard key={order.id}>
+                  <OrderLeft>
+                    <OrderId>{order.id}</OrderId>
+                    <OrderCustomer>{order.customerName}</OrderCustomer>
+                    <OrderTime>{new Date(order.date).toLocaleDateString()}</OrderTime>
+                  </OrderLeft>
+                  <OrderRight>
+                    <OrderAmount>₹{order.total.toLocaleString()}</OrderAmount>
+                    <OrderStatusBadge style={{ backgroundColor: cfg.bg }}>
+                      <OrderStatusText style={{ color: cfg.color }}>{cfg.label}</OrderStatusText>
+                    </OrderStatusBadge>
+                  </OrderRight>
+                </OrderCard>
+              );
+            })
+          )}
         </Section>
 
         <Section>
@@ -167,19 +187,32 @@ const AdminDashboardScreen: React.FC<Props> = ({ navigation }) => {
         </Section>
 
         <Section>
-          <SectionTitle>Recent Activity</SectionTitle>
+          <SectionTitleRow>
+            <SectionTitle>Open Support Tickets</SectionTitle>
+            <ViewAllButton onPress={() => navigation.navigate('AdminSupport')}>
+              <ViewAllText>View All</ViewAllText>
+              <FontAwesome5 name="arrow-right" size={12} color="#0F8A3C" />
+            </ViewAllButton>
+          </SectionTitleRow>
           <ActivityList>
-            {recentActivities.map((activity, idx) => (
-              <ActivityItem key={idx}>
-                <ActivityIconWrap style={{ backgroundColor: activity.color + '15' }}>
-                  <FontAwesome5 name={activity.icon} size={14} color={activity.color} />
-                </ActivityIconWrap>
-                <ActivityContent>
-                  <ActivityText>{activity.text}</ActivityText>
-                  <ActivityTime>{activity.time}</ActivityTime>
-                </ActivityContent>
-              </ActivityItem>
-            ))}
+            {tickets.filter((t) => t.status === 'open').length === 0 ? (
+              <EmptyText>No open tickets</EmptyText>
+            ) : (
+              tickets
+                .filter((t) => t.status === 'open')
+                .slice(0, 5)
+                .map((ticket) => (
+                  <ActivityItem key={ticket.id}>
+                    <ActivityIconWrap style={{ backgroundColor: '#FEF3C715' }}>
+                      <FontAwesome5 name="headset" size={14} color="#D97706" />
+                    </ActivityIconWrap>
+                    <ActivityContent>
+                      <ActivityText>{ticket.subject}</ActivityText>
+                      <ActivityTime>{ticket.id} · {ticket.createdAt}</ActivityTime>
+                    </ActivityContent>
+                  </ActivityItem>
+                ))
+            )}
           </ActivityList>
         </Section>
       </ScrollView>
@@ -478,4 +511,11 @@ const ActivityText = styled.Text`
 const ActivityTime = styled.Text`
   font-size: 11px;
   color: #9ca3af;
+`;
+
+const EmptyText = styled.Text`
+  font-size: 13px;
+  color: #9ca3af;
+  text-align: center;
+  padding: 24px 0;
 `;

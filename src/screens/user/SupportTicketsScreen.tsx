@@ -1,45 +1,61 @@
-import React, { useState } from 'react';
-import { ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, Alert, Modal, Linking } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useAppDispatch, useAppSelector } from '../../store';
+import { fetchTickets, createTicketThunk, selectTickets } from '../../store/supportSlice';
+import { WHATSAPP_NUMBER, SUPPORT_EMAIL } from '../../constants';
 
 interface Props {
   navigation: any;
 }
 
 const SupportTicketsScreen: React.FC<Props> = ({ navigation }) => {
-  const [tickets, setTickets] = useState([
-    {
-      id: 'TKT-001',
-      subject: 'Issue with order delivery',
-      message: 'My order ORD-1001 has not arrived yet. Expected delivery was 3 days ago.',
-      status: 'open' as const,
-      createdAt: '2024-01-22',
-      updatedAt: '2024-01-22',
-    },
-    {
-      id: 'TKT-002',
-      subject: 'Question about artwork approval',
-      message: 'How long does it take for artwork to be reviewed and approved?',
-      status: 'in_progress' as const,
-      createdAt: '2024-01-20',
-      updatedAt: '2024-01-21',
-    },
-    {
-      id: 'TKT-003',
-      subject: 'Invoice not received',
-      message: 'I completed payment but have not received the invoice yet.',
-      status: 'resolved' as const,
-      createdAt: '2024-01-18',
-      updatedAt: '2024-01-19',
-    },
-  ]);
+  const dispatch = useAppDispatch();
+  const tickets = useAppSelector(selectTickets);
+  const [showNewTicket, setShowNewTicket] = useState(false);
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [viewingTicket, setViewingTicket] = useState<(typeof tickets)[number] | null>(null);
+
+  useEffect(() => {
+    dispatch(fetchTickets());
+  }, [dispatch]);
 
   const statusConfig = {
     open: { label: 'Open', color: '#EF4444', bg: '#FEE2E2', icon: 'exclamation-circle' },
     in_progress: { label: 'In Progress', color: '#3B82F6', bg: '#DBEAFE', icon: 'sync' },
     resolved: { label: 'Resolved', color: '#10B981', bg: '#D1FAE5', icon: 'check-circle' },
     closed: { label: 'Closed', color: '#6B7280', bg: '#F3F4F6', icon: 'times-circle' },
+  };
+
+  const handleCreateTicket = () => {
+    if (!subject.trim() || !message.trim()) {
+      Alert.alert('Error', 'Please fill in both subject and message');
+      return;
+    }
+    dispatch(createTicketThunk({ subject: subject.trim(), message: message.trim() }));
+    setSubject('');
+    setMessage('');
+    setShowNewTicket(false);
+    Alert.alert('Ticket Submitted', "We've received your request and will respond within 24 hours.");
+  };
+
+  const handleCall = () => {
+    Linking.openURL('tel:+911234567890').catch(() => Alert.alert('Call Support', '+91 12345 67890'));
+  };
+
+  const handleWhatsApp = () => {
+    Linking.openURL(`https://wa.me/${WHATSAPP_NUMBER.replace(/[^0-9]/g, '')}`).catch(() =>
+      Alert.alert('WhatsApp', `Contact us on WhatsApp: ${WHATSAPP_NUMBER}`)
+    );
+  };
+
+  const handleFAQ = () => {
+    Alert.alert(
+      'Frequently Asked Questions',
+      '• How long does production take? 5-7 business days.\n• Can I cancel an order? Yes, before it enters production.\n• What is the MOQ? 100 units for most products.\n• How do I track my order? Visit Orders in your account.'
+    );
   };
 
   return (
@@ -49,7 +65,7 @@ const SupportTicketsScreen: React.FC<Props> = ({ navigation }) => {
           <FontAwesome5 name="arrow-left" size={18} color="#111827" />
         </BackBtn>
         <HeaderTitle>Support Tickets</HeaderTitle>
-        <AddBtn onPress={() => Alert.alert('New Ticket', 'Feature coming soon')}>
+        <AddBtn onPress={() => setShowNewTicket(true)}>
           <FontAwesome5 name="plus" size={18} color="#ffffff" />
         </AddBtn>
       </Header>
@@ -57,15 +73,15 @@ const SupportTicketsScreen: React.FC<Props> = ({ navigation }) => {
       <QuickHelp>
         <HelpTitle>Need Help?</HelpTitle>
         <HelpRow>
-          <HelpBtn onPress={() => Alert.alert('Chat', 'Live chat coming soon')}>
+          <HelpBtn onPress={handleWhatsApp}>
             <FontAwesome5 name="comments" size={20} color="#10B981" />
             <HelpLabel>Live Chat</HelpLabel>
           </HelpBtn>
-          <HelpBtn onPress={() => Alert.alert('Call', 'tel:+911234567890')}>
+          <HelpBtn onPress={handleCall}>
             <FontAwesome5 name="phone" size={20} color="#3B82F6" />
             <HelpLabel>Call Support</HelpLabel>
           </HelpBtn>
-          <HelpBtn onPress={() => Alert.alert('FAQ', 'FAQ section coming soon')}>
+          <HelpBtn onPress={handleFAQ}>
             <FontAwesome5 name="question-circle" size={20} color="#F59E0B" />
             <HelpLabel>FAQs</HelpLabel>
           </HelpBtn>
@@ -76,20 +92,11 @@ const SupportTicketsScreen: React.FC<Props> = ({ navigation }) => {
         {tickets.map((ticket) => {
           const config = statusConfig[ticket.status];
           return (
-            <TicketCard
-              key={ticket.id}
-              onPress={() => Alert.alert('Ticket Details', `View full ticket: ${ticket.id}`)}
-              activeOpacity={0.8}
-            >
+            <TicketCard key={ticket.id} onPress={() => setViewingTicket(ticket)} activeOpacity={0.8}>
               <TicketHeader>
                 <TicketId>{ticket.id}</TicketId>
                 <StatusBadge style={{ backgroundColor: config.bg }}>
-                  <FontAwesome5
-                    name={config.icon}
-                    size={10}
-                    color={config.color}
-                    style={{ marginRight: 4 }}
-                  />
+                  <FontAwesome5 name={config.icon} size={10} color={config.color} style={{ marginRight: 4 }} />
                   <StatusText style={{ color: config.color }}>{config.label}</StatusText>
                 </StatusBadge>
               </TicketHeader>
@@ -105,14 +112,63 @@ const SupportTicketsScreen: React.FC<Props> = ({ navigation }) => {
           );
         })}
 
-        <CreateTicketCard
-          onPress={() => Alert.alert('New Ticket', 'Feature coming soon')}
-        >
+        <CreateTicketCard onPress={() => setShowNewTicket(true)}>
           <FontAwesome5 name="headset" size={32} color="#0f8a3c" />
           <CreateTitle>Create New Ticket</CreateTitle>
           <CreateSubtext>Our support team will respond within 24 hours</CreateSubtext>
         </CreateTicketCard>
       </ScrollView>
+
+      <Modal visible={showNewTicket} transparent animationType="slide">
+        <ModalOverlay>
+          <ModalContent>
+            <ModalHeader>
+              <ModalTitle>New Support Ticket</ModalTitle>
+              <CloseBtn onPress={() => setShowNewTicket(false)}>
+                <FontAwesome5 name="times" size={18} color="#111827" />
+              </CloseBtn>
+            </ModalHeader>
+            <ScrollView contentContainerStyle={{ padding: 16 }}>
+              <FormLabel>Subject *</FormLabel>
+              <FormInput value={subject} onChangeText={setSubject} placeholder="Briefly describe your issue" />
+              <FormLabel>Message *</FormLabel>
+              <FormInput
+                value={message}
+                onChangeText={setMessage}
+                placeholder="Provide details about your issue..."
+                multiline
+                numberOfLines={5}
+                style={{ height: 120, textAlignVertical: 'top' }}
+              />
+            </ScrollView>
+            <ModalFooter>
+              <CancelBtn onPress={() => setShowNewTicket(false)}>
+                <CancelBtnText>Cancel</CancelBtnText>
+              </CancelBtn>
+              <SaveBtn onPress={handleCreateTicket}>
+                <SaveBtnText>Submit Ticket</SaveBtnText>
+              </SaveBtn>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
+      </Modal>
+
+      <Modal visible={!!viewingTicket} transparent animationType="fade">
+        <ModalOverlay onPress={() => setViewingTicket(null)}>
+          <ModalContent style={{ maxHeight: undefined, borderRadius: 20, margin: 24 }}>
+            <ModalHeader>
+              <ModalTitle>{viewingTicket?.id}</ModalTitle>
+              <CloseBtn onPress={() => setViewingTicket(null)}>
+                <FontAwesome5 name="times" size={18} color="#111827" />
+              </CloseBtn>
+            </ModalHeader>
+            <ScrollView contentContainerStyle={{ padding: 16 }}>
+              <Subject>{viewingTicket?.subject}</Subject>
+              <Message>{viewingTicket?.message}</Message>
+            </ScrollView>
+          </ModalContent>
+        </ModalOverlay>
+      </Modal>
     </Wrapper>
   );
 };
@@ -277,3 +333,33 @@ const CreateSubtext = styled.Text`
   margin-top: 4px;
   text-align: center;
 `;
+
+const ModalOverlay = styled.TouchableOpacity`
+  flex: 1; background-color: rgba(0,0,0,0.5); justify-content: flex-end;
+`;
+const ModalContent = styled.View`
+  background-color: #FFFFFF; border-top-left-radius: 20px; border-top-right-radius: 20px;
+  max-height: 85%;
+`;
+const ModalHeader = styled.View`
+  flex-direction: row; justify-content: space-between; align-items: center;
+  padding: 16px; border-bottom-width: 1px; border-bottom-color: #F3F4F6;
+`;
+const ModalTitle = styled.Text`font-size: 16px; font-weight: 700; color: #111827;`;
+const CloseBtn = styled.TouchableOpacity`padding: 4px;`;
+const FormLabel = styled.Text`font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; margin-top: 14px;`;
+const FormInput = styled.TextInput`
+  border-width: 1px; border-color: #E5E7EB; border-radius: 10px;
+  padding: 12px; font-size: 14px; color: #111827; background-color: #F9FAFB;
+`;
+const ModalFooter = styled.View`
+  flex-direction: row; gap: 12px; padding: 16px; border-top-width: 1px; border-top-color: #F3F4F6;
+`;
+const CancelBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #F3F4F6; align-items: center;
+`;
+const CancelBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #6B7280;`;
+const SaveBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #0F8A3C; align-items: center;
+`;
+const SaveBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #FFFFFF;`;

@@ -61,6 +61,75 @@ const AdminPromotionsScreen: React.FC<Props> = ({ navigation }) => {
     ]);
   };
 
+  const handleAddCoupon = () => {
+    Alert.prompt(
+      'New Coupon Code',
+      'Enter coupon code (e.g., SAVE20)',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Next',
+          onPress: (code?: string) => {
+            if (!code?.trim()) return;
+            Alert.prompt(
+              'Discount Percentage',
+              'Enter discount % (e.g., 20)',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Create',
+                  onPress: (value?: string) => {
+                    const discountValue = parseFloat(value ?? '');
+                    if (isNaN(discountValue)) return;
+                    setCoupons((prev) => [
+                      ...prev,
+                      {
+                        id: Date.now().toString(),
+                        code: code.trim().toUpperCase(),
+                        discountType: 'percentage',
+                        discountValue,
+                        minOrderAmount: 0,
+                        validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        usageLimit: 100,
+                        usedCount: 0,
+                        isActive: true,
+                      },
+                    ]);
+                  },
+                },
+              ],
+              'plain-text',
+              '',
+              'numeric'
+            );
+          },
+        },
+      ],
+      'plain-text'
+    );
+  };
+
+  const handleEditCoupon = (coupon: (typeof coupons)[number]) => {
+    Alert.prompt(
+      'Edit Discount Value',
+      `Update discount for ${coupon.code}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Update',
+          onPress: (value?: string) => {
+            const discountValue = parseFloat(value ?? '');
+            if (isNaN(discountValue)) return;
+            setCoupons((prev) => prev.map((c) => (c.id === coupon.id ? { ...c, discountValue } : c)));
+          },
+        },
+      ],
+      'plain-text',
+      coupon.discountValue.toString(),
+      'numeric'
+    );
+  };
+
   return (
     <Wrapper>
       <Header>
@@ -68,7 +137,7 @@ const AdminPromotionsScreen: React.FC<Props> = ({ navigation }) => {
           <FontAwesome5 name="arrow-left" size={18} color="#111827" />
         </BackBtn>
         <HeaderTitle>Promotions & Coupons</HeaderTitle>
-        <AddBtn onPress={() => Alert.alert('Add Coupon', 'Feature coming soon')}>
+        <AddBtn onPress={handleAddCoupon}>
           <FontAwesome5 name="plus" size={18} color="#ffffff" />
         </AddBtn>
       </Header>
@@ -126,7 +195,7 @@ const AdminPromotionsScreen: React.FC<Props> = ({ navigation }) => {
             </ProgressBar>
 
             <ActionRow>
-              <ActionBtn onPress={() => Alert.alert('Edit', `Edit ${coupon.code}`)}>
+              <ActionBtn onPress={() => handleEditCoupon(coupon)}>
                 <FontAwesome5 name="edit" size={14} color="#3B82F6" />
                 <ActionText style={{ color: '#3B82F6' }}>Edit</ActionText>
               </ActionBtn>

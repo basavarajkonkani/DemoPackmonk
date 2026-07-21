@@ -17,6 +17,14 @@ const CustomerDetailsPage: React.FC = () => {
   
   const [newNote, setNewNote] = useState('');
   const [showNoteForm, setShowNoteForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: customer?.name ?? '',
+    companyName: customer?.companyName ?? '',
+    email: customer?.email ?? '',
+    phone: customer?.phone ?? '',
+    gstNumber: customer?.gstNumber ?? '',
+  });
 
   if (!customer) {
     return (
@@ -71,6 +79,35 @@ const CustomerDetailsPage: React.FC = () => {
 
   const handleCallCustomer = () => {
     alert(`☎️ Initiating call to ${customer.phone}`);
+  };
+
+  const openEdit = () => {
+    setEditForm({
+      name: customer.name,
+      companyName: customer.companyName ?? '',
+      email: customer.email,
+      phone: customer.phone,
+      gstNumber: customer.gstNumber ?? '',
+    });
+    setShowEditForm(true);
+  };
+
+  const saveEdit = () => {
+    if (!editForm.name.trim() || !editForm.email.trim()) {
+      alert('Name and email are required');
+      return;
+    }
+    dispatch(
+      updateCustomer({
+        ...customer,
+        name: editForm.name.trim(),
+        companyName: editForm.companyName.trim(),
+        email: editForm.email.trim(),
+        phone: editForm.phone.trim(),
+        gstNumber: editForm.gstNumber.trim() || undefined,
+      })
+    );
+    setShowEditForm(false);
   };
 
   return (
@@ -354,7 +391,7 @@ const CustomerDetailsPage: React.FC = () => {
         <ActionsSection>
           <SectionTitle>Actions</SectionTitle>
           <ActionsGrid>
-            <ActionButton onClick={() => alert('📝 Edit customer information form...')}>Edit Customer</ActionButton>
+            <ActionButton onClick={openEdit}>Edit Customer</ActionButton>
             {customer.isActive ? (
               <ActionButton disabled={false} onClick={handleDisableCustomer}>Disable Customer</ActionButton>
             ) : (
@@ -366,6 +403,28 @@ const CustomerDetailsPage: React.FC = () => {
             <ActionButton onClick={handleCallCustomer}>☎️ Call Customer</ActionButton>
           </ActionsGrid>
         </ActionsSection>
+
+        {showEditForm && (
+          <EditOverlay onClick={() => setShowEditForm(false)}>
+            <EditModal onClick={(e) => e.stopPropagation()}>
+              <EditTitle>Edit Customer</EditTitle>
+              <EditFieldLabel>Name *</EditFieldLabel>
+              <EditInput value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+              <EditFieldLabel>Company Name</EditFieldLabel>
+              <EditInput value={editForm.companyName} onChange={(e) => setEditForm({ ...editForm, companyName: e.target.value })} />
+              <EditFieldLabel>Email *</EditFieldLabel>
+              <EditInput value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} type="email" />
+              <EditFieldLabel>Phone</EditFieldLabel>
+              <EditInput value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+              <EditFieldLabel>GST Number</EditFieldLabel>
+              <EditInput value={editForm.gstNumber} onChange={(e) => setEditForm({ ...editForm, gstNumber: e.target.value })} />
+              <NoteFormButtons>
+                <NoteSubmitBtn onClick={saveEdit}>Save Changes</NoteSubmitBtn>
+                <NoteCancelBtn onClick={() => setShowEditForm(false)}>Cancel</NoteCancelBtn>
+              </NoteFormButtons>
+            </EditModal>
+          </EditOverlay>
+        )}
       </Container>
     </Layout>
   );
@@ -464,3 +523,9 @@ const ActionButton = styled.button<{ disabled?: boolean; positive?: boolean }>`p
 const NoData = styled.div`padding: 20px; text-align: center; color: #6B7280; background: #F9FAFB; border-radius: 8px;`;
 
 const Error = styled.div`padding: 20px; background: #FEE2E2; border: 1px solid #FECACA; border-radius: 8px; color: #991B1B; font-weight: 500;`;
+
+const EditOverlay = styled.div`position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;`;
+const EditModal = styled.div`background: white; border-radius: 12px; padding: 28px; max-width: 420px; width: 90%; box-shadow: 0 20px 25px rgba(0,0,0,0.15);`;
+const EditTitle = styled.h2`margin: 0 0 20px; font-size: 18px; font-weight: 700; color: #111827;`;
+const EditFieldLabel = styled.div`font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; margin-top: 14px;`;
+const EditInput = styled.input`width: 100%; padding: 10px 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px; font-family: inherit; &:focus { outline: none; border-color: #0284C7; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }`;

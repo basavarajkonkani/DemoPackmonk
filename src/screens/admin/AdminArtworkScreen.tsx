@@ -98,7 +98,7 @@ const AdminArtworkScreen: React.FC<Props> = ({ navigation }) => {
               )}
 
               {artwork.status !== 'pending' && (
-                <ViewBtn onPress={() => Alert.alert('View', 'Download artwork file')}>
+                <ViewBtn onPress={() => Alert.alert(artwork.fileName, `Downloading "${artwork.fileName}" for order ${artwork.orderId}...`)}>
                   <FontAwesome5 name="download" size={14} color="#3B82F6" />
                   <ViewText>Download File</ViewText>
                 </ViewBtn>

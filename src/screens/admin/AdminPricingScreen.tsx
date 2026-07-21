@@ -1,27 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { updatePricingRule, updateProductPrice } from '../../store/adminSlice';
-
-interface PricingTier {
-  id: string;
-  name: string;
-  minQuantity: number;
-  maxQuantity: number;
-  discount: number;
-  basePrice: number;
-}
+import { fetchCatalog, setCatalogProductPrice, selectCatalogItems } from '../../store/catalogSlice';
+import {
+  fetchPricingRules,
+  updatePricingRuleThunk,
+  createPricingRuleThunk,
+  deletePricingRuleThunk,
+  selectPricingRules,
+} from '../../store/pricingSlice';
+import type { PricingRule } from '../../store/pricingSlice';
 
 const AdminPricingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const products = useAppSelector((state) => state.admin.products);
-  const pricingRules = useAppSelector((state) => state.admin.pricingRules);
+  const products = useAppSelector(selectCatalogItems);
+  const pricingRules = useAppSelector(selectPricingRules);
   const [selectedTab, setSelectedTab] = useState<'products' | 'rules'>('products');
 
-  const handleEditRule = (rule: any) => {
+  useEffect(() => {
+    dispatch(fetchCatalog());
+    dispatch(fetchPricingRules());
+  }, [dispatch]);
+
+  const handleEditRule = (rule: PricingRule) => {
     Alert.prompt(
       'Edit Rule',
       `Edit ${rule.name}`,
@@ -31,12 +35,7 @@ const AdminPricingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           text: 'Update',
           onPress: (newValue?: string) => {
             if (newValue && !isNaN(parseFloat(newValue))) {
-              dispatch(
-                updatePricingRule({
-                  ...rule,
-                  value: parseFloat(newValue),
-                })
-              );
+              dispatch(updatePricingRuleThunk({ ...rule, value: parseFloat(newValue) }));
               Alert.alert('Success', 'Rule updated successfully');
             }
           },
@@ -48,7 +47,61 @@ const AdminPricingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     );
   };
 
-  const handleEditPrice = (product: any) => {
+  const handleDeleteRule = (rule: PricingRule) => {
+    Alert.alert('Delete Rule', `Delete "${rule.name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => dispatch(deletePricingRuleThunk(rule.id)),
+      },
+    ]);
+  };
+
+  const handleAddRule = () => {
+    Alert.prompt(
+      'New Pricing Rule',
+      'Enter rule name',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Next',
+          onPress: (name?: string) => {
+            if (!name?.trim()) return;
+            Alert.prompt(
+              'Rule Value',
+              'Enter the numeric value (% or ₹ depending on type)',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Create',
+                  onPress: (value?: string) => {
+                    const numeric = parseFloat(value ?? '');
+                    if (isNaN(numeric)) return;
+                    dispatch(
+                      createPricingRuleThunk({
+                        name: name.trim(),
+                        type: 'setup',
+                        value: numeric,
+                        description: `Custom rule: ${name.trim()}`,
+                        isActive: true,
+                      })
+                    );
+                  },
+                },
+              ],
+              'plain-text',
+              '',
+              'numeric'
+            );
+          },
+        },
+      ],
+      'plain-text'
+    );
+  };
+
+  const handleEditPrice = (product: (typeof products)[number]) => {
     Alert.prompt(
       'Edit Base Price',
       `Edit pricing for ${product.name}`,
@@ -58,7 +111,7 @@ const AdminPricingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           text: 'Update',
           onPress: (newPrice?: string) => {
             if (newPrice && !isNaN(parseFloat(newPrice))) {
-              dispatch(updateProductPrice({ id: product.id, price: parseFloat(newPrice) }));
+              dispatch(setCatalogProductPrice({ id: product.id, price: parseFloat(newPrice) }));
               Alert.alert('Success', 'Pricing updated successfully');
             }
           },
@@ -77,7 +130,7 @@ const AdminPricingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <FontAwesome5 name="arrow-left" size={20} color="#1F2937" />
         </BackButton>
         <HeaderTitle>Pricing Management</HeaderTitle>
-        <AddButton onPress={() => Alert.alert('Add New', 'Add pricing rule or product')}>
+        <AddButton onPress={handleAddRule}>
           <FontAwesome5 name="plus" size={18} color="#FFF" />
         </AddButton>
       </Header>
@@ -145,9 +198,14 @@ const AdminPricingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     <RuleName>{rule.name}</RuleName>
                     <RuleDesc>{rule.description}</RuleDesc>
                   </RuleInfo>
-                  <EditBtn onPress={() => handleEditRule(rule)}>
-                    <FontAwesome5 name="edit" size={16} color="#0F8A3C" />
-                  </EditBtn>
+                  <RuleActions>
+                    <EditBtn onPress={() => handleEditRule(rule)}>
+                      <FontAwesome5 name="edit" size={16} color="#0F8A3C" />
+                    </EditBtn>
+                    <EditBtn onPress={() => handleDeleteRule(rule)} style={{ backgroundColor: '#FEE2E2' }}>
+                      <FontAwesome5 name="trash" size={16} color="#EF4444" />
+                    </EditBtn>
+                  </RuleActions>
                 </RuleHeader>
 
                 <RuleValue>
@@ -246,6 +304,7 @@ const RuleHeader = styled.View`
   flex-direction: row; justify-content: space-between; align-items: flex-start;
 `;
 const RuleInfo = styled.View`flex: 1; margin-right: 12px;`;
+const RuleActions = styled.View`flex-direction: row; gap: 8px;`;
 const RuleName = styled.Text`font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 4px;`;
 const RuleDesc = styled.Text`font-size: 12px; color: #9CA3AF; line-height: 18px;`;
 

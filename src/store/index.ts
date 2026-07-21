@@ -1,20 +1,44 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import productsReducer from './productsSlice';
+import catalogReducer from './catalogSlice';
+import configurableCatalogReducer from './configurableCatalogSlice';
 import cartReducer from './cartSlice';
 import ordersReducer from './ordersSlice';
 import pouchReducer from './pouchSlice';
 import authReducer from './authSlice';
-import adminReducer from './adminSlice';
+import customersReducer from './customersSlice';
+import inventoryReducer from './inventorySlice';
+import bannersReducer from './bannersSlice';
+import pricingReducer from './pricingSlice';
+import addressesReducer from './addressesSlice';
+import teamReducer from './teamSlice';
+import supportReducer from './supportSlice';
+import designsReducer from './designsSlice';
+import wishlistReducer from './wishlistSlice';
+import notificationsReducer from './notificationsSlice';
+import invoicesReducer from './invoicesSlice';
+import profileReducer from './profileSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    products: productsReducer,
+    catalog: catalogReducer,
+    configurableCatalog: configurableCatalogReducer,
     cart: cartReducer,
     orders: ordersReducer,
     pouch: pouchReducer,
-    admin: adminReducer,
+    customers: customersReducer,
+    inventory: inventoryReducer,
+    banners: bannersReducer,
+    pricing: pricingReducer,
+    addresses: addressesReducer,
+    team: teamReducer,
+    support: supportReducer,
+    designs: designsReducer,
+    wishlist: wishlistReducer,
+    notifications: notificationsReducer,
+    invoices: invoicesReducer,
+    profile: profileReducer,
   },
 });
 

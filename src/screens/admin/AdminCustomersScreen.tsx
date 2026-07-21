@@ -1,16 +1,59 @@
-import React, { useState } from 'react';
-import { ScrollView, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, TextInput, Alert, Modal } from 'react-native';
 import styled from 'styled-components/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { updateCustomerCredit } from '../../store/adminSlice';
+import {
+  fetchCustomers,
+  setCustomerCreditThunk,
+  updateCustomerThunk,
+  selectCustomers,
+} from '../../store/customersSlice';
+import type { Customer } from '../../store/customersSlice';
 
 const AdminCustomersScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const customers = useAppSelector((state) => state.admin.customers);
+  const customers = useAppSelector(selectCustomers);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'approved' | 'pending'>('all');
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', businessName: '', gst: '' });
+
+  useEffect(() => {
+    dispatch(fetchCustomers());
+  }, [dispatch]);
+
+  const openEdit = (customer: Customer) => {
+    setEditingCustomer(customer);
+    setEditForm({
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      businessName: customer.businessName,
+      gst: customer.gst ?? '',
+    });
+  };
+
+  const saveEdit = () => {
+    if (!editingCustomer) return;
+    if (!editForm.name.trim() || !editForm.email.trim()) {
+      Alert.alert('Error', 'Name and email are required');
+      return;
+    }
+    dispatch(
+      updateCustomerThunk({
+        ...editingCustomer,
+        name: editForm.name.trim(),
+        email: editForm.email.trim(),
+        phone: editForm.phone.trim(),
+        businessName: editForm.businessName.trim(),
+        gst: editForm.gst.trim() || undefined,
+      })
+    );
+    setEditingCustomer(null);
+    Alert.alert('Success', 'Customer updated');
+  };
 
   const filteredCustomers = customers.filter((customer) => {
     const matchesSearch =
@@ -32,7 +75,7 @@ const AdminCustomersScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
           onPress: (limit?: string) => {
             if (limit && !isNaN(parseFloat(limit))) {
               dispatch(
-                updateCustomerCredit({
+                setCustomerCreditThunk({
                   id: customer.id,
                   creditLimit: parseFloat(limit),
                   creditStatus: 'approved',
@@ -192,7 +235,7 @@ const AdminCustomersScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                   <FontAwesome5 name="clipboard-list" size={12} color="#0F8A3C" style={{ marginRight: 6 }} />
                   <ActionButtonText>View Orders</ActionButtonText>
                 </ActionButton>
-                <ActionButton onPress={() => Alert.alert('Edit', `Edit ${customer.name}`)}>
+                <ActionButton onPress={() => openEdit(customer)}>
                   <FontAwesome5 name="edit" size={12} color="#6B7280" />
                 </ActionButton>
               </CustomerActions>
@@ -200,6 +243,39 @@ const AdminCustomersScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
           ))}
         </CustomersList>
       </ScrollView>
+
+      <Modal visible={!!editingCustomer} transparent animationType="slide">
+        <ModalOverlay>
+          <ModalContent>
+            <ModalHeader>
+              <ModalTitle>Edit Customer</ModalTitle>
+              <CloseBtn onPress={() => setEditingCustomer(null)}>
+                <FontAwesome5 name="times" size={18} color="#111827" />
+              </CloseBtn>
+            </ModalHeader>
+            <ScrollView contentContainerStyle={{ padding: 16 }}>
+              <FormLabel>Name</FormLabel>
+              <FormInput value={editForm.name} onChangeText={(t) => setEditForm({ ...editForm, name: t })} />
+              <FormLabel>Business Name</FormLabel>
+              <FormInput value={editForm.businessName} onChangeText={(t) => setEditForm({ ...editForm, businessName: t })} />
+              <FormLabel>Email</FormLabel>
+              <FormInput value={editForm.email} onChangeText={(t) => setEditForm({ ...editForm, email: t })} keyboardType="email-address" />
+              <FormLabel>Phone</FormLabel>
+              <FormInput value={editForm.phone} onChangeText={(t) => setEditForm({ ...editForm, phone: t })} keyboardType="phone-pad" />
+              <FormLabel>GST Number</FormLabel>
+              <FormInput value={editForm.gst} onChangeText={(t) => setEditForm({ ...editForm, gst: t })} />
+            </ScrollView>
+            <ModalFooter>
+              <CancelBtn onPress={() => setEditingCustomer(null)}>
+                <CancelBtnText>Cancel</CancelBtnText>
+              </CancelBtn>
+              <SaveBtn onPress={saveEdit}>
+                <SaveBtnText>Save Changes</SaveBtnText>
+              </SaveBtn>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -321,3 +397,33 @@ const ActionButtonText = styled.Text<{ primary?: boolean }>`
   font-size: 12px; font-weight: 700;
   color: ${({ primary }) => primary ? '#FFFFFF' : '#0F8A3C'};
 `;
+
+const ModalOverlay = styled.View`
+  flex: 1; background-color: rgba(0,0,0,0.5); justify-content: flex-end;
+`;
+const ModalContent = styled.View`
+  background-color: #FFFFFF; border-top-left-radius: 20px; border-top-right-radius: 20px;
+  max-height: 80%;
+`;
+const ModalHeader = styled.View`
+  flex-direction: row; justify-content: space-between; align-items: center;
+  padding: 16px; border-bottom-width: 1px; border-bottom-color: #F3F4F6;
+`;
+const ModalTitle = styled.Text`font-size: 16px; font-weight: 700; color: #111827;`;
+const CloseBtn = styled.TouchableOpacity`padding: 4px;`;
+const FormLabel = styled.Text`font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; margin-top: 14px;`;
+const FormInput = styled.TextInput`
+  border-width: 1px; border-color: #E5E7EB; border-radius: 10px;
+  padding: 12px; font-size: 14px; color: #111827; background-color: #F9FAFB;
+`;
+const ModalFooter = styled.View`
+  flex-direction: row; gap: 12px; padding: 16px; border-top-width: 1px; border-top-color: #F3F4F6;
+`;
+const CancelBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #F3F4F6; align-items: center;
+`;
+const CancelBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #6B7280;`;
+const SaveBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #0F8A3C; align-items: center;
+`;
+const SaveBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #FFFFFF;`;

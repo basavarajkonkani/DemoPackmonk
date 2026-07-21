@@ -1,13 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import Layout from '../components/Layout';
 import { useAppDispatch } from '../store';
 import { logout } from '../store/authSlice';
 import { useNavigate } from 'react-router-dom';
+import { readValue, writeValue } from '../services/storage';
+
+interface SettingsState {
+  emailNotifications: boolean;
+  orderUpdates: boolean;
+  theme: 'Light' | 'Dark' | 'Auto';
+  language: 'English' | 'Hindi';
+}
+
+const SETTINGS_KEY = 'app_settings';
+const DEFAULT_SETTINGS: SettingsState = {
+  emailNotifications: true,
+  orderUpdates: true,
+  theme: 'Light',
+  language: 'English',
+};
 
 const SettingsPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [settings, setSettings] = useState<SettingsState>(() => readValue(SETTINGS_KEY, DEFAULT_SETTINGS));
+
+  const updateSetting = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
+    const next = { ...settings, [key]: value };
+    setSettings(next);
+    writeValue(SETTINGS_KEY, next);
+  };
 
   const handleLogout = () => {
     dispatch(logout());
@@ -24,13 +47,21 @@ const SettingsPage: React.FC = () => {
           <SettingItem>
             <Label>Email Notifications</Label>
             <Toggle>
-              <input type="checkbox" defaultChecked />
+              <input
+                type="checkbox"
+                checked={settings.emailNotifications}
+                onChange={(e) => updateSetting('emailNotifications', e.target.checked)}
+              />
             </Toggle>
           </SettingItem>
           <SettingItem>
             <Label>Order Updates</Label>
             <Toggle>
-              <input type="checkbox" defaultChecked />
+              <input
+                type="checkbox"
+                checked={settings.orderUpdates}
+                onChange={(e) => updateSetting('orderUpdates', e.target.checked)}
+              />
             </Toggle>
           </SettingItem>
         </SettingsCard>
@@ -39,7 +70,10 @@ const SettingsPage: React.FC = () => {
           <SectionTitle>System Settings</SectionTitle>
           <SettingItem>
             <Label>Theme</Label>
-            <Select>
+            <Select
+              value={settings.theme}
+              onChange={(e) => updateSetting('theme', e.target.value as SettingsState['theme'])}
+            >
               <option>Light</option>
               <option>Dark</option>
               <option>Auto</option>
@@ -47,7 +81,10 @@ const SettingsPage: React.FC = () => {
           </SettingItem>
           <SettingItem>
             <Label>Language</Label>
-            <Select>
+            <Select
+              value={settings.language}
+              onChange={(e) => updateSetting('language', e.target.value as SettingsState['language'])}
+            >
               <option>English</option>
               <option>Hindi</option>
             </Select>

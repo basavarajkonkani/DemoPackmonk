@@ -7,6 +7,8 @@ import { useAppSelector } from '../store';
 
 // App Selection
 import AppSelectionScreen from '../screens/AppSelectionScreen';
+import AdminLoginScreen from '../screens/AdminLoginScreen';
+import AdminTabNavigator from './AdminTabNavigator';
 
 // Buyer App Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -14,7 +16,9 @@ import OrdersScreen from '../screens/OrdersScreen';
 import AccountScreen from '../screens/AccountScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
+import ProductsScreen from '../screens/ProductsScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
+import DesignStudioScreen from '../screens/DesignStudioScreen';
 import RequestQuoteScreen from '../screens/RequestQuoteScreen';
 import AIRecommendationsScreen from '../screens/AIRecommendationsScreen';
 import ShipmentTrackingScreen from '../screens/ShipmentTrackingScreen';
@@ -23,7 +27,6 @@ import CheckoutScreen from '../screens/CheckoutScreen';
 import PreCheckoutInfoScreen from '../screens/PreCheckoutInfoScreen';
 import MobileVerificationScreen from '../screens/MobileVerificationScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
-import PouchConfiguratorScreen from '../screens/PouchConfiguratorScreen';
 import StreamlinedPouchConfiguratorScreen from '../screens/StreamlinedPouchConfiguratorScreen';
 import OrderPlacedScreen from '../screens/OrderPlacedScreen';
 import CustomOrderFlowScreen from '../screens/CustomOrderFlowScreen';
@@ -180,18 +183,26 @@ export default function RootNavigator({ initialRoute = 'MainTabs' }: RootNavigat
     >
       {/* App Selection - Entry Point */}
       <Stack.Screen name="AppSelection" component={AppSelectionScreen} />
+      <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
 
       {/* ============================================
           BUYER APP STACK
           ============================================ */}
       <Stack.Screen name="MainTabs" component={BuyerTabNavigator} options={{ animationEnabled: false }} />
-      
+
+      {/* ============================================
+          ADMIN APP STACK
+          ============================================ */}
+      <Stack.Screen name="AdminTabs" component={AdminTabNavigator} options={{ animationEnabled: false }} />
+
       {/* Auth Screens - Only shown when checkout triggers login requirement */}
       <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       
       {/* Buyer Screens */}
+      <Stack.Screen name="Products" component={ProductsScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ presentation: 'card' }} />
+      <Stack.Screen name="DesignStudio" component={DesignStudioScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="RequestQuote" component={RequestQuoteScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="AIRecommendations" component={AIRecommendationsScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="ShipmentTracking" component={ShipmentTrackingScreen} options={{ presentation: 'card' }} />
@@ -200,7 +211,6 @@ export default function RootNavigator({ initialRoute = 'MainTabs' }: RootNavigat
       <Stack.Screen name="PreCheckoutInfo" component={PreCheckoutInfoScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ presentation: 'card' }} />
-      <Stack.Screen name="PouchConfigurator" component={PouchConfiguratorScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="StreamlinedPouchConfigurator" component={StreamlinedPouchConfiguratorScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="ReadyStockProducts" component={ReadyStockProductsScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="ReadyStockProductDetail" component={ReadyStockProductDetailScreen} options={{ presentation: 'card' }} />

@@ -1,40 +1,37 @@
-import React, { useState } from 'react';
-import { ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, Alert, Modal } from 'react-native';
 import styled from 'styled-components/native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useAppDispatch, useAppSelector } from '../../store';
+import {
+  fetchAddresses,
+  createAddressThunk,
+  updateAddressThunk,
+  deleteAddressThunk,
+  setDefaultAddressThunk,
+  selectAddresses,
+} from '../../store/addressesSlice';
+import type { Address } from '../../store/addressesSlice';
 
 interface Props {
   navigation: any;
 }
 
+const EMPTY_FORM = { company: '', street: '', city: '', state: '', zip: '', country: 'India' };
+
 const ManageAddressesScreen: React.FC<Props> = ({ navigation }) => {
-  const [addresses, setAddresses] = useState([
-    {
-      id: '1',
-      company: 'Sharma Industries HQ',
-      street: '123, Industrial Area, Sector 15',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      zip: '400001',
-      country: 'India',
-      isDefault: true,
-    },
-    {
-      id: '2',
-      company: 'Warehouse - Pune',
-      street: '456, Logistics Park, Hinjewadi',
-      city: 'Pune',
-      state: 'Maharashtra',
-      zip: '411057',
-      country: 'India',
-      isDefault: false,
-    },
-  ]);
+  const dispatch = useAppDispatch();
+  const addresses = useAppSelector(selectAddresses);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+
+  useEffect(() => {
+    dispatch(fetchAddresses());
+  }, [dispatch]);
 
   const setDefaultAddress = (id: string) => {
-    setAddresses((prev) =>
-      prev.map((addr) => ({ ...addr, isDefault: addr.id === id }))
-    );
+    dispatch(setDefaultAddressThunk(id));
     Alert.alert('Success', 'Default address updated');
   };
 
@@ -49,9 +46,62 @@ const ManageAddressesScreen: React.FC<Props> = ({ navigation }) => {
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: () => setAddresses((prev) => prev.filter((a) => a.id !== id)),
+        onPress: () => dispatch(deleteAddressThunk(id)),
       },
     ]);
+  };
+
+  const openAdd = () => {
+    setEditingAddress(null);
+    setForm(EMPTY_FORM);
+    setShowAddModal(true);
+  };
+
+  const openEdit = (address: Address) => {
+    setEditingAddress(address);
+    setForm({
+      company: address.company,
+      street: address.street,
+      city: address.city,
+      state: address.state,
+      zip: address.zip,
+      country: address.country,
+    });
+    setShowAddModal(true);
+  };
+
+  const saveAddress = () => {
+    if (!form.company.trim() || !form.street.trim() || !form.city.trim() || !form.zip.trim()) {
+      Alert.alert('Error', 'Company, street, city and ZIP are required');
+      return;
+    }
+    if (editingAddress) {
+      dispatch(
+        updateAddressThunk({
+          ...editingAddress,
+          company: form.company.trim(),
+          street: form.street.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+          zip: form.zip.trim(),
+          country: form.country.trim(),
+        })
+      );
+    } else {
+      dispatch(
+        createAddressThunk({
+          company: form.company.trim(),
+          street: form.street.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+          zip: form.zip.trim(),
+          country: form.country.trim(),
+          isDefault: addresses.length === 0,
+        })
+      );
+    }
+    setShowAddModal(false);
+    setForm(EMPTY_FORM);
   };
 
   return (
@@ -61,7 +111,7 @@ const ManageAddressesScreen: React.FC<Props> = ({ navigation }) => {
           <FontAwesome5 name="arrow-left" size={18} color="#111827" />
         </BackBtn>
         <HeaderTitle>Shipping Addresses</HeaderTitle>
-        <AddBtn onPress={() => Alert.alert('Add Address', 'Feature coming soon')}>
+        <AddBtn onPress={openAdd}>
           <FontAwesome5 name="plus" size={18} color="#ffffff" />
         </AddBtn>
       </Header>
@@ -94,7 +144,7 @@ const ManageAddressesScreen: React.FC<Props> = ({ navigation }) => {
             </AddressLine>
 
             <ActionRow>
-              <ActionBtn onPress={() => Alert.alert('Edit', `Edit ${address.company}`)}>
+              <ActionBtn onPress={() => openEdit(address)}>
                 <FontAwesome5 name="edit" size={14} color="#3B82F6" />
                 <ActionText style={{ color: '#3B82F6' }}>Edit</ActionText>
               </ActionBtn>
@@ -112,11 +162,46 @@ const ManageAddressesScreen: React.FC<Props> = ({ navigation }) => {
           </AddressCard>
         ))}
 
-        <AddNewCard onPress={() => Alert.alert('Add Address', 'Feature coming soon')}>
+        <AddNewCard onPress={openAdd}>
           <FontAwesome5 name="plus-circle" size={32} color="#0f8a3c" />
           <AddNewText>Add New Address</AddNewText>
         </AddNewCard>
       </ScrollView>
+
+      <Modal visible={showAddModal} transparent animationType="slide">
+        <ModalOverlay>
+          <ModalContent>
+            <ModalHeader>
+              <ModalTitle>{editingAddress ? 'Edit Address' : 'New Address'}</ModalTitle>
+              <CloseBtn onPress={() => setShowAddModal(false)}>
+                <FontAwesome5 name="times" size={18} color="#111827" />
+              </CloseBtn>
+            </ModalHeader>
+            <ScrollView contentContainerStyle={{ padding: 16 }}>
+              <FormLabel>Company / Label *</FormLabel>
+              <FormInput value={form.company} onChangeText={(t) => setForm({ ...form, company: t })} placeholder="Warehouse - Pune" />
+              <FormLabel>Street Address *</FormLabel>
+              <FormInput value={form.street} onChangeText={(t) => setForm({ ...form, street: t })} placeholder="123, Industrial Area" />
+              <FormLabel>City *</FormLabel>
+              <FormInput value={form.city} onChangeText={(t) => setForm({ ...form, city: t })} placeholder="Mumbai" />
+              <FormLabel>State</FormLabel>
+              <FormInput value={form.state} onChangeText={(t) => setForm({ ...form, state: t })} placeholder="Maharashtra" />
+              <FormLabel>ZIP Code *</FormLabel>
+              <FormInput value={form.zip} onChangeText={(t) => setForm({ ...form, zip: t })} placeholder="400001" keyboardType="number-pad" />
+              <FormLabel>Country</FormLabel>
+              <FormInput value={form.country} onChangeText={(t) => setForm({ ...form, country: t })} placeholder="India" />
+            </ScrollView>
+            <ModalFooter>
+              <CancelBtn onPress={() => setShowAddModal(false)}>
+                <CancelBtnText>Cancel</CancelBtnText>
+              </CancelBtn>
+              <SaveBtn onPress={saveAddress}>
+                <SaveBtnText>{editingAddress ? 'Save Changes' : 'Add Address'}</SaveBtnText>
+              </SaveBtn>
+            </ModalFooter>
+          </ModalContent>
+        </ModalOverlay>
+      </Modal>
     </Wrapper>
   );
 };
@@ -252,3 +337,33 @@ const AddNewText = styled.Text`
   color: #0f8a3c;
   margin-top: 8px;
 `;
+
+const ModalOverlay = styled.View`
+  flex: 1; background-color: rgba(0,0,0,0.5); justify-content: flex-end;
+`;
+const ModalContent = styled.View`
+  background-color: #FFFFFF; border-top-left-radius: 20px; border-top-right-radius: 20px;
+  max-height: 85%;
+`;
+const ModalHeader = styled.View`
+  flex-direction: row; justify-content: space-between; align-items: center;
+  padding: 16px; border-bottom-width: 1px; border-bottom-color: #F3F4F6;
+`;
+const ModalTitle = styled.Text`font-size: 16px; font-weight: 700; color: #111827;`;
+const CloseBtn = styled.TouchableOpacity`padding: 4px;`;
+const FormLabel = styled.Text`font-size: 12px; font-weight: 600; color: #6B7280; margin-bottom: 6px; margin-top: 14px;`;
+const FormInput = styled.TextInput`
+  border-width: 1px; border-color: #E5E7EB; border-radius: 10px;
+  padding: 12px; font-size: 14px; color: #111827; background-color: #F9FAFB;
+`;
+const ModalFooter = styled.View`
+  flex-direction: row; gap: 12px; padding: 16px; border-top-width: 1px; border-top-color: #F3F4F6;
+`;
+const CancelBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #F3F4F6; align-items: center;
+`;
+const CancelBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #6B7280;`;
+const SaveBtn = styled.TouchableOpacity`
+  flex: 1; padding: 14px; border-radius: 10px; background-color: #0F8A3C; align-items: center;
+`;
+const SaveBtnText = styled.Text`font-size: 14px; font-weight: 700; color: #FFFFFF;`;

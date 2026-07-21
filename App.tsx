@@ -30,7 +30,7 @@ const AppContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const userRole = useSelector((state: RootState) => state.auth.role);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-  const [initialRoute, setInitialRoute] = useState<'MainTabs' | 'AdminTabs' | null>(null);
+  const [initialRoute, setInitialRoute] = useState<'AppSelection' | 'MainTabs' | 'AdminTabs' | null>(null);
   const [webFontsReady, setWebFontsReady] = useState(Platform.OS !== 'web');
   const [isReady, setIsReady] = useState(false);
   const navigationRef = useRef<any>(null);
